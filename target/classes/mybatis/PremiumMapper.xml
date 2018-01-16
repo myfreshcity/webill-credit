@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webill.core.service.mapper.PremiumMapper" >
+  <sql id="Base_Column_List" >
+    id, sort_code AS sortCode, prm_name AS prmName, amount, prm_code AS prmCode, prm_type AS prmType
+  </sql>
+  
+  <select id="selectPremiumListByMap" resultType="com.webill.core.model.Premium" parameterType="map">
+  	select <include refid="Base_Column_List"></include>
+  	from premium
+  	<where>
+  		<if test="prmName!=null and prmName!=''">
+  			prm_name like concat(concat('%',#{prmName}),'%')
+  		</if>
+  		<if test="prmType!=null">
+  			prm_type = #{prmType}
+  		</if>
+  			and id not in (select prm_id from premium_detail t where t.prm_order_id = #{orderId})
+  	</where>
+  
+  </select>
+</mapper>

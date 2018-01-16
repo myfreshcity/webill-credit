@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.LabelGroupMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, group_name AS groupName, description, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+	
+	<select id="labelGroupList" resultType="com.webill.core.model.LabelGroup">
+		SELECT 
+			<include refid="Base_Column_List"></include>
+		FROM
+			label_group lg
+		WHERE lg.group_name != '导航标签'
+	</select>
+</mapper>

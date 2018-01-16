@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+          http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<context:component-scan base-package=" com.webill.core.service.impl" /><!--需要扫描的包-->
+	<!-- 如下实现是通过线程池执行的 -->
+	<task:executor id="executor" pool-size="10" />
+	<task:scheduler id="scheduler" pool-size="10" />
+	<task:annotation-driven scheduler="scheduler"
+		executor="executor" proxy-target-class="true" />
+	<task:scheduled-tasks scheduler="scheduler">
+		<!-- 自动发放优惠券，每五分钟发放一次执行 -->
+		<task:scheduled ref="taskJobService" method="sendCoupon"	cron="0 0/5 * * * ?" />
+	</task:scheduled-tasks>
+
+</beans>

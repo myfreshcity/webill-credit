@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.OrderLogMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, order_id AS orderId,operator_id AS operatorId, order_t_status AS orderTStatus, pay_status AS payStatus, issue_status AS issueStatus, remark, created_time AS createdTime
+	</sql>
+
+</mapper>

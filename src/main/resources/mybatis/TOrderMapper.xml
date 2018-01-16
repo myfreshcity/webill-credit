@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.TOrderMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, product_id AS productId, user_id AS userId, other_info_id AS otherInfoId, trans_no AS transNo, in_order_no AS inOrderNo, total_num AS totalNum, start_date AS startDate, end_date AS endDate, deadline, deadline_text AS deadlineText, issue_status AS issueStatus, effective_status AS effectiveStatus, pay_status AS payStatus, pay_amount AS payAmount, category_name AS categoryName, insure_time AS insureTime, c_name AS cName, e_name AS eName, card_type AS cardType, card_number AS cardNumber, sex, birthday, country, prov_city_text AS provCityText, job_text AS jobText, home_address AS homeAddress, home_post AS homePost, office_address AS officeAddress, office_post AS officePost, tel, contact_address AS contactAddress, contact_post AS contactPost, mobile, email, marry_state AS marryState, house_type_name AS houseTypeName, property_address AS propertyAddress, property_post AS propertyPost, have_medical AS haveMedical, height, weight, yearly_income AS yearlyIncome, client_type AS clientType, gate_way AS gateWay, pay_time AS payTime, order_issue_time AS orderIssueTime, insure_issue_time AS insureIssueTime, t_status AS tStatus, insure_down_url AS insureDownUrl, remark, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+	<!-- 后台获取订单列表 -->
+	<select id="getList" resultType="com.webill.core.model.TOrder">
+		SELECT
+			p.id,
+			p.trans_no AS transNo,
+			p.created_time AS createdTime,
+			a.mobile,
+			p.pay_amount AS payAmount,
+			p.client_type AS clientType,
+			p.gate_way AS gateWay,
+			p.t_status AS tStatus
+		FROM
+			t_order p
+		LEFT JOIN order_applicant a ON p.id = a.order_id
+		LEFT JOIN order_insurant i ON p.id = i.order_id
+		<where>
+			1 = 1 
+			<if test="policyNum!=null and policyNum!=''">
+				AND (p.trans_no = #{policyNum} OR i.policy_num = #{policyNum})
+			</if>
+			<if test="cName!=null and cName!=''">
+				AND (
+					a.c_name LIKE concat(concat('%',#{cName}),'%')
+					OR a.mobile LIKE concat(concat('%',#{cName}),'%')
+				)
+			</if>
+			<if test="tStatus!=null and tStatus!=''">
+				AND p.t_status=#{tStatus}
+			</if>
+			<if test="createdTime!=null">
+				AND date_format(p.created_time, '%Y-%m-%d')=date_format(#{createdTime}, '%Y-%m-%d')
+			</if>
+		</where>
+	</select>
+	<select id="getNumByStatus" resultType="map">
+		SELECT 
+			SUM(CASE t_status WHEN '-1' THEN num ELSE 0 END) AS 'yscNum', 
+			SUM(CASE t_status WHEN '0' THEN num ELSE 0 END) AS 'defaultNum', 
+			SUM(CASE t_status WHEN '10' THEN num ELSE 0 END) AS 'dfkNum', 
+			SUM(CASE t_status WHEN '15' THEN num ELSE 0 END) AS 'dfhNum', 
+			SUM(CASE t_status WHEN '20' THEN num ELSE 0 END) AS 'ycdNum', 
+			SUM(CASE t_status WHEN '30' THEN num ELSE 0 END) AS 'ywcNum', 
+			SUM(CASE t_status WHEN '40' THEN num ELSE 0 END) AS 'ygbNum', 
+			SUM(CASE t_status WHEN '90' THEN num ELSE 0 END) AS 'ysxNum'
+		FROM (
+			SELECT o.t_status, COUNT(-1) AS num
+			FROM t_order o
+			GROUP BY o.t_status
+			) t
+	</select>
+	<!-- 用户获取订单列表 -->
+	<select id="getOrderList" resultType="com.webill.core.model.TOrder">
+		SELECT
+			o.id,
+			p.prod_name as prodName,
+			p.description,
+			p.case_code as caseCode,
+			p.img_url_show as imgUrlShow,
+			o.created_time as createdTime,
+			o.t_status AS tStatus,
+			o.total_num as totalNum,
+			o.pay_amount as payAmount
+		FROM
+			t_order o
+		LEFT JOIN product p ON o.product_id = p.id
+		WHERE
+		1 = 1
+		<if test="userId!=null and userId!=''">
+			and o.user_id = #{userId}	
+		</if>
+		<if test="tStatus!=null and tStatus!=''">
+			and o.t_status = #{tStatus}	
+		</if>
+		order by o.created_time desc
+	</select>
+	
+</mapper>

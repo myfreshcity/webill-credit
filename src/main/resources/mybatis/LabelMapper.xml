@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.LabelMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, label_name AS labelName, group_id AS groupId, description, admin_id AS adminId, status, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+	
+	<select id="getNavLabel" resultType="com.webill.core.model.Label">
+		SELECT 
+			<include refid="Base_Column_List"></include>
+		FROM
+			label l
+		WHERE l.group_id = 1
+	</select>
+	
+	<select id="labelListByGroupId" resultType="com.webill.core.model.Label" parameterType="Integer">
+		SELECT 
+			<include refid="Base_Column_List"></include>
+		FROM
+			label l
+		WHERE l.group_id = #{id}
+	</select>
+</mapper>

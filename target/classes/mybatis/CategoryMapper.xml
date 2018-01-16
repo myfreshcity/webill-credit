@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.CategoryMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, cat_name AS catName, icon_url AS iconUrl, sort_index AS sortIndex, parent_id AS parentId, level, is_display AS isDisplay, description, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+	
+	<!-- 通用选择列 -->
+	<sql id="S_Base_Column_List">
+		c.id, c.cat_name AS catName, c.icon_url AS iconUrl, c.sort_index AS sortIndex, c.parent_id AS parentId, c.level, c.is_display AS isDisplay, c.description, c.t_status AS tStatus, c.updated_time AS updatedTime, c.created_time AS createdTime
+	</sql>
+
+	<select id="getFirstCatList" resultType="com.webill.core.model.Category">
+		SELECT 
+			<include refid="Base_Column_List"></include>
+		FROM
+			category c
+		WHERE `level` = 1 AND is_display = 0
+		ORDER BY c.sort_index
+	</select>
+	
+	<select id="getSecondCatList" resultType="com.webill.core.model.Category" parameterType="Integer">
+		SELECT 
+			<include refid="Base_Column_List"></include>
+		FROM
+			category c
+		WHERE `level` = 2 and parent_id = #{id}
+	</select>
+	
+	<select id="getSecondCatList" resultType="com.webill.core.model.Category" parameterType="Integer">
+		SELECT 
+			<include refid="Base_Column_List"></include>
+		FROM
+			category c
+		WHERE `level` = 2 and parent_id = #{id}
+	</select>
+	
+	<select id="getChildCatList" resultType="com.webill.core.model.Category" parameterType="Integer">
+		SELECT 
+			<include refid="Base_Column_List"></include>
+		FROM
+			category c
+		WHERE parent_id = #{id}
+	</select>
+	
+	<select id="getCatIdByName" resultType="Integer" parameterType="String">
+		SELECT 
+			c.id
+		FROM
+			category c
+		WHERE c.cat_name = #{cateName}
+	</select>
+	
+	<select id="getCategoryList" resultType="com.webill.core.model.Category">
+			SELECT
+				<include refid="S_Base_Column_List"></include>,cc.cat_name AS parentCatName
+			FROM category c
+			LEFT JOIN category cc ON cc.id = c.parent_id
+			<where>
+				1 = 1
+				<if test="catName!=null and catName!=''">
+					and c.cat_name LIKE concat(concat('%',#{catName}),'%')
+				</if>
+				<if test="level!=null and level!=''">
+					and c.`level` = #{level}	
+				</if>
+			</where>
+			order by c.created_time desc			
+	  </select>
+	
+</mapper>

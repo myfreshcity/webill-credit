@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.CarUserRelMapper">
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, car_id AS carId, user_id AS userId, mobile_no AS mobileNo,license_no AS licenseNo, updated_time AS updatedTime, created_time AS createdTime,
+		id_card_p_path AS idCardPPath,id_card_n_path AS idCardNPath,
+		vehicle_license_p_path AS vehicleLicensePPath,vehicle_license_n_path AS vehicleLicenseNPath,
+		drive_license_p_path AS driveLicensePPath,drive_license_n_path AS driveLicenseNPath
+	</sql>
+	<select id="getCarListBy" parameterType="map" resultType="com.webill.core.model.CarUserRel">
+		SELECT
+			r.id,
+			r.car_id AS carId,
+			r.user_id AS userId,
+			r.mobile_no AS mobileNo,
+			r.license_no AS licenseNo,
+			r.updated_time AS updatedTime,
+			r.created_time AS createdTime,
+			ci.car_owner AS carOwner,
+			ci.brand_name AS brandName,
+			ci.prm_end_time AS prmEndTime,
+			ci.purchase_price AS purchasePrice,
+			ci.enroll_date AS enrollDate,
+			ci.insurer_com AS insurerCom		
+		FROM
+			(
+				SELECT
+					id
+				FROM
+					(
+						SELECT
+							cur.id,
+							cur.license_no,
+							cur.created_time
+						FROM
+							car_user_rel cur
+						<where>
+						1=1
+							<if test="userId!=null and userId!=''">
+								and user_id = #{userId}
+							</if>
+						</where>
+						ORDER BY
+							created_time DESC
+					) a
+				GROUP BY
+					a.license_no
+			) t
+		INNER JOIN car_user_rel r ON t.id = r.id
+		LEFT JOIN car_info ci ON r.license_no = ci.license_no
+		WHERE ci.`status`=0	
+	</select>
+	
+	<select id="getCarUserRelByMap" parameterType="map" resultType="com.webill.core.model.CarUserRel">
+		SELECT
+			r.id,
+			r.car_id AS carId,
+			r.user_id AS userId,
+			r.mobile_no AS mobileNo,
+			r.license_no AS licenseNo,
+			r.updated_time AS updatedTime,
+			r.created_time AS createdTime, 
+			i.car_owner AS carOwner
+		FROM
+			car_user_rel r
+		LEFT JOIN car_info i ON r.car_id = i.id
+		WHERE
+		1 = 1
+		<if test="userId!=null and userId!=''">
+			and r.user_id = #{userId}
+		</if>		
+		<if test="licenseNo!=null and licenseNo!=''">
+			AND r.license_no = #{licenseNo}	
+		</if>		
+	</select>
+</mapper>

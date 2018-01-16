@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.IllegalOrderMapper">
+
+	<!-- 通用查询结果列 -->
+	<sql id="Base_Column_List">
+		id, trade_no AS tradeNo, user_id AS userId,detail_ids AS detailIds,contact_id AS contactId, count,car_id AS carId,license_no AS licenseNo,
+		total_money AS totalMoney, total_fee AS totalFee, status, update_time,total_count AS totalCount,discount_money AS discountMoney,
+		update_time AS updateTime, created_time AS createdTime
+	</sql>
+ 	<select id="getIllegalOrderList" resultType="com.webill.core.model.IllegalOrder">
+		SELECT
+			IO.created_time AS createdTime,
+			CI.license_no AS licenseNo,
+			CI.car_owner AS carOwner,
+			IO.count AS count,
+			IO.id AS id,
+			IO.`status` AS 'status',
+			IO.update_time AS updateTime
+		FROM
+			illegal_order IO
+		LEFT JOIN car_info CI ON IO.car_id = CI.id
+		<where>
+			<if test="status!=null and status!='' or status==0">
+				IO.`status` = #{status}	
+			</if>
+			<if test="licenseNo!=null and licenseNo!=''">
+				CI.license_no like concat(concat('%',#{licenseNo}),'%')
+			</if>
+			<if test="carOwner!=null and carOwner!=''">
+				CI.car_owner like concat(concat('%',#{carOwner}),'%')
+			</if>
+			<if test="starTime!=null and starTime!='' ">
+				and IO.created_time &gt;= str_to_date('${starTime} 00:00:00','%Y-%m-%d %H:%i:%s')
+			</if>
+			<if test="endTime!=null and endTime!='' ">
+				and IO.created_time &lt;= str_to_date('${endTime} 23:59:59','%Y-%m-%d %H:%i:%s')
+			</if>			
+		</where>
+		order by IO.created_time desc
+				
+	</select>
+	<select id="getIllegalOrderInfo" parameterType="map" resultType="com.webill.core.model.IllegalOrder">
+		SELECT
+			ci.owner_phone AS ownerPhone,
+			o.total_money AS totalMoney,
+			o.total_fee AS totalFee,
+			o.detail_ids AS detailIds,
+			o.license_no AS licenseNo,
+			o.trade_no AS tradeNo,
+			o.created_time AS createdTime,
+			o.count AS count,
+			o.discount_money AS discountMoney,
+			o.user_id AS userId,
+			o.total_count AS totalCount
+		FROM
+			illegal_order o
+		LEFT JOIN car_info ci ON o.car_id = ci.id
+		WHERE
+			o.id = #{id}	
+	</select>
+	<select id="getOnlyIllegalOrderByMap" parameterType="map" resultType="com.webill.core.model.IllegalOrder">
+		SELECT
+			<include refid="Base_Column_List"></include>
+		FROM
+			illegal_order
+		WHERE
+			user_id =#{userId}
+			and status!='-1'
+		order by  created_time DESC	
+	</select>
+	<!-- 模板推送,违章缴费完成通知 -->
+	<select id="getWaitPushIllegalPay" resultType="com.webill.core.model.IllegalOrder" parameterType="string">
+		SELECT
+			o.trade_no AS tradeNo,
+			o.license_no AS licenseNo,
+			o.count,
+			o.total_count AS totalCount,
+			o.update_time AS updateTime,
+			o.status,
+			u.open_id AS openId
+		FROM
+			illegal_order o
+		LEFT JOIN `user` u ON o.user_id = u.id
+		WHERE
+		1 = 1
+		<if test="_parameter!=null and _parameter!=''">
+			and o.id = #{_parameter}	
+		</if>
+	</select>
+</mapper>

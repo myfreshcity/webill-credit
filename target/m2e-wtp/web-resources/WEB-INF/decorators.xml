@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decorators defaultdir="/WEB-INF">
+
+    <!-- 默认装饰页面, 在需要装饰的页面增加<meta name="decorator" content="default"/> -->
+    <decorator name="default" page="views/layout/default.jsp">
+        <pattern>/*</pattern>
+    </decorator>
+
+    <decorator name="login" page="views/layout/blank.jsp">
+        <pattern>/login</pattern>
+    </decorator>
+
+    <!-- 装饰velocity模板 -->
+    <decorator name="velocity" page="velocity.vm">
+        <pattern>/velocity.html</pattern>
+    </decorator>
+
+    <!-- 装饰freeMarker模板 -->
+    <decorator name="freemarker" page="freemarker.ftl">
+        <pattern>/freemarker.html</pattern>
+    </decorator>
+
+    <excludes>
+        <pattern>/assets/*</pattern>
+        <pattern>/v2/api-docs/*</pattern>
+        <pattern>/swagger*</pattern>
+    </excludes>
+
+</decorators>

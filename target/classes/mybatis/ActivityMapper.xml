@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.ActivityMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, act_name AS actName, act_desc AS actDesc, rule_id AS ruleId, use_amt AS useAmt, valid_start_time AS validStartTime, valid_end_time AS validEndTime, created_time AS createdTime
+	</sql>
+
+</mapper>

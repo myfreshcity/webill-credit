@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.webill.core.service.mapper.CouponMapper" >
+  	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, cp_name AS cpName, cp_desc AS cpDesc, rule_id AS ruleId, plan_amt AS planAmt, obtain_amt AS obtainAmt,send_way AS sendWay,use_amt AS useAmt, send_start_time AS sendStartTime, send_end_time AS sendEndTime,cp_valid_day AS cpValidDay,status,cp_end_time AS cpEndTime, created_time AS createdTime,send_target AS sendTarget
+	</sql>
+	<!-- 通用列-->
+	<sql id="C_Base_Column_List">
+		c.id, c.cp_name AS cpName, c.cp_desc AS cpDesc, c.rule_id AS ruleId, c.plan_amt AS planAmt, c.obtain_amt AS obtainAmt,send_way AS sendWay,use_amt AS useAmt, c.send_start_time AS sendStartTime, c.send_end_time AS sendEndTime,cp_valid_day AS cpValidDay,c.status,cp_end_time AS cpEndTime, c.created_time AS createdTime,c.send_target AS sendTarget
+	</sql>
+	<select id="getList" resultType="com.webill.core.model.Coupon">
+		SELECT
+			<include refid="C_Base_Column_List"></include>, 
+			pr.rule_name as ruleName,
+			pr.sale_amt as saleAmtStr,
+			pr.use_scope as sendScope,
+			pr.amt_limit as amtLimitStr,
+			pr.sale_result as saleResult
+		FROM
+			coupon c
+		LEFT JOIN promo_rule pr ON c.rule_id = pr.id
+		<where>
+			<if test="cpName!=null and cpName!=''">
+				c.cp_name LIKE concat(concat('%',#{cpName}),'%')
+			</if>		 
+			<if test="status!=null and status!='' or status==0">
+				and c.`status` = #{status}
+			</if>
+			<if test="sendWay!=null and sendWay!='' or sendWay==0">
+				and c.send_way = #{sendWay}	
+			</if>
+		</where>
+		order by c.created_time desc
+	</select>
+	<select id="getWaitingCouponList" resultType="com.webill.core.model.Coupon">
+		SELECT <include refid="C_Base_Column_List"></include> from coupon c 
+		<where>
+			<if test="status!=null and status!='' or status==0">
+				c.`status` = #{status}
+			</if>
+			and  c.send_start_time &lt;= now()
+		</where> 
+	</select>
+		<!-- 根据事件获取可以给用户发放的优惠券列表 -->
+	<select id="getSendCouponList" resultType="com.webill.core.model.Coupon" parameterType="map">
+		SELECT
+			<include refid="C_Base_Column_List"></include>
+		FROM
+			coupon c
+		LEFT JOIN promo_rule pr ON c.rule_id = pr.id
+		WHERE
+			c.send_target = '微信关注'
+		AND (
+			c.obtain_amt &lt; c.plan_amt
+			OR (
+				c.obtain_amt = c.plan_amt
+				AND c.obtain_amt = 0
+			)
+		)
+		AND c.send_way = '0'
+		AND c.receive_way = '0'
+		AND now() &gt; c.send_start_time
+		AND now() &lt; c.send_end_time
+		AND c.`status` = '500'
+		AND pr.user_level = '0'
+		AND pr. STATUS = '1'
+		AND c.id NOT IN (
+			SELECT
+				a.coupon_id
+			FROM
+				user_coupon a
+			LEFT JOIN coupon cp ON a.coupon_id = cp.id
+			LEFT JOIN promo_rule b ON cp.rule_id = b.id
+			WHERE
+				(
+					a.`status` = '1'
+					OR a.`status` = '2'
+				)
+			AND a.end_time &gt; NOW()
+			<if test="userId!=null and userId!=''">
+				AND a.user_id = #{userId}
+			</if>				
+			AND cp.send_way = '0'
+		)
+	</select>
+</mapper>

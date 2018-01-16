@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.OrderBeneficiaryMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, insurant_id AS insurantId, insurant_cname AS insurantCname, c_name AS cName, e_name AS eName, card_type AS cardType, card_number AS cardNumber, sex, birthday, serial, proportion, relation, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+
+</mapper>

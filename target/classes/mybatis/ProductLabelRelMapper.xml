@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.ProductLabelRelMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, prod_id AS prodId, label_id AS labelId, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+	<sql id="P_Base_Column_List">
+		plr.id, plr.prod_id AS prodId, plr.label_id AS labelId, plr.t_status AS tStatus, plr.updated_time AS updatedTime, plr.created_time AS createdTime
+	</sql>
+	<select id="getProdLabRelByProdId" resultType="com.webill.core.model.ProductLabelRel">
+		SELECT <include refid="P_Base_Column_List"></include>
+		FROM
+			product_label_rel plr
+		INNER JOIN label l ON plr.label_id = l.id
+		WHERE
+			prod_id = #{prodId} AND l.group_id = 1
+	</select>
+
+	<select id="isRecommendByProdId" resultType="com.webill.core.model.ProductLabelRel">
+		SELECT <include refid="P_Base_Column_List"></include>
+		FROM product_label_rel plr
+		INNER JOIN label l ON l.id = plr.label_id
+		INNER JOIN label_group lg ON lg.id = l.group_id
+		WHERE lg.mark = 2 AND plr.prod_id = #{prodId}
+	</select>
+
+	<select id="getBusinessLabelByProdId" resultType="com.webill.core.model.ProductLabelRel">
+		SELECT <include refid="P_Base_Column_List"></include>,l.label_name AS labelName
+		FROM product_label_rel plr
+		INNER JOIN label l ON l.id = plr.label_id
+		INNER JOIN label_group lg ON lg.id = l.group_id 
+		WHERE lg.mark = 3 AND plr.prod_id = #{prodId}
+	</select>
+	
+</mapper>

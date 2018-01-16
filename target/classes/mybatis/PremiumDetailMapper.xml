@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.PremiumDetailMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, prm_order_id AS prmOrderId,prm_id AS prmId, prm_name AS prmName, amount, prm_value AS prmValue, prm_code AS prmCode, created_time AS createdTime
+	</sql>
+	
+	<sql id="pd_Base_Column_List">
+		pd.id,pd.prm_order_id AS prmOrderId,pd.prm_id AS prmId,pd.prm_name AS prmName,pd.amount,pd.prm_value AS prmValue,pd.prm_code AS prmCode,pd.created_time AS createdTime
+	</sql>
+	
+	<select id="selectOrderBy" parameterType="map" resultType="com.webill.core.model.PremiumDetail">
+		SELECT
+			<include refid="pd_Base_Column_List"></include>
+		FROM
+			premium_detail pd
+		LEFT JOIN premium p ON pd.prm_id = p.id
+		WHERE
+			pd.prm_order_id = #{prmOrderId}
+		ORDER BY
+			p.sort_code	
+	</select>
+
+</mapper>

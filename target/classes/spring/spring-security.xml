@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+ 			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+         	http://www.springframework.org/schema/security
+         	http://www.springframework.org/schema/security/spring-security-4.0.xsd ">
+
+	<http auto-config="true" >
+		<intercept-url pattern="/api/order/hzNotify" access="permitAll" />
+		<intercept-url pattern="/api/**" access="permitAll" />
+		<intercept-url pattern="/wx/**" access="permitAll" />
+		<intercept-url pattern="/pay/**" access="permitAll" />
+		<intercept-url pattern="/login**" access="permitAll" />
+		<intercept-url pattern="/coupon/**" access="permitAll" />
+		<intercept-url pattern="/promoRule/**" access="permitAll" />
+		<intercept-url pattern="/tOrder/**" access="permitAll" />
+		<intercept-url pattern="/userContact/**" access="permitAll" />
+		<intercept-url pattern="/user/**" access="permitAll" />
+		<intercept-url pattern="/verifyCode/**" access="permitAll" />
+		<intercept-url pattern="/assets/**" access="permitAll" />
+		<intercept-url pattern="/v2/api-docs" access="permitAll" />
+		<intercept-url pattern="/swagger**" access="permitAll" />
+		<intercept-url pattern="/category/**" access="permitAll" />
+		<intercept-url pattern="/product/**" access="permitAll" />
+		<intercept-url pattern="/label/**" access="permitAll" />
+		<intercept-url pattern="/productLog/**" access="permitAll" />
+		<intercept-url pattern="/mongoDB/**" access="permitAll" />
+
+		<intercept-url pattern="/**" access="hasRole('USER')" />
+		<intercept-url pattern="/dba**" access="hasRole('ADMIN') and hasRole('DBA')" />
+		<form-login  login-page="/login" authentication-failure-url="/Access_Denied" />
+		<csrf disabled="true"/>
+		<!--
+		<logout delete-cookies="JSESSIONID"/>
+		<s:session-management invalid-session-url="/t1.html" >
+                &lt;!&ndash; 第二个人登录,第一个人的认证会失效 &ndash;&gt;
+                <s:concurrency-control max-sessions="1" />
+                &lt;!&ndash; 第一个人登录后,第二个人无法用相同账户登录 &ndash;&gt;
+                &lt;!&ndash;<s:concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>&ndash;&gt;
+            </s:session-management>-->
+	</http>
+
+	
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider user-service-ref="userDetailService" />
+	</authentication-manager>
+
+	<beans:bean id="userDetailService"
+				class="com.webill.app.security.SpringMvcUserDetailsServiceImpl" />
+	
+</beans:beans>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.UserCouponMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, coupon_id AS couponId, user_id AS userId, status, order_id AS orderId, end_time AS endTime, created_time AS createdTime
+	</sql>
+	<sql id="uc_Base_Column_List">
+		uc.id, uc.coupon_id AS couponId, uc.user_id AS userId, uc.status, uc.order_id AS orderId, uc.end_time AS endTime, uc.created_time AS createdTime
+	</sql>
+	<select id="getCouponListBy" parameterType="map" resultType="com.webill.core.model.UserCoupon">
+		SELECT
+			<include refid="uc_Base_Column_List"></include>,
+			pr.sale_amt AS saleAmt,
+			c.cp_name AS cpName,
+			pr.use_scope AS useScope,
+			pr.amt_limit AS amtLimit,
+			pr.insurer_limit AS insurerLimit,
+			pr.sale_result AS saleResult,
+			c.cp_desc AS cpDesc,
+			
+			(
+				CASE
+				<if test="useScope!=''">
+					WHEN pr.use_scope =#{useScope}
+				</if>
+				<if test="amtLimit!=null and amtLimit!=''">
+					AND pr.amt_limit &lt; #{amtLimit}
+				</if>
+				AND uc.`status` = 1
+				<if test="areaLimit!=null and areaLimit!=''">
+					AND pr.area_limit = #{areaLimit}
+				</if>
+				<if test="insurerLimit!=null and insurerLimit!=''">
+					AND pr.insurer_limit = #{insurerLimit}
+				</if>
+				<if test="endTime!=null and endTime!=''">
+					AND uc.end_time &gt;= str_to_date('${endTime} 23:59:59','%Y-%m-%d %H:%i:%s')
+				</if>
+				THEN
+					1
+				ELSE
+					0
+				END
+			) AS cpStatus
+		FROM
+			user_coupon uc
+		LEFT JOIN coupon c ON uc.coupon_id = c.id
+		LEFT JOIN promo_rule pr ON c.rule_id = pr.id
+		<where>
+			uc.user_id=#{userId}
+		</where>
+		ORDER BY cpStatus DESC
+	</select>
+
+	<select id="getUserCouponList" resultType="com.webill.core.model.UserCoupon" parameterType="map">
+		SELECT
+			<include refid="uc_Base_Column_List"></include>, pr.use_scope AS useScope,
+			pr.amt_limit AS amtLimit,
+			pr.sale_amt AS saleAmt,
+			pr.insurer_limit AS insurerLimit,
+			pr.sale_result AS saleResult,
+			c.cp_name AS cpName,
+			c.cp_desc AS cpDesc
+		FROM
+			user_coupon uc
+		LEFT JOIN coupon c ON uc.coupon_id = c.id
+		LEFT JOIN promo_rule pr ON pr.id = c.rule_id
+		<where>
+			1 = 1
+			<if test="userId!=null and userId!=''">
+				and uc.user_id =#{userId}	
+			</if>
+			<if test="couponId!=null and couponId!=''">
+				and uc.id = #{couponId}
+			</if>
+		</where>
+		ORDER BY uc.created_time DESC
+	</select>
+	<!-- 获取优惠券发放人数 -->
+	<select id="getPeoPleNum" parameterType="map" resultType="Integer">
+		SELECT
+			COUNT(0)
+		FROM
+			(
+				SELECT
+					*
+				FROM
+					user_coupon uc
+				WHERE
+					uc.coupon_id = #{couponId}
+				GROUP BY
+					uc.user_id
+			) t
+		GROUP BY
+			t.coupon_id		
+	</select>
+</mapper>

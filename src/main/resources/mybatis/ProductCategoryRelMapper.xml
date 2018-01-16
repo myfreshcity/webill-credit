@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.ProductCategoryRelMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, prod_id AS prodId, cat_id AS catId, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+	<select id="getProdCatRelByProdId" resultType="com.webill.core.model.ProductCategoryRel">
+		SELECT <include refid="Base_Column_List"></include>
+		FROM product_category_rel
+		WHERE pcr.prod_id = #{prodId}
+	</select>
+</mapper>

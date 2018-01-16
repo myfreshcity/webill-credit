@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.PromoRuleMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, use_scope AS useScope, amt_limit AS amtLimit, area_limit AS areaLimit, insurer_limit AS insurerLimit, max_num AS maxNum, user_level AS userLevel, transfer_type AS transferType, sale_result AS saleResult, sale_amt AS saleAmt, created_time AS createdTime
+	</sql>
+
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.UserMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, open_id AS openId, union_id AS unionId, weixin_nick AS weixinNick, head_url AS headUrl, username, password, c_name AS cName, e_name AS eName, card_type AS cardType, card_code AS cardCode, sex, birthday, mobile, email, job, country, prov_city_id AS provCityId, contact_address AS contactAddress, contact_post AS contactPost, applicant_type AS applicantType, card_period AS cardPeriod, marry_state AS marryState, yearly_income AS yearlyIncome, office_address AS officeAddress, tel, work_company_name AS workCompanyName, work_email AS workEmail, office_post AS officePost, have_medical AS haveMedical, height, weight, is_staff AS isStaff, recommend_id AS recommendId, t_status AS tStatus, subscribe_flag AS subscribeFlag, login_flag AS loginFlag, created_time AS createdTime
+	</sql>
+	<sql id="U_Base_Column_List">
+		id,u.open_id AS openId,u.union_id AS unionId,u.weixin_nick AS weixinNick,u.head_url AS headUrl,u.username,u.password,u.c_name AS cName,u.e_name AS eName,u.card_type AS cardType,u.card_code AS cardCode,u.sex,u.birthday,u.mobile,u.email,u.job,u.country,u.prov_city_id AS provCityId,u.contact_address AS contactAddress,u.contact_post AS contactPost,u.applicant_type AS applicantType,u.card_period AS cardPeriod,u.marry_state AS marryState,u.yearly_income AS yearlyIncome,u.office_address AS officeAddress,u.tel,u.work_company_name AS workCompanyName,u.work_email AS workEmail,u.office_post AS officePost,u.have_medical AS haveMedical,u.height,u.weight,u.is_staff AS isStaff,u.recommend_id AS recommendId,u.t_status AS tStatus,u.subscribe_flag AS subscribeFlag,u.login_flag AS loginFlag,u.created_time AS createdTime
+	</sql>
+	<select id="getList" resultType="com.webill.core.model.User">
+		SELECT
+			<include refid="U_Base_Column_List"></include>,
+			u2.weixin_nick AS recommendName
+		FROM
+			`user` u
+		LEFT JOIN `user` u2 ON u.recommend_id = u2.id
+		WHERE
+			1 = 1
+			AND u.is_staff = 0
+		<if test="weixinNick!=null and weixinNick!=''">
+			AND u.weixin_nick LIKE concat(concat('%',#{weixinNick}),'%')
+		</if>
+		<if test="realName!=null and realName!=''">
+			AND u.real_name LIKE concat(concat('%',#{realName}),'%')
+		</if>
+		<if test="timeFrom!=null and timeFrom!='' ">
+			AND u.created_time &gt;= str_to_date('${timeFrom} 00:00:00','%Y-%m-%d %H:%i:%s')
+		</if>
+		<if test="timeTo!=null and timeTo!='' ">
+			AND u.created_time &lt;= str_to_date('${timeTo} 23:59:59','%Y-%m-%d %H:%i:%s')
+		</if>		
+		<if test="licenseNo!=null and licenseNo!=''">
+			AND u.id IN (SELECT cur.user_id from car_user_rel cur WHERE cur.license_no LIKE concat(concat('%',#{licenseNo}),'%'))
+		</if>
+	</select>
+
+</mapper>

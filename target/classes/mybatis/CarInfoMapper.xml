@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.CarInfoMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, license_no AS licenseNo, engine_no AS engineNo, frame_no AS frameNo, car_owner AS carOwner, owner_phone AS ownerPhone, search_sequence_no AS searchSequenceNo, user_id AS userId, brand_name AS brandName, model_code AS modelCode, seat_count AS seatCount, exhaust_scale AS exhaustScale, purchase_price AS purchasePrice, purchase_price_lb AS purchasePriceLb, enroll_date AS enrollDate, complete_kerb_mass AS completeKerbMass, last_illege_qtime AS lastIllegeQtime, prm_end_time AS prmEndTime, insurer_com AS insurerCom,status, created_time AS createdTime
+	</sql>
+	
+	<sql id="CI_Base_Column_List">
+		ci.id,ci.license_no AS licenseNo,ci.engine_no AS engineNo,ci.frame_no AS frameNo,ci.car_owner AS carOwner,ci.owner_phone AS ownerPhone,ci.search_sequence_no AS searchSequenceNo,ci.user_id AS userId,ci.brand_name AS brandName,ci.model_code AS modelCode,ci.seat_count AS seatCount,ci.exhaust_scale AS exhaustScale,ci.purchase_price AS purchasePrice,ci.purchase_price_lb AS purchasePriceLb,ci.enroll_date AS enrollDate,ci.complete_kerb_mass AS completeKerbMass,ci.last_illege_qtime AS lastIllegeQtime,ci.prm_end_time AS prmEndTime,ci.insurer_com AS insurerCom,ci.`status` as status,ci.created_time AS createdTime
+	</sql>
+	<!-- 获取保期内车辆列表 -->
+	<select id="getDuringCarList" resultType="com.webill.core.model.CarInfo" parameterType="map">
+		SELECT
+			<include refid="CI_Base_Column_List"></include>
+		FROM
+			car_info ci
+		WHERE
+			(
+				SELECT
+					COUNT(0) AS num
+				FROM
+					premium_order po
+				WHERE
+					po.car_id = ci.id
+				AND po.`status` IN (2000,2100, 2200,4000)
+				AND po.user_id = 0
+			) = 0
+			<if test="endTime!=null and endTime!='' ">
+				AND ci.prm_end_time &lt;= str_to_date('${endTime}','%Y-%m-%d %H:%i:%s')
+			</if>
+			<if test="startTime!=null and startTime!='' ">
+				AND ci.prm_end_time &gt;= str_to_date('${startTime}','%Y-%m-%d %H:%i:%s')
+			</if>			
+			AND ci.`status` = 0	
+	</select>
+	<select id="getCarListByUserId" parameterType="string" resultType="com.webill.core.model.CarInfo">
+		SELECT
+			c.id as id,
+			c.license_no as licenseNo,
+			c.car_owner as carOwner,
+			c.enroll_date as enrollDate,
+			c.insurer_com as insurerCom,
+			c.prm_end_time as prmEndTime,
+			r.id AS curId
+		FROM
+			car_user_rel r
+		LEFT JOIN car_info c ON r.car_id = c.id
+		WHERE
+		1 = 1
+		<if test="_parameter !=null and _parameter !=''">
+			and r.user_id = #{_parameter }	
+		</if>
+		and c.`status`='0'
+	</select>
+	<select id="getCarInfoByUser" parameterType="map" resultType="com.webill.core.model.CarInfo">
+		SELECT <include refid="CI_Base_Column_List"></include>,
+			cur.id AS curId,
+			cur.user_id AS curUserId,
+			cur.id_card_p_path AS idCardPPath,
+			cur.id_card_n_path AS idCardNPath,
+			cur.vehicle_license_p_path AS vehicleLicensePPath,
+			cur.vehicle_license_n_path AS vehicleLicenseNPath,
+			cur.drive_license_p_path AS driveLicensePPath,
+			cur.drive_license_n_path AS driveLicenseNPath			
+		FROM
+			car_info ci
+		LEFT JOIN car_user_rel cur ON ci.id = cur.car_id
+		WHERE
+			1 = 1
+		<if test="carId !=null and carId !=''">
+			AND ci.id = #{carId}
+		</if>	
+		<if test="curUserId !=null and curUserId !=''">
+			AND cur.user_id = #{curUserId}	
+		</if>					
+	</select>
+</mapper>

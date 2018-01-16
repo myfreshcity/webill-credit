@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.ProductMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, case_code AS caseCode, prod_name AS prodName, plan_name AS planName, company_name AS companyName, company_logo_url AS companyLogoUrl, off_shelf AS offShelf, frist_category AS fristCategory, second_category AS secondCategory, img_url_src AS imgUrlSrc, img_url_show AS imgUrlShow, recommend_url AS recommendUrl, default_price AS defaultPrice, min_insur_date AS minInsurDate, max_insur_date AS maxInsurDate, insur_date_limit AS insurDateLimit, prod_read AS prodRead, premium_table AS premiumTable, third_p_url AS thirdPUrl, description, auto_pay AS autoPay, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+	<sql id="P_Base_Column_List">
+		p.id, p.case_code AS caseCode, p.prod_name AS prodName, p.plan_name AS planName, p.company_name AS companyName, p.company_logo_url AS companyLogoUrl, p.off_shelf AS offShelf, p.frist_category AS fristCategory, p.second_category AS secondCategory, p.img_url_src AS imgUrlSrc, p.img_url_show AS imgUrlShow, p.recommend_url AS recommendUrl, p.default_price AS defaultPrice, p.min_insur_date AS minInsurDate, p.max_insur_date AS maxInsurDate, p.insur_date_limit AS insurDateLimit, p.prod_read AS prodRead, p.premium_table AS premiumTable, p.third_p_url AS thirdPUrl, p.description, p.auto_pay AS autoPay, p.t_status AS tStatus, p.updated_time AS updatedTime, p.created_time AS createdTime
+	</sql>
+	<sql id="P_Concat_Base_Column_List">
+		p.id, p.case_code AS caseCode, CONCAT(p.prod_name, p.plan_name) AS prodName, p.company_name AS companyName, p.company_logo_url AS companyLogoUrl, p.off_shelf AS offShelf, p.frist_category AS fristCategory, p.second_category AS secondCategory, p.img_url_src AS imgUrlSrc, p.img_url_show AS imgUrlShow, p.recommend_url AS recommendUrl, p.default_price AS defaultPrice, p.min_insur_date AS minInsurDate, p.max_insur_date AS maxInsurDate, p.insur_date_limit AS insurDateLimit, p.prod_read AS prodRead, p.premium_table AS premiumTable, p.third_p_url AS thirdPUrl, p.description, p.auto_pay AS autoPay, p.t_status AS tStatus, p.updated_time AS updatedTime, p.created_time AS createdTime
+	</sql>	
+	
+	<select id="getList" resultType="com.webill.core.model.Product" parameterType="com.webill.core.model.Product">
+		SELECT
+			<include refid="P_Base_Column_List"></include>, cc.cat_name as catName
+		FROM
+			product p
+		LEFT JOIN product_category_rel r ON p.id = r.prod_id
+		LEFT JOIN category c ON r.cat_id = c.id
+		LEFT JOIN category cc ON c.parent_id = cc.id
+		WHERE
+			1 = 1
+		AND p.t_status = 0
+		<if test="prodName!=null and prodName!=''">
+			AND p.prod_name LIKE concat(concat('%',#{prodName}),'%')
+		</if>
+		<if test="catId!=null and catId!=''">
+			AND cc.id = #{catId}
+		</if>
+		<if test="catName!=null and catName!=''">
+			AND cc.cat_name = #{catName}
+		</if>
+		<if test="companyName!=null and companyName!='' ">
+			AND p.company_name = #{companyName}
+		</if>
+		<if test="tStatus!=null and tStatus!=''">
+			AND p.t_status = #{tStatus}	
+		</if>
+		<if test="offShelf!=null and offShelf!='' or offShelf==0 ">
+			AND p.off_shelf = #{offShelf}	
+		</if>
+		order by p.created_time desc
+	</select>
+	<select id="getNumByStatus" resultType="map">
+		SELECT 
+			SUM(CASE t_status WHEN '-1' THEN num ELSE 0 END) AS 'yscNum', 
+			SUM(CASE t_status WHEN '0' THEN num ELSE 0 END) AS 'defaultNum', 
+			SUM(CASE t_status WHEN '10' THEN num ELSE 0 END) AS 'ysjNum', 
+			SUM(CASE t_status WHEN '15' THEN num ELSE 0 END) AS 'wsjNum', 
+			SUM(CASE t_status WHEN '20' THEN num ELSE 0 END) AS 'dshNum', 
+			SUM(CASE t_status WHEN '30' THEN num ELSE 0 END) AS 'wtgNum' 
+		FROM (
+			SELECT p.t_status, COUNT(-1) AS num
+			FROM product p
+			GROUP BY p.t_status
+			) t
+	</select>	
+	<select id="getProdList" resultType="com.webill.core.model.Product" parameterType="string">
+		SELECT 
+			p.id, p.case_code AS caseCode, p.prod_name AS prodName, p.plan_name AS planName, p.company_name AS companyName, 
+			p.company_logo_url AS companyLogoUrl, p.img_url_show AS imgUrlShow, p.default_price AS defaultPrice,
+			p.premium_table AS premiumTable, p.description, c.id AS catId, c.cat_name catName
+		FROM
+			product p
+		INNER JOIN product_category_rel pcr ON p.id = pcr.prod_id
+		INNER JOIN category c ON c.id = pcr.cat_id
+		WHERE pcr.cat_id in (
+			SELECT c.id
+			FROM category c
+			WHERE 1=1
+			<if test="_parameter!=null and _parameter!=''">
+				AND c.parent_id = #{_parameter}
+			</if>
+		) AND p.off_shelf = 0 AND p.t_status = 0
+		GROUP BY p.prod_name;
+	</select>
+	
+	<select id="getListByCatMap" parameterType="map" resultType="com.webill.core.model.Product">
+		SELECT
+			p.id, p.case_code AS caseCode, p.prod_name AS prodName, p.plan_name AS planName, p.company_name AS companyName, 
+			p.company_logo_url AS companyLogoUrl, p.img_url_show AS imgUrlShow, p.default_price AS defaultPrice,
+			p.premium_table AS premiumTable, p.description, c.id AS catId, c.cat_name catName
+		FROM
+			product p
+		INNER JOIN product_category_rel pcr ON p.id = pcr.prod_id
+		INNER JOIN category c ON c.id = pcr.cat_id
+		WHERE
+			1 = 1
+		<if test="catId!=null and catId!=''">
+			AND c.id = #{catId} 
+		</if>
+		<if test="caseCode!=null and caseCode!=''">
+			AND p.case_code = #{caseCode} 
+		</if>
+		<if test="prodName!=null and prodName!=''">
+			AND p.prod_name = #{prodName} 
+		</if>
+		<if test="planName!=null and planName!=''">
+			AND p.plan_ame = #{planName} 
+		</if>
+	</select>
+	
+	<select id="getListByLabelMap" parameterType="map" resultType="com.webill.core.model.Product">
+		SELECT
+			p.id, p.case_code AS caseCode, p.prod_name AS prodName, p.plan_name AS planName, p.company_name AS companyName, 
+			p.company_logo_url AS companyLogoUrl, p.img_url_show AS imgUrlShow, p.default_price AS defaultPrice,
+			p.premium_table AS premiumTable, p.description, l.id AS labelId, l.label_name labelName
+		FROM 
+			product p
+		INNER JOIN product_label_rel plr ON plr.prod_id = p.id
+		INNER JOIN label l ON l.id = plr.label_id
+		WHERE
+			1 = 1
+		AND p.off_shelf = 0 AND p.t_status = 0
+		<if test="labelId!=null and labelId!=''">
+			AND l.id = #{labelId} 
+		</if>
+		<if test="labelName!=null and labelName!=''">
+			AND l.label_name = #{labelName} 
+		</if>
+		GROUP BY p.prod_name
+	</select>
+	
+	<select id="getPlanListByCaseCode" parameterType="string" resultType="com.webill.core.model.Product">
+		SELECT 
+			p.id, p.case_code AS caseCode, p.prod_name AS prodName, p.plan_name AS planName, p.company_name AS companyName, 
+			p.company_logo_url AS companyLogoUrl, p.img_url_show AS imgUrlShow, p.default_price AS defaultPrice,
+			p.premium_table AS premiumTable, p.description
+		FROM 
+			product p
+		WHERE p.prod_name in (
+			SELECT pp.prod_name
+			FROM product pp
+			WHERE pp.case_code = #{caseCode}
+		)
+		ORDER BY p.default_price
+	</select>
+	
+	<select id="getProdById" resultType="com.webill.core.model.Product">
+		SELECT cc.id catId, cc.cat_name catName, c.id AS secondCatId,c.cat_name secondCatName, <include refid="P_Base_Column_List"></include>
+		FROM product p
+		INNER JOIN product_category_rel pc ON pc.prod_id = p.id
+		INNER JOIN category c ON c.id = pc.cat_id
+		INNER JOIN category cc ON cc.id = c.parent_id
+		WHERE p.id = #{id} 
+	</select>
+	
+	<select id="getProdByCaseCode" resultType="com.webill.core.model.Product">
+		SELECT <include refid="P_Base_Column_List"></include>
+		FROM product p
+		WHERE p.case_code = #{caseCode} 
+	</select>
+	
+	<select id="getRecommendProdList" resultType="com.webill.core.model.Product">
+		SELECT <include refid="P_Base_Column_List"></include>
+		FROM product p
+		LEFT JOIN product_label_rel plr ON plr.prod_id = p.id
+		LEFT JOIN label l ON plr.label_id = l.id
+		LEFT JOIN label_group lg ON lg.id = l.group_id
+		WHERE lg.mark = 2 AND p.off_shelf = 0 AND p.t_status = 0
+		GROUP BY p.prod_name
+	</select>
+	
+</mapper>

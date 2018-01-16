@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.OrderInsurantMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, order_id AS orderId, c_name AS cName, e_name AS eName, card_type AS cardType, card_number AS cardNumber, sex, birthday, country, prov_city_text AS provCityText,job, job_text AS jobText, home_address AS homeAddress, home_post AS homePost, office_address AS officeAddress, office_post AS officePost, tel, contact_address AS contactAddress, contact_post AS contactPost, mobile, email, marry_state AS marryState, house_type_name AS houseTypeName, property_address AS propertyAddress, property_post AS propertyPost, have_medical AS haveMedical, height, weight, yearly_income AS yearlyIncome, buy_amount AS buyAmount, policy_num AS policyNum, single_price AS singlePrice, relation_Id AS relationId,fiscal_resident_identity AS fiscalResidentIdentity, beneficiary_type AS beneficiaryType, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+
+</mapper>

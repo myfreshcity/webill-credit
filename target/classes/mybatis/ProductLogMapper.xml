@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.ProductLogMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, prod_id AS prodId, case_code AS caseCode, price, off_shelf_status AS offShelfStatus, check_status AS checkStatus, operator_id AS operatorId, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+	<sql id="PL_Base_Column_List">
+		pl.id, pl.prod_id AS prodId, pl.case_code AS caseCode, pl.price, pl.off_shelf_status AS offShelfStatus, pl.check_status AS checkStatus, pl.operator_id AS operatorId, pl.t_status AS tStatus, pl.updated_time AS updatedTime, pl.created_time AS createdTime
+	</sql>
+	
+	<select id="getList" resultType="com.webill.core.model.ProductLog" parameterType="com.webill.core.model.ProductLog">
+		SELECT
+			<include refid="Base_Column_List"></include>
+		FROM
+			product_log pl
+	</select>
+	
+	<select id="getListByProdId" resultType="com.webill.core.model.ProductLog">
+		SELECT
+			<include refid="PL_Base_Column_List"></include>, u.username
+		FROM
+			product_log pl
+		LEFT JOIN user u ON u.id = pl.operator_id
+		WHERE 1 = 1
+		<if test="prodId!=null and prodId!=''">
+			AND pl.prod_id = #{prodId}
+		</if>
+	</select>
+</mapper>

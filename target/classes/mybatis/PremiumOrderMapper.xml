@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.PremiumOrderMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, user_id AS userId, car_id AS carId,parent_id AS parentId, license_no AS licenseNo, pre_insure_no AS preInsureNo, insure_no AS insureNo, transac_no AS transacNo, city, ci_start_date AS ciStartDate, bi_start_date AS biStartDate,ci_end_date AS ciEndDate, bi_end_date AS biEndDate, ci_value AS ciValue, bi_value AS biValue, tax_value AS taxValue, ci_insurer_com AS ciInsurerCom, bi_insurer_com AS biInsurerCom, owner_name AS ownerName, owner_id_no AS ownerIdNo, insured_name AS insuredName, insured_id_no AS insuredIdNo, applicant_name AS applicantName, applicant_id_no AS applicantIdNo, status, contact_id AS contactId, last_value AS lastValue, prm_value AS prmValue, lowest_insurer AS lowestInsurer, lowest_value AS lowestValue, created_time AS createdTime, remark, pay_type AS payType, pay_img_url AS payImgUrl
+	</sql>
+	  <select id="getOnePoByMap" parameterType="map" resultType="com.webill.core.model.PremiumOrder">
+		SELECT
+			<include refid="Base_Column_List"></include>
+		FROM
+			(
+				SELECT
+					o.*
+				FROM
+					premium_order o
+				<where>
+					<if test="carNo!=null and carNo!=''">
+						o.license_no = #{carNo}
+					</if>
+					<if test="userId!=null and userId!=''">
+						and o.user_id = #{userId}
+					</if>
+					AND o.`status` NOT IN('-1','9100')
+				</where>
+				ORDER BY
+					o.created_time DESC
+			) t
+		LIMIT 1  	
+	  </select>
+	  <select id="getPremiumOrderList" resultType="com.webill.core.model.PremiumOrder">
+			SELECT
+				po.id AS id,
+				po.license_no AS licenseNo,
+				u.weixin_nick AS weixinNick,
+				ci.car_owner AS carOwner,
+				ci.prm_end_time AS prmEndTime,
+				po.created_time AS createdTime,
+				po.ci_insurer_com AS ciInsurerCom,
+				po.prm_value AS prmValue,
+				po.`status` AS STATUS
+			FROM
+				premium_order po
+			LEFT JOIN car_info ci ON po.car_id = ci.id
+			LEFT JOIN `user` u ON po.user_id = u.id
+			<where>
+			1 = 1
+				<if test="ciInsurerCom!=null and ciInsurerCom!=''">
+					and po.ci_insurer_com LIKE concat(concat('%',#{ciInsurerCom}),'%')
+				</if>
+				<if test="status!=null and status!='' or status==0">
+					and po.`status` = #{status}	
+				</if>
+				<if test="licenseNo!=null and licenseNo!=''">
+					and ci.license_no LIKE concat(concat('%',#{licenseNo}),'%')
+				</if>
+				<if test="carOwner!=null and carOwner!=''">
+					and ci.car_owner LIKE concat(concat('%',#{carOwner}),'%')
+				</if>
+				<if test="timeFrom!=null and timeFrom!='' ">
+					and po.created_time &gt;= str_to_date('${timeFrom} 00:00:00','%Y-%m-%d %H:%i:%s')
+				</if>
+				<if test="timeTo!=null and timeTo!='' ">
+					and po.created_time &lt;= str_to_date('${timeTo} 23:59:59','%Y-%m-%d %H:%i:%s')
+				</if>			
+			</where>
+			order by po.created_time desc			
+	  </select>
+	  <sql id="PO_Base_Column_List">
+		po.id,po.user_id AS userId,po.car_id AS carId,po.license_no AS licenseNo,po.pre_insure_no AS preInsureNo,po.insure_no AS insureNo,po.transac_no AS transacNo,po.city,po.ci_start_date AS ciStartDate,po.bi_start_date AS biStartDate,po.ci_end_date AS ciEndDate, po.bi_end_date AS biEndDate,po.ci_value AS ciValue,po.bi_value AS biValue,po.tax_value AS taxValue,po.ci_insurer_com AS ciInsurerCom,po.bi_insurer_com AS biInsurerCom,po.owner_name AS ownerName,po.owner_id_no AS ownerIdNo,po.insured_name AS insuredName,po.insured_id_no AS insuredIdNo,po.applicant_name AS applicantName,po.applicant_id_no AS applicantIdNo,po.status,po.contact_id AS contactId,po.last_value AS lastValue,po.prm_value AS prmValue,po.lowest_insurer AS lowestInsurer,po.lowest_value AS lowestValue,po.created_time AS createdTime,remark,po.pay_type AS payType, po.pay_img_url AS payImgUrl
+	  </sql>
+	  <select id="getPremiumOrderById" parameterType="string" resultType="com.webill.core.model.PremiumOrder">
+			SELECT
+				<include refid="PO_Base_Column_List"></include>,
+				ci.brand_name AS brandName,
+				ur.weixin_nick AS weixinNick,
+				uc.mobile AS mobile,
+				ci.car_owner AS carOwner,
+				cur.mobile_no AS mobileNo,
+				ci.insurer_com AS insurerCom,
+				ci.engine_no AS engineNo,
+				ci.frame_no AS frameNo,
+				ci.enroll_date AS enrollDate				
+			FROM
+				premium_order po
+			LEFT JOIN car_info ci ON po.car_id = ci.id
+			LEFT JOIN user_contact uc ON po.contact_id = uc.id
+			LEFT JOIN `user` ur ON po.user_id = ur.id
+			LEFT JOIN car_user_rel cur ON po.license_no = cur.license_no
+			AND po.user_id = cur.user_id
+			<where>
+				<if test="_parameter!=null and _parameter!=''">
+					po.id = #{id}	  
+				</if>
+			</where>
+	  </select>
+	  <!-- 定时任务,获取保期内待推送的订单列表 -->
+	  <select id="getWaitPushOrderList" resultType="com.webill.core.model.PremiumOrder">
+		SELECT
+			po.id,
+			cur.license_no AS licenseNo,
+			u.open_id AS openId,
+			po.ci_insurer_com AS ciInsurerCom,
+			po.prm_value AS prmValue,
+			ci.prm_end_time AS prmEndTime
+		FROM
+			car_user_rel cur
+		LEFT JOIN car_info ci ON ci.id = cur.car_id
+		LEFT JOIN `user` u ON u.id = cur.user_id
+		LEFT JOIN premium_order po ON cur.car_id = po.car_id
+		WHERE
+		1 = 1
+		<if test="timeTo!=null and timeTo!='' ">
+			AND ci.prm_end_time &lt;= str_to_date('${timeTo} 23:59:59','%Y-%m-%d %H:%i:%s')
+		</if>		
+		AND ci.`status` = 0
+		AND po.user_id = 0
+		AND po.`status` in(2200)
+		ORDER BY
+			cur.user_id ASC	  
+	  </select>
+  	  <!-- 定时任务,获取保期内待推送的订单列表 -->
+	  <select id="getWaitPushOrderListAgain" resultType="com.webill.core.model.PremiumOrder">
+		SELECT
+			po.id,
+			cur.license_no AS licenseNo,
+			u.open_id AS openId,
+			po.ci_insurer_com AS ciInsurerCom,
+			po.prm_value AS prmValue,
+			ci.prm_end_time AS prmEndTime
+		FROM
+			car_user_rel cur
+		LEFT JOIN car_info ci ON ci.id = cur.car_id
+		LEFT JOIN `user` u ON u.id = cur.user_id
+		LEFT JOIN premium_order po ON cur.car_id = po.car_id
+		WHERE
+		1 = 1
+		<if test="timeTo!=null and timeTo!='' ">
+			AND (
+				to_days(ci.prm_end_time) - to_days(NOW()) IN (#{timeTo})
+			)
+		</if>		
+		AND ci.`status` = 0
+		AND po.user_id = 0
+		AND po.`status` in(4000)
+		ORDER BY
+			cur.user_id ASC	  
+	  </select>
+	  <!-- 定时任务,车险报价通知, 获取待推送车险报价-->
+	  <select id="getWaitPushPrmPrice" resultType="com.webill.core.model.PremiumOrder">
+		SELECT
+			po.id,
+			u.id AS userId,
+			u.open_id AS openId,
+			po.license_no AS licenseNo,
+			po.ci_insurer_com AS ciInsurerCom,
+			po.prm_value AS prmValue,
+			po.bi_value AS biValue,
+			po.ci_value AS ciValue,
+			po.tax_value AS taxValue
+		FROM
+			premium_order po
+		LEFT JOIN car_user_rel cur ON po.car_id = cur.car_id
+		LEFT JOIN `user` u ON cur.user_id = u.id
+		WHERE
+		1 = 1
+		<if test="id!=null and id!=''">
+			and po.id = #{id}
+		</if>
+		<if test="userId!=null and userId!=''">
+			AND u.id = #{userId}  
+		</if>
+	  </select>
+	  <!-- 【模板推送】车险出单成功通知 -->
+	  <select id="getWaitPushPrmIssue" resultType="com.webill.core.model.PremiumOrder" parameterType="string">
+		SELECT
+			u.id AS userId,
+			po.id,
+			u.open_id AS openId,
+			po.license_no AS licenseNo,
+			po.ci_insurer_com AS insurerCom,
+			po.prm_value AS prmValue,
+			po.insured_id_no AS insuredIdNo,
+			po.insure_no AS insureNo,
+			po.pre_insure_no AS preInsureNo,
+			po.`status`
+		FROM
+			premium_order po
+		LEFT JOIN `user` u ON po.user_id = u.id 
+		WHERE
+		1 = 1
+		<if test="_parameter!=null and _parameter!=''">
+			AND po.id = #{_parameter}
+		</if>
+	  </select>
+	  
+</mapper>
