@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webill.core.service.mapper.CustomerMapper">
+
+	<!-- 通用查询结果列-->
+	<sql id="Base_Column_List">
+		id, real_name AS realName, id_no AS idNo, mobile_no AS mobileNo, user_id AS userId, com_id AS comId, home_addr AS homeAddr, home_tel AS homeTel, work_addr AS workAddr, work_tel AS workTel, refresh_times AS refreshTimes, latest_report_key AS latestReportKey, latest_report_type AS latestReportType, latest_report_time AS latestReportTime, latest_report_status AS latestReportStatus, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
+	</sql>
+	<sql id="C_Base_Column_List">
+		c.id, c.real_name AS realName, c.id_no AS idNo, c.mobile_no AS mobileNo, c.user_id AS userId, c.com_id AS comId, c.home_addr AS homeAddr, c.home_tel AS homeTel, c.work_addr AS workAddr, c.work_tel AS workTel, c.refresh_times AS refreshTimes, c.latest_report_key AS latestReportKey, c.latest_report_type AS latestReportType, c.latest_report_time AS latestReportTime, c.latest_report_status AS latestReportStatus, c.t_status AS tStatus, c.updated_time AS updatedTime, c.created_time AS createdTime
+	</sql>
+	
+	<select id="getCusList" resultType="com.webill.core.model.Customer">
+		SELECT
+			<include refid="C_Base_Column_List"></include>
+		FROM
+			t_customer c
+		WHERE 1=1 AND c.user_id = #{userId}
+		<if test="realName != null and realName != ''">
+			AND c.real_name LIKE concat(concat('%',#{realName}),'%')
+		</if>
+		<if test="mobileNo != null and mobileNo != ''">
+			AND c.mobile_no LIKE concat(concat('%',#{mobileNo}),'%')
+		</if>
+		<if test="idNo != null and idNo != ''">
+			AND c.id_no LIKE concat(concat('%',#{idNo}),'%')
+		</if>
+		<if test="latestReportStatus != null and latestReportStatus != ''">
+			AND c.latest_report_status = #{latestReportStatus}
+		</if>
+		<if test="latestReportType != null and latestReportType != ''">
+			AND c.latest_report_type = #{latestReportType}
+		</if>
+		<if test="sortWay == 1">
+			ORDER BY c.latest_report_time DESC
+		</if>
+		<if test="sortWay == 2">
+			ORDER BY c.refresh_times DESC
+		</if>
+	</select>
+</mapper>

@@ -58,7 +58,7 @@ public class UserController extends BaseController {
     @ResponseBody
     public String userList(User user) {
        Page page = this.getPage(Integer.MAX_VALUE);
-       page =   userService.getList(page,user);
+//       page =   userService.getList(page,user);
        return JSONUtil.toJSONString(page);
     }
     
@@ -72,7 +72,7 @@ public class UserController extends BaseController {
      * @return  
      * @return: String  
      */
-    @RequestMapping(value = "/detail/{id}", method = { RequestMethod.GET },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
+    /*@RequestMapping(value = "/detail/{id}", method = { RequestMethod.GET },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
     public String detail(@PathVariable @Param(value = "id") String id,Model model){
     	User user = userService.selectById(id);
     	User recommendUser = userService.selectById(user.getRecommendId());
@@ -82,7 +82,7 @@ public class UserController extends BaseController {
     	model.addAttribute("user", user);
     	model.addAttribute("userId", id);
     	return "system/user/detail";
-    }
+    }*/
     
     /**   
      * @Title: userContact   
@@ -105,7 +105,7 @@ public class UserController extends BaseController {
     	for (UserContact uc : ucList) {
 			user = new User();
 			user = userService.selectById(uc.getUserId());
-			uc.setWeixinNick(user.getWeixinNick());
+//			uc.setWeixinNick(user.getWeixinNick());
 		}
     	model.addAttribute("ucList", ucList);
     	model.addAttribute("userId", userId);

@@ -130,7 +130,7 @@ public class UserContactController extends BaseController {
     	}
     	List<User> uList = userService.selectByMap(map);
     	if(uList.size()>0){
-    		uc.setWeixinNick(uList.get(0).getWeixinNick());
+//    		uc.setWeixinNick(uList.get(0).getWeixinNick());
     	}
     	model.addAttribute("uc", uc);
     	return "system/userContact/edit";

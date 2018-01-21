@@ -26,7 +26,7 @@ public class SpringMvcUserDetailsServiceImpl implements UserDetailsService {
         // TODO Auto-generated method stub
         // 读取用户
         User u = new User();
-        u.setUsername(uid);
+//        u.setUsername(uid);
         User userEntity = userService.selectOne(u);
         // 读取权限
         Collection<GrantedAuthority> auths = new ArrayList<GrantedAuthority>();

@@ -558,40 +558,35 @@ public class ProductServiceImpl extends SuperServiceImpl<ProductMapper, Product>
 	@Override
 	public TrialResp addCityName(String json) {
 		TrialResp trialResp = null;
-		try {
-			trialResp = JSONUtil.toObject(JSONObject.parseObject(json).getString("data"), TrialResp.class);
-			List<RestrictGene> reList = trialResp.getRestrictGenes();
-			String cityName = null, proName = null;
-			for (RestrictGene re : reList) {
-				if ("city".equals(re.getKey())) {
-					// 获取市级名称
-					String defCityVa = re.getDefaultValue();
-					List<RestrictDictionary> cvaList = re.getValues();
-					for (RestrictDictionary crd : cvaList) {
-						if (defCityVa.equals(crd.getValue())) {
-							cityName = crd.getName();
-						}
+		trialResp = JSONUtil.toObject(JSONObject.parseObject(json).getString("data"), TrialResp.class);
+		List<RestrictGene> reList = trialResp.getRestrictGenes();
+		String cityName = null, proName = null;
+		for (RestrictGene re : reList) {
+			if ("city".equals(re.getKey())) {
+				// 获取市级名称
+				String defCityVa = re.getDefaultValue();
+				List<RestrictDictionary> cvaList = re.getValues();
+				for (RestrictDictionary crd : cvaList) {
+					if (defCityVa.equals(crd.getValue())) {
+						cityName = crd.getName();
 					}
-					//获取省级名称
-					List<RestrictGene> srList = re.getSubRestrictGenes();
-					for (RestrictGene rg : srList) {
-						String defProVa = rg.getDefaultValue();
-						if ("province".equals(rg.getKey())) {
-							List<RestrictDictionary> pvalues = rg.getValues();
-							for (RestrictDictionary prd : pvalues) {
-								if (defProVa.equals(prd.getValue())) {
-									proName = prd.getName();
-								}
+				}
+				//获取省级名称
+				List<RestrictGene> srList = re.getSubRestrictGenes();
+				for (RestrictGene rg : srList) {
+					String defProVa = rg.getDefaultValue();
+					if ("province".equals(rg.getKey())) {
+						List<RestrictDictionary> pvalues = rg.getValues();
+						for (RestrictDictionary prd : pvalues) {
+							if (defProVa.equals(prd.getValue())) {
+								proName = prd.getName();
 							}
 						}
 					}
 				}
-				re.setProvinceName(proName);
-				re.setCityName(cityName);
 			}
-			
-		} catch (IOException e) {
-			e.printStackTrace();
+			re.setProvinceName(proName);
+			re.setCityName(cityName);
 		}
 		return trialResp;
 	}

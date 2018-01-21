@@ -53,7 +53,7 @@ public class LoginController extends BaseController {
             HttpSession session = request.getSession();
             session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext()); // 这个非常重要，否则验证后将无法登陆
             User quser = new User();
-            quser.setUsername(username);
+//            quser.setUsername(username);
             User user = userService.selectOne(quser);
             session.setAttribute(Constant.LOGIN_USER, user);
 

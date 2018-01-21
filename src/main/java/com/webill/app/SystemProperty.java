@@ -252,4 +252,17 @@ public class SystemProperty {
      */
     @Value("${AREA_JSON}")
     public String AREA_JSON;
+    
+    /**
+     * @fieldType: String
+     * @author ZhangYadong
+     * @date 2018年1月18日 上午11:09:34
+     * @Description: 聚信立配置
+     */ 
+    @Value("${JXL_ACCOUNT}")
+    public String JXL_ACCOUNT;
+    @Value("${JXL_SECRET}")
+    public String JXL_SECRET;
+    @Value("${JXL_REQ_URL}")
+    public String JXL_REQ_URL;
 }

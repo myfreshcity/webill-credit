@@ -37,10 +37,13 @@ public class UserInfo implements Serializable {
 	// 字段使用此注解
 	@Field
 	private String name;
+	
+	@Field
+	private String sex;
 
 	// 字段还可以用自定义名称
 	@Field("myage")
-	private int age;
+	private Integer age;
 
 	// 还可以生成索引
 	@Indexed(name = "index_birth", direction = IndexDirection.DESCENDING)
@@ -63,11 +66,11 @@ public class UserInfo implements Serializable {
 		this.name = name;
 	}
 
-	public int getAge() {
+	public Integer getAge() {
 		return age;
 	}
 
-	public void setAge(int age) {
+	public void setAge(Integer age) {
 		this.age = age;
 	}
 
@@ -79,4 +82,12 @@ public class UserInfo implements Serializable {
 		this.birth = birth;
 	}
 
+	public String getSex() {
+		return sex;
+	}
+
+	public void setSex(String sex) {
+		this.sex = sex;
+	}
+	
 }

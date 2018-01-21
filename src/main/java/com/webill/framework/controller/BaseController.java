@@ -51,6 +51,18 @@ public class BaseController {
         }
         return new Page<T>(_index, _size);
     }
+    
+    protected <T> Page<T> getPage(HttpServletRequest request, int size) {
+    	int _size = size, _index = 1;
+    	if (request.getParameter("length") != null) {
+    		_size = Integer.parseInt(request.getParameter("length"));
+    	}
+    	if (request.getParameter("start") != null) {
+    		int _offset = Integer.parseInt(request.getParameter("start"));
+    		_index = _offset / _size + 1;
+    	}
+    	return new Page<T>(_index, _size);
+    }
 
     /**
      * 渲染失败数据

@@ -322,18 +322,6 @@ public class TOrderServiceImpl extends SuperServiceImpl<TOrderMapper, TOrder> im
 //						targetUser.setMobile(dbUser.getMobile());
 //						targetUser.setCardCode(dbUser.getCardCode());
 //						targetUser.setcName(dbUser.getcName());
-						if(StringUtil.isNotEmpty(targetUser.getCardCode())
-								&&StringUtil.isNotEmpty(targetUser.getcName())
-								&&StringUtil.isNotEmpty(targetUser.getMobile())){
-							if(targetUser.getCardCode().equals(sourceUser.getCardCode())
-									&&targetUser.getcName().equals(sourceUser.getcName())
-									&&targetUser.getMobile().equals(sourceUser.getMobile())){
-								//身份证号和初始身份证号一致时，更新用户信息
-								CombineBeansUtil.combineSydwCore(sourceUser,targetUser);
-							}
-						}else{
-							CombineBeansUtil.combineSydwCore(sourceUser,targetUser);
-						}
 						r.notify("user.update", Event.wrap(targetUser));
 					}
 					

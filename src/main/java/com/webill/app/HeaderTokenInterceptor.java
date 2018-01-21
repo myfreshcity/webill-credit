@@ -48,7 +48,7 @@ public class HeaderTokenInterceptor implements HandlerInterceptor {
         	}
         }
         
-        if (requestURI.contains("/api/")&& "POST".equalsIgnoreCase(method)&&!f) {
+        /*if (requestURI.contains("/api/")&& "POST".equalsIgnoreCase(method)&&!f) {
             token = httpServletRequest.getHeader("token");
             if (token == null && tokenStr == null) {
                 logger.info("real token:======================is null");
@@ -72,7 +72,7 @@ public class HeaderTokenInterceptor implements HandlerInterceptor {
 
             logger.info("real token:==============================" + token);
             logger.info("real ohter:==============================" + httpServletRequest.getHeader("Cookie"));
-        }
+        }*/
 
         /*
         httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");

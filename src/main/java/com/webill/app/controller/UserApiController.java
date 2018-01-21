@@ -31,10 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 
-/**
- * Created by david on 16/10/9.
- */
-@Api(value = "用户API")
+@Api(value = "userAPI", description = "用户API", produces = MediaType.APPLICATION_JSON_VALUE )
 @Controller
 @RequestMapping("/api/user")
 public class UserApiController extends BaseController {
@@ -57,15 +54,15 @@ public class UserApiController extends BaseController {
     public String login() {
         return "login";
     }
-    
-	/** 
+
+    /** 
 	 * @Title: userRegister 
 	 * @Description: 用户注册
-	 * @author: WangLongFei
-	 * @date: 2017年11月23日 上午10:05:55 
+	 * @author ZhangYadong
+	 * @date 2018年1月17日 上午10:06:43
 	 * @param jsonStr
 	 * @return
-	 * @return: JsonResult
+	 * @return JsonResult
 	 */
 	@ApiOperation(value = "用户注册")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "注册成功！"),
@@ -78,12 +75,13 @@ public class UserApiController extends BaseController {
     @ResponseBody
     public JsonResult userRegister(@RequestBody String jsonStr) {
 		User user = JSONObject.parseObject(jsonStr, User.class);
+		
 		//获取手机号相关联的用户信息
-		User userCheck = userService.checkMobileIsExist(user.getMobile());
+		User userCheck = userService.checkMobileIsExist(user.getMobileNo());
 		if(userCheck==null){
 			//获取系统发送的验证码
 			RedisKeyDto redisWhere = new RedisKeyDto();
-			redisWhere.setKeys(user.getMobile());
+			redisWhere.setKeys(user.getMobileNo());
 			RedisKeyDto redisKeyDto =  redisService.redisGet(redisWhere);
 			if(redisKeyDto!=null){
 				String verifyCode = redisKeyDto.getValues();
@@ -116,7 +114,7 @@ public class UserApiController extends BaseController {
 	 * @return  
 	 * @return: JsonResult  
 	 */
-	@ApiOperation(value = "用户登录")
+	/*@ApiOperation(value = "用户登录")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "登录成功！"),
 			@ApiResponse(code = 300, message = "验证码错误，请重试！"),
 			@ApiResponse(code = 303, message = "手机号不能为空！"),
@@ -175,7 +173,7 @@ public class UserApiController extends BaseController {
 		}
     }
 	
-	/** 
+	*//** 
 	 * @Title: userLogout 
 	 * @Description: 用户注销
 	 * @author: WangLongFei
@@ -183,7 +181,7 @@ public class UserApiController extends BaseController {
 	 * @param jsonStr
 	 * @return
 	 * @return: JsonResult
-	 */
+	 *//*
 	@ApiOperation(value = "用户注销")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "注销成功！"),@ApiResponse(code = 500, message = "注销失败，请重试！"),})
     @RequestMapping(value = "/userLogout", method = RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
@@ -209,7 +207,7 @@ public class UserApiController extends BaseController {
 		}else{
 			return renderError("注销失败，请重试！", "500");
 		}
-    }
+    }*/
 	
 	/** 
 	 * @Title: updateIdCard 
@@ -220,7 +218,7 @@ public class UserApiController extends BaseController {
 	 * @throws Exception
 	 * @return: Object
 	 */
-	@ApiOperation(value = "身份验证")
+	/*@ApiOperation(value = "身份验证")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "修改身份证成功！"),@ApiResponse(code = 500, message = "修改身份证失败！")})
 	@RequestMapping(value = "/updateIdCard", method = { RequestMethod.POST },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
 	@ResponseBody
@@ -240,7 +238,7 @@ public class UserApiController extends BaseController {
 			return renderError("已身份认证！", "500");
 		}
 		
-	}
+	}*/
 	
 	/** 
 	 * @Title: checkPwd 
@@ -272,7 +270,7 @@ public class UserApiController extends BaseController {
 	 * @return
 	 * @return: JsonResult
 	 */
-	@ApiOperation(value = "修改手机号")
+	/*@ApiOperation(value = "修改手机号")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "验证成功！"),
 			@ApiResponse(code = 305, message = "验证码已失效，请重新发送验证码！"),
 			@ApiResponse(code = 500, message = "验证码错误，请重试！")
@@ -301,7 +299,7 @@ public class UserApiController extends BaseController {
 		}else{
 			return renderError("验证码已失效，请重新发送验证码！", "305");
 		}
-	}
+	}*/
 	/**
 	 * @Title: checkInCode 
 	 * @Description: 核对验证码  
@@ -311,7 +309,7 @@ public class UserApiController extends BaseController {
 	 * @return
 	 * @return: JsonResult
 	 */
-	@ApiOperation(value = "核对验证码")
+	/*@ApiOperation(value = "核对验证码")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "验证成功！"),
 			@ApiResponse(code = 305, message = "验证码已失效，请重新发送验证码！"),
 			@ApiResponse(code = 500, message = "验证码错误，请重试！")
@@ -335,7 +333,7 @@ public class UserApiController extends BaseController {
 		}else{
 			return renderError("验证码已失效，请重新发送验证码！", "305");
 		}
-	}
+	}*/
 	
 	/**   
 	 * @Title: updatePassword   
@@ -346,7 +344,7 @@ public class UserApiController extends BaseController {
 	 * @return  
 	 * @return: JsonResult  
 	 */
-	@ApiOperation(value = "修改密码,成功：返回用户信息")
+	/*@ApiOperation(value = "修改密码,成功：返回用户信息")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "修改成功！"),
 			@ApiResponse(code = 300, message = "手机号不能为空！"),
 			@ApiResponse(code = 305, message = "该账号还未注册，请先注册！"),
@@ -382,6 +380,6 @@ public class UserApiController extends BaseController {
 		}else{
 			return renderError("手机号不能为空！", "300");
 		}
-    }
+    }*/
 	
 }

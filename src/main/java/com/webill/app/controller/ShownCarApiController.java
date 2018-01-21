@@ -83,7 +83,7 @@ public class ShownCarApiController extends BaseController {
 		return result;
 	}
 	
-	@ApiOperation(value = "根据id和推荐人获取展示的车辆 ")
+	/*@ApiOperation(value = "根据id和推荐人获取展示的车辆 ")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "获取成功！返回id"), @ApiResponse(code = 500, message = "获取失败！"),@ApiResponse(code = 300, message = "推荐失败！") })
 	@RequestMapping(value = "/getList/{id}", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE })
 	@ResponseBody
@@ -91,7 +91,7 @@ public class ShownCarApiController extends BaseController {
 		JsonResult result = null;
 		//获取车辆展示数据，通过推荐用户id,完成用户推荐业务
 		ShownCar sc = shownCarService.selectById(id);
-		User ruser = userService.saveRecommend(sc.getUserId().toString());
+//		User ruser = userService.saveRecommend(sc.getUserId().toString());
 		
 		//获取展示车辆
 		if(ruser!=null){
@@ -105,5 +105,5 @@ public class ShownCarApiController extends BaseController {
 			result = renderError("推荐失败！", "300");
 		}
 		return result;
-	}
+	}*/
 }

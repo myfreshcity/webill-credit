@@ -12,11 +12,11 @@ import com.webill.framework.service.ISuperService;
  */
 public interface IUserService extends ISuperService<User> {
 
-    public User selectUserByWeixin(User userWhere);
+   /* public User selectUserByWeixin(User userWhere);
 
     public ResponseInfo addUser(User user);
     
-    /**   
+    *//**   
      * @Title: getList   
      * @Description: 用户列表   
      * @author: WangLongFei  
@@ -25,10 +25,10 @@ public interface IUserService extends ISuperService<User> {
      * @param user
      * @return  
      * @return: Page<User>  
-     */
+     *//*
     public Page<User> getList(Page<User> page,User user);
     
-    /**   
+    *//**   
      * @Title: saveRecommend   
      * @Description: 用户推荐  
      * @author: WangLongFei  
@@ -36,7 +36,7 @@ public interface IUserService extends ISuperService<User> {
      * @param user
      * @return  
      * @return: User  
-     */
+     *//*
     public User saveRecommend(String userId);
     
     /**   
@@ -49,17 +49,17 @@ public interface IUserService extends ISuperService<User> {
      */
     public User checkMobileIsExist(String mobileNo);
     
-    /**   
+    /*//**   
      * @Title: userLogin   
      * @Description: 用户手机验证登录
      * @author: WangLongFei  
      * @date: 2017年10月26日 下午4:19:58   
      * @return  
      * @return: Integer  
-     */
+     *//*
     public Integer userLogin(User user);
     
-    /** 
+    *//** 
      * @Title: userLoginByPwd 
      * @Description: 用户密码登录
      * @author: WangLongFei
@@ -67,9 +67,9 @@ public interface IUserService extends ISuperService<User> {
      * @param user
      * @return
      * @return: Integer
-     */
+     *//*
     public Integer userLoginByPwd(User user);
-    /**   
+    *//**   
      * @Title: userLogon   
      * @Description: 注销登录  
      * @author: WangLongFei  
@@ -77,10 +77,10 @@ public interface IUserService extends ISuperService<User> {
      * @param user
      * @return  
      * @return: boolean  
-     */
+     *//*
     public boolean userLogon(User user);
     
-    /**   
+    *//**   
      * @Title: updateUserBind   
      * @Description: 用户换绑手机号  
      * @author: WangLongFei  
@@ -89,7 +89,7 @@ public interface IUserService extends ISuperService<User> {
      * @param wxUser
      * @return  
      * @return: boolean  
-     */
+     *//*
     public boolean updateUserBind(User mobUser,User wxUser);
     
     /** 

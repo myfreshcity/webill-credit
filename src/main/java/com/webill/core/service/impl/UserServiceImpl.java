@@ -1,8 +1,18 @@
 package com.webill.core.service.impl;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.baomidou.mybatisplus.plugins.Page;
 import com.webill.app.util.EmojiUtil;
-import com.webill.app.util.MD5;
 import com.webill.app.util.StringUtil;
 import com.webill.core.Constant;
 import com.webill.core.ResponseInfo;
@@ -12,17 +22,6 @@ import com.webill.core.service.IUserService;
 import com.webill.core.service.RedisService;
 import com.webill.core.service.mapper.UserMapper;
 import com.webill.framework.service.impl.SuperServiceImpl;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -37,7 +36,7 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
 	@Autowired
 	private RedisService redisService;
 
-    public User selectUserByWeixin(User userWhere){
+   /* public User selectUserByWeixin(User userWhere){
     	String weixinId = userWhere.getOpenId();
     	String nickName = userWhere.getWeixinNick();
     	String headUrl = userWhere.getHeadUrl();
@@ -76,9 +75,9 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
         this.insertOrUpdateSelective(user);
         
         return user;
-    }
+    }*/
 
-    public ResponseInfo addUser(User user) {
+    /*public ResponseInfo addUser(User user) {
         User quser = this.selectOne(user);
         if (quser == null) {
             Date now = new Date();
@@ -93,16 +92,16 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
         } else {
             return ResponseInfo.DATA_EXIST;
         }
-    }
+    }*/
 
-	@Override
+	/*@Override
 	public Page<User> getList(Page<User> page,User user) {
 		List<User> uList = baseMapper.getList(page, user);
 		page.setRecords(uList);
 		return page;
-	}
+	}*/
 
-	@Override
+	/*@Override
 	public User saveRecommend(String userId) {
 		User dUser = this.selectById(userId);
 		//如果以前有推荐人或者用户创建时间和当前时间相差超过2小时，不更新
@@ -119,12 +118,12 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
         } else {
             return null;
         }
-	}
+	}*/
 
 	@Override
 	public User checkMobileIsExist(String mobileNo) {
 		Map<String,Object> map = new HashMap<String,Object>();
-		map.put("mobile", mobileNo);
+		map.put("mobile_no", mobileNo);
 		List<User> uList = this.selectByMap(map);
 		if(uList.size()>0){
 			logger.info("已存在该手机号========"+mobileNo);
@@ -135,7 +134,7 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
 		}
 	}
 
-	@Override
+	/*@Override
 	public Integer userLogin(User user) {
 		Integer result = null;
 		boolean f = false;
@@ -189,9 +188,9 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
 			result = Constant.LOGIN_VERIFY_CODE_INVALID;
 		}
 		return result;
-	}
+	}*/
 
-	@Transactional
+	/*@Transactional
 	@Override
 	public boolean updateUserBind(User mobUser,User wxUser) {
 		boolean f = false;
@@ -219,16 +218,16 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
 		}
 		
 		return f;
-	}
+	}*/
 
-	@Override
+	/*@Override
 	public boolean userLogon(User user) {
 		user.setLoginFlag(Constant.LOGIN_STATUS_NO);
 		boolean f = this.updateSelectiveById(user);
 		return f;
-	}
+	}*/
 
-	@Override
+	/*@Override
 	public Integer userLoginByPwd(User user) {
 		 //根据手机号获取的用户信息
 		 User mobUser = this.checkMobileIsExist(user.getMobile());
@@ -273,7 +272,7 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
 				 return Constant.LOGIN_FAIL;
 			 }
 		 }
-	}
+	}*/
 
 	@Transactional
 	@Override
@@ -292,13 +291,13 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
 					if(uList.size()==1){
 						//第一次注册,关联手机号，设置为自动登录状态
 						user.setId(dbUser.getId());
-						user.setLoginFlag(Constant.LOGIN_STATUS_YES);
+//						user.setLoginFlag(Constant.LOGIN_STATUS_YES);
 						f = this.updateSelectiveById(user);
 					}else{
 						//第二次或者以后注册
 						//把此前所有用户设置为非登录状态
 						for (User u : uList) {
-							u.setLoginFlag(Constant.LOGIN_STATUS_NO);
+//							u.setLoginFlag(Constant.LOGIN_STATUS_NO);
 							f = this.updateSelectiveById(u);
 							if(!f){
 								break;
@@ -306,7 +305,7 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
 						}
 						if(f){
 							//插入一个自动登录的新用户数据
-							user.setLoginFlag(Constant.LOGIN_STATUS_YES);
+//							user.setLoginFlag(Constant.LOGIN_STATUS_YES);
 							f = this.insertSelective(user);
 						}
 					}

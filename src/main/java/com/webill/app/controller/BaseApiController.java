@@ -36,7 +36,7 @@ public class BaseApiController extends BaseController {
     @Autowired
     WeixinSupport weixinSupport;
     
-	@ApiOperation(value = "推荐用户")
+	/*@ApiOperation(value = "推荐用户")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "推荐成功!"),@ApiResponse(code = 500, message = "推荐失败！")})
     @RequestMapping(value = "/user/recommend", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     @ResponseBody
@@ -48,5 +48,5 @@ public class BaseApiController extends BaseController {
 		}else{
 			return renderError();
 		}
-    }
+    }*/
 }

@@ -1,5 +1,14 @@
 package com.webill.core;
 
+import java.util.Date;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.alibaba.fastjson.JSON;
 import com.webill.app.SystemProperty;
 import com.webill.core.model.OrderLog;
@@ -15,19 +24,9 @@ import com.webill.core.service.ITOrderService;
 import com.webill.core.service.IUserCouponService;
 import com.webill.core.service.IUserService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 import reactor.core.Reactor;
 import reactor.event.Event;
 import reactor.spring.annotation.Selector;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 //事件的处理类,一般是以Hander结尾
 @Component
@@ -123,31 +122,6 @@ public class IndexHandler {
     	String result = messageService.sendMessage(map.get("touser").toString(), content);
     }
     
-    /** 
-     * @Title: userSubscribeFlagUpdateTopic 
-     * @Description: 用户关注，取消关注更新
-     * @author: WangLongFei
-     * @date: 2017年12月25日 下午2:27:33 
-     * @param evt
-     * @throws Exception
-     * @return: void
-     */
-    @Selector(value = "userSubscribeFlag.update", reactor = "@rootReactor")
-    public void userSubscribeFlagUpdateTopic(Event<User> evt) throws Exception {
-    	User user = evt.getData();
-    	Map<String,Object> map = new HashMap<String,Object>();
-    	map.put("open_id", user.getOpenId());
-    	List<User> uList = userService.selectByMap(map);
-    	boolean f = false;
-    	for (User u : uList) {
-    		u.setSubscribeFlag(user.getSubscribeFlag());
-    		f = userService.updateSelectiveById(u);
-    		if(!f){
-    			logger.info("修改userId="+u.getId()+"为"+user.getSubscribeFlag()+"时，出错！");
-    			break;
-    		}
-		}
-    }
     @Selector(value = "prodLog.onShelf", reactor =  "@rootReactor")
     public void updateOnShelf(Event<ProductLog> evt) throws Exception {
     	ProductLog pl = evt.getData();

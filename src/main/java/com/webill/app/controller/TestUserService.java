@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.webill.app.util.PageModel;
+import com.webill.core.model.User;
 import com.webill.core.model.UserInfo;
 import com.webill.core.service.IUserMongoDBService;
 
@@ -37,9 +38,13 @@ public class TestUserService {
 
 	@RequestMapping(value = "/update", method = RequestMethod.GET)
 	public void update() {
-		UserInfo user = iUserMongoDBService.find("5a585d1b0cf0744a0b48204c");
-		user.setAge(18);
-		iUserMongoDBService.update(user);
+//		UserInfo user = iUserMongoDBService.find("5a585d1b0cf0744a0b48204c");
+		UserInfo user = new UserInfo();
+		user.setName("张三");
+		user.setBirth(new Timestamp(System.currentTimeMillis()));
+		user.setSex("男");
+//		user.setAge(151);
+		iUserMongoDBService.updateField(user);
 	}
 
 	@RequestMapping(value = "/delete", method = RequestMethod.GET)

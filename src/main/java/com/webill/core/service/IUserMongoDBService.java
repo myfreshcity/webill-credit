@@ -19,4 +19,6 @@ import com.webill.core.model.UserInfo;
  */
 public interface IUserMongoDBService extends IBaseMongoDBService<UserInfo> {
 
+	void updateField(UserInfo entity);
+
 }

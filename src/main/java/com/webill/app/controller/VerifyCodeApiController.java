@@ -49,7 +49,7 @@ public class VerifyCodeApiController extends BaseController {
 	 * @return  
 	 * @return: JsonResult  
 	 */
-	@ApiOperation(value = "发送验证码（默认验证手机号唯一性）")
+	/*@ApiOperation(value = "发送验证码（默认验证手机号唯一性）")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "发送验证码成功！"),@ApiResponse(code = 500, message = "手机号不能为空！")})
 	@RequestMapping(value = "/sendVerifyCode", method = { RequestMethod.POST },produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
 	@ResponseBody
@@ -93,5 +93,5 @@ public class VerifyCodeApiController extends BaseController {
 		}else{
 			return renderError("手机号不能为空！", "500");
 		}
-	}
+	}*/
 }

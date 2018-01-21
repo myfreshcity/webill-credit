@@ -14,9 +14,9 @@
 	<task:scheduler id="scheduler" pool-size="10" />
 	<task:annotation-driven scheduler="scheduler"
 		executor="executor" proxy-target-class="true" />
-	<task:scheduled-tasks scheduler="scheduler">
-		<!-- 自动发放优惠券，每五分钟发放一次执行 -->
-		<task:scheduled ref="taskJobService" method="sendCoupon"	cron="0 0/5 * * * ?" />
-	</task:scheduled-tasks>
+	<!-- <task:scheduled-tasks scheduler="scheduler">
+	自动发放优惠券，每五分钟发放一次执行
+	<task:scheduled ref="taskJobService" method="sendCoupon"	cron="0 0/5 * * * ?" />
+	</task:scheduled-tasks> -->
 
 </beans>
