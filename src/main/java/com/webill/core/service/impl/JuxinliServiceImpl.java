@@ -538,6 +538,9 @@ public class JuxinliServiceImpl implements IJuxinliService {
 		// 聚信立-解析高频联系人（Top10）
 		List<TopContact> timesTopConList = ReportParseUtil.parseTimesTopContact(jxlReportJson);
 		jo.put("top10_times_contact", timesTopConList);
+		// 聚信立-解析所有联系人数据
+		List<TopContact> allContactList = ReportParseUtil.parseAllContact(jxlReportJson);
+		jo.put("all_contact", allContactList);
 		// 聚信立-解析出行数据
 //		List<TripInfo> tripInfoList = ReportParseUtil.parseTripInfo(jxlReportJson);
 		
@@ -562,6 +565,9 @@ public class JuxinliServiceImpl implements IJuxinliService {
 		// 电话邦-解析高频联系人（Top10）
 		List<TopContact> timesTop10Con = ReportParseUtil.parseDHBTimesTopContact(dhbReportJson);
 		jo.put("top10_times_contact", timesTop10Con);
+		// 聚信立-解析所有联系人数据
+		List<TopContact> allContactList = ReportParseUtil.parseDHBAllContact(dhbReportJson);
+		jo.put("all_contact", allContactList);
 		// 电话邦-解析催收信息数据节点
 		Cuishou cs = ReportParseUtil.parseDHBCuishou(dhbReportJson);
 		jo.put("cuishou", cs);

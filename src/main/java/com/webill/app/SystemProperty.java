@@ -284,4 +284,18 @@ public class SystemProperty {
      */
     @Value("${REPORT_KEY}")
     public String REPORT_KEY;
+    
+    /**
+     * 连连认证支付
+     */
+    @Value("${LIANLIANPAY_CERT_PAETNER}")
+    public String LIANLIANPAY_CERT_PAETNER;
+    @Value("${LIANLIANPAY_MD5_KEY}")
+    public String LIANLIANPAY_MD5_KEY;
+    @Value("${LIANLIANPAY_PRIVATE_KEY}")
+    public String LIANLIANPAY_PRIVATE_KEY;
+    @Value("${LIANLIANPAY_PUBLIC_KEY}")
+    public String LIANLIANPAY_PUBLIC_KEY;
+    @Value("${LIANLIANPAY_RETURN_URL}")
+    public String LIANLIANPAY_RETURN_URL;
 }

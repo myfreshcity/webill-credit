@@ -37,10 +37,10 @@ public class ReportParseUtil {
 	 * @return CusBasicInfo
 	 */
 	public static CusBasicInfo parseCusBasicInfo(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		// 客户基本信息
 		CusBasicInfo cbi = new CusBasicInfo();
-		JSONArray appCheckArr = jxlReportObj.getJSONArray("application_check");
+		JSONArray appCheckArr = reportObj.getJSONArray("application_check");
 		for (int i = 0; i < appCheckArr.size(); i++) {
 			JSONObject appObj = appCheckArr.getJSONObject(i);
 			String appPoint = appObj.getString("app_point");
@@ -68,7 +68,7 @@ public class ReportParseUtil {
 			}
 		}
 		
-		JSONArray behaviorCheckArr = jxlReportObj.getJSONArray("behavior_check");
+		JSONArray behaviorCheckArr = reportObj.getJSONArray("behavior_check");
 		for (int i = 0; i < behaviorCheckArr.size(); i++) {
 			JSONObject behaviorObj = behaviorCheckArr.getJSONObject(i);
 			String checkPoint = behaviorObj.getString("check_point");
@@ -93,10 +93,10 @@ public class ReportParseUtil {
 	 * @return ReportContact
 	 */
 	public static List<ReportContact> parseReportContact(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		List<ReportContact> rcList = new ArrayList<>();
 		
-		JSONArray appCheckArr = jxlReportObj.getJSONArray("application_check");
+		JSONArray appCheckArr = reportObj.getJSONArray("application_check");
 		for (int i = 0; i < appCheckArr.size(); i++) {
 			
 			JSONObject appObj = appCheckArr.getJSONObject(i);
@@ -163,10 +163,10 @@ public class ReportParseUtil {
 	 * @return CusBasicInfo
 	 */
 	public static CusBasicInfo parseDHBCusBasicInfo(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		// 客户基本信息
 		CusBasicInfo cbi = new CusBasicInfo();
-		JSONArray appCheckArr = jxlReportObj.getJSONArray("application_check");
+		JSONArray appCheckArr = reportObj.getJSONArray("application_check");
 		for (int i = 0; i < appCheckArr.size(); i++) {
 			JSONObject appObj = appCheckArr.getJSONObject(i);
 			String appPoint = appObj.getString("app_point");
@@ -194,7 +194,7 @@ public class ReportParseUtil {
 			}
 		}
 		
-		JSONArray behaviorCheckArr = jxlReportObj.getJSONArray("behavior_check");
+		JSONArray behaviorCheckArr = reportObj.getJSONArray("behavior_check");
 		for (int i = 0; i < behaviorCheckArr.size(); i++) {
 			JSONObject behaviorObj = behaviorCheckArr.getJSONObject(i);
 			String checkPoint = behaviorObj.getString("check_point");
@@ -219,10 +219,10 @@ public class ReportParseUtil {
 	 * @return BlackInfo
 	 */
 	public static BlackInfo parseBlackInfo(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		// 用户黑名单信息
 		BlackInfo blackInfo = new BlackInfo();
-		JSONObject userInfoCheckObj = jxlReportObj.getJSONObject("user_info_check");
+		JSONObject userInfoCheckObj = reportObj.getJSONObject("user_info_check");
 		JSONObject checkBlackInfoObj = userInfoCheckObj.getJSONObject("check_black_info");
 		
 		blackInfo.setPhone_gray_score(checkBlackInfoObj.getIntValue("phone_gray_score"));
@@ -245,10 +245,10 @@ public class ReportParseUtil {
 	 * @return List<FinancialCallInfo>
 	 */
 	public static List<FinancialCallInfo> parseFinancialCallInfo(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 
 		List<FinancialCallInfo> fciList = new ArrayList<>();
-		JSONArray behaviorCheckArr = jxlReportObj.getJSONArray("behavior_check");
+		JSONArray behaviorCheckArr = reportObj.getJSONArray("behavior_check");
 		for (int i = 0; i < behaviorCheckArr.size(); i++) {
 			FinancialCallInfo fci = new FinancialCallInfo();
 			JSONObject checkPointObj = behaviorCheckArr.getJSONObject(i);
@@ -341,10 +341,10 @@ public class ReportParseUtil {
 	 * @return List<ContactRegion>
 	 */
 	public static List<ContactRegion> parseContactRegion(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		List<ContactRegion> crList = new ArrayList<>();
 		
-		JSONArray contactRegionArr = jxlReportObj.getJSONArray("contact_region");
+		JSONArray contactRegionArr = reportObj.getJSONArray("contact_region");
 		for (int i = 0; i < contactRegionArr.size(); i++) {
 			ContactRegion cr = new ContactRegion();
 			JSONObject contactRegionObj = contactRegionArr.getJSONObject(i);
@@ -367,10 +367,10 @@ public class ReportParseUtil {
 	 * @return List<ContactRegion>
 	 */
 	public static List<ContactRegion> parseDHBContactRegion(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		List<ContactRegion> crList = new ArrayList<>();
 		
-		JSONArray contactRegionArr = jxlReportObj.getJSONArray("calls_sa_by_region");
+		JSONArray contactRegionArr = reportObj.getJSONArray("calls_sa_by_region");
 		for (int i = 0; i < contactRegionArr.size(); i++) {
 			ContactRegion cr = new ContactRegion();
 			JSONObject contactRegionObj = contactRegionArr.getJSONObject(i);
@@ -393,11 +393,11 @@ public class ReportParseUtil {
 	 * @return List<TopContact>
 	 */
 	public static List<TopContact> parseDateTopContact(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
 		// 联系人按照通话时长排序
-		List<JSONObject> contactArrList = JSONObject.parseArray(jxlReportObj.getString("contact_list"), JSONObject.class);
+		List<JSONObject> contactArrList = JSONObject.parseArray(reportObj.getString("contact_list"), JSONObject.class);
 		Collections.sort(contactArrList, new Comparator<JSONObject>() {
 			public int compare(JSONObject jo1, JSONObject jo2) {
 				// 通话时长
@@ -439,10 +439,10 @@ public class ReportParseUtil {
 	 * @return List<TopContact>
 	 */
 	public static List<TopContact> parseDHBDateTopContact(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
-		JSONArray callsSaByLengthArr = jxlReportObj.getJSONArray("calls_sa_by_length");
+		JSONArray callsSaByLengthArr = reportObj.getJSONArray("calls_sa_by_length");
 		for (int i = 0; i < callsSaByLengthArr.size(); i++) {
 			TopContact tc = new TopContact();
 			JSONObject callsSaByLengthObj = callsSaByLengthArr.getJSONObject(i);
@@ -465,11 +465,11 @@ public class ReportParseUtil {
 	 * @return List<TopContact>
 	 */
 	public static List<TopContact> parseTimesTopContact(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
 		// 联系人按照通话次数排序
-		List<JSONObject> contactArrList = JSONObject.parseArray(jxlReportObj.getString("contact_list"), JSONObject.class);
+		List<JSONObject> contactArrList = JSONObject.parseArray(reportObj.getString("contact_list"), JSONObject.class);
 		Collections.sort(contactArrList, new Comparator<JSONObject>() {
 			public int compare(JSONObject jo1, JSONObject jo2) {
 				// 通话次数
@@ -511,10 +511,10 @@ public class ReportParseUtil {
 	 * @return List<TopContact>
 	 */
 	public static List<TopContact> parseDHBTimesTopContact(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
-		JSONArray callsSaByLengthArr = jxlReportObj.getJSONArray("calls_sa_by_times");
+		JSONArray callsSaByLengthArr = reportObj.getJSONArray("calls_sa_by_times");
 		for (int i = 0; i < callsSaByLengthArr.size(); i++) {
 			TopContact tc = new TopContact();
 			JSONObject callsSaByLengthObj = callsSaByLengthArr.getJSONObject(i);
@@ -522,6 +522,64 @@ public class ReportParseUtil {
 			tc.setTags_label(callsSaByLengthObj.getString("tags_label"));
 			tc.setCall_times(callsSaByLengthObj.getString("call_times"));
 			tc.setCall_length(callsSaByLengthObj.getString("call_length"));
+			tcList.add(tc);
+		}
+		return tcList;
+	}
+	
+	/** 
+	 * @Title: parseAllContact 
+	 * @Description: 聚信立-解析所有联系人数据
+	 * @author ZhangYadong
+	 * @date 2018年1月29日 下午3:26:32
+	 * @param json
+	 * @return
+	 * @return List<TopContact>
+	 */
+	public static List<TopContact> parseAllContact(String json){
+		JSONObject reportObj = JSONObject.parseObject(json);
+		List<TopContact> tcList = new ArrayList<>();
+		
+		JSONArray contactArr = reportObj.getJSONArray("contact_list");
+		for (int i = 0; i < contactArr.size(); i++) {
+			TopContact tc = new TopContact();
+			JSONObject contactObj = contactArr.getJSONObject(i);
+			tc.setFormat_tel(contactObj.getString("phone_num"));
+			tc.setTags_label(contactObj.getString("contact_name"));
+			tc.setCall_times(contactObj.getString("call_cnt"));
+			tc.setCall_length(contactObj.getString("call_len"));
+			tc.setFancha_telloc(contactObj.getString("phone_num_loc"));
+			tc.setCall_out_times(contactObj.getInteger("call_out_cnt"));
+			tc.setCall_in_times(contactObj.getInteger("call_in_cnt"));
+			tcList.add(tc);
+		}
+		return tcList;
+	}
+	
+	/** 
+	 * @Title: parseDHBAllContact 
+	 * @Description: 电话邦-解析所有联系人数据 
+	 * @author ZhangYadong
+	 * @date 2018年1月29日 下午3:28:45
+	 * @param json
+	 * @return
+	 * @return List<TopContact>
+	 */
+	public static List<TopContact> parseDHBAllContact(String json){
+		JSONObject reportObj = JSONObject.parseObject(json);
+		List<TopContact> tcList = new ArrayList<>();
+		
+		JSONArray contactArr = reportObj.getJSONArray("call_log_group_by_tel");
+		for (int i = 0; i < contactArr.size(); i++) {
+			TopContact tc = new TopContact();
+			JSONObject contactObj = contactArr.getJSONObject(i);
+			tc.setFormat_tel(contactObj.getString("format_tel"));
+			tc.setTags_label(contactObj.getString("tags_label"));
+			tc.setCall_times(contactObj.getString("call_times"));
+			tc.setCall_length(contactObj.getString("call_length"));
+			tc.setFancha_telloc(contactObj.getString("fancha_telloc"));
+			tc.setCall_out_times(contactObj.getInteger("call_out_times"));
+			tc.setCall_in_times(contactObj.getInteger("call_in_times"));
 			tcList.add(tc);
 		}
 		return tcList;
@@ -537,9 +595,9 @@ public class ReportParseUtil {
 	 * @return List<TripInfo>
 	 */
 	public static List<TripInfo> parseTripInfo(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TripInfo> tfList = new ArrayList<>();
-		JSONArray tripInfoArr = jxlReportObj.getJSONArray("trip_info");
+		JSONArray tripInfoArr = reportObj.getJSONArray("trip_info");
 		for (int i = 0; i < tripInfoArr.size(); i++) {
 			TripInfo tf = new TripInfo();
 			JSONObject tripInfoObj = tripInfoArr.getJSONObject(i);
@@ -563,9 +621,9 @@ public class ReportParseUtil {
 	 * @return Cuishou
 	 */
 	public static Cuishou parseDHBCuishou(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		Cuishou cs = null;
-		JSONObject crdObj = jxlReportObj.getJSONObject("cuishou_risk_detection");
+		JSONObject crdObj = reportObj.getJSONObject("cuishou_risk_detection");
 
 		JSONObject cuishou = crdObj.getJSONObject("cuishou");
 		JSONObject cuishou_degree = crdObj.getJSONObject("cuishou_degree");
@@ -586,10 +644,10 @@ public class ReportParseUtil {
 	 * @return Cuishou
 	 */
 	public static Cuishou parseDHBYisiCuishou(String json){
-		JSONObject jxlReportObj = JSONObject.parseObject(json);
+		JSONObject reportObj = JSONObject.parseObject(json);
 		Cuishou cs = new Cuishou();
 		
-		JSONObject crdObj = jxlReportObj.getJSONObject("cuishou_risk_detection");
+		JSONObject crdObj = reportObj.getJSONObject("cuishou_risk_detection");
 		
 		JSONObject yisicuishou = crdObj.getJSONObject("yisicuishou");
 		JSONObject yisicuishou_degree = crdObj.getJSONObject("yisicuishou_degree");
