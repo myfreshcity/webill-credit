@@ -944,4 +944,15 @@ public class DateUtil {
 		String todate = new SimpleDateFormat("yyyy-MM-dd").format(c.getTime());
 		return todate;
 	}
+    
+    /** 
+     * 获取前一天时间 
+     */
+    public static String getYesterdayDate(Date date) {
+    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		c.add(Calendar.DATE, -1);
+		return sdf.format(c.getTime());
+    }
 }

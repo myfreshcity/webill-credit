@@ -1,5 +1,7 @@
 package com.webill.core.model.juxinli;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 /**
  * @ClassName: JXLCollectReq
  * @Description:
@@ -21,6 +23,14 @@ public class JXLCollectReq {
 	private String type;
 
 	private String website;
+	
+	/** 客户主键ID */
+	@JSONField(serialize = false)
+	private Integer cusId;
+	
+	/** 临时信息报告类型：0-标准 1-高级 */
+	@JSONField(serialize = false)
+	private Integer temReportType;
 
 	public String getToken() {
 		return token;
@@ -76,6 +86,22 @@ public class JXLCollectReq {
 
 	public void setWebsite(String website) {
 		this.website = website;
+	}
+
+	public Integer getCusId() {
+		return cusId;
+	}
+
+	public void setCusId(Integer cusId) {
+		this.cusId = cusId;
+	}
+
+	public Integer getTemReportType() {
+		return temReportType;
+	}
+
+	public void setTemReportType(Integer temReportType) {
+		this.temReportType = temReportType;
 	}
 
 /*	public String toJsonString() {

@@ -170,15 +170,15 @@ public class JXLSubmitFormReq {
 		json.put("basic_info", basicInfo);
 		
 		//处理contacts
-		JSONArray ContactJxlsArray = new JSONArray();
+		JSONArray contactsArray = new JSONArray();
 		for(JXLContact contactl : contacts){
-			JSONObject ContactJxlJson = new JSONObject();
-			ContactJxlJson.put("Contact_tel",contactl.getContactTel());
-			ContactJxlJson.put("Contact_name",contactl.getContactName());
-			ContactJxlJson.put("Contact_type",contactl.getContactType());
-			ContactJxlsArray.add(ContactJxlJson);
+			JSONObject contactJson = new JSONObject();
+			contactJson.put("contact_tel",contactl.getContactTel());
+			contactJson.put("contact_name",contactl.getContactName());
+			contactJson.put("contact_type",contactl.getContactType());
+			contactsArray.add(contactJson);
 		}
-		json.put("ContactJxls", ContactJxlsArray);
+		json.put("contacts", contactsArray);
 		
 		//处理uid
 		if(uid != null){

@@ -17,43 +17,67 @@ import org.springframework.data.mongodb.core.mapping.Field;
 public class Report implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	// 主键使用此注解
-	@Id
+	@Id // 主键使用此注解
 	private String id;
-
-	// 字段使用此注解
-	@Field
+	
+	/** 提交表单获取的token（报告key） */
+	@Field // 字段使用此注解
 	private String token;
+	
+	/** 客户ID */
+	@Field
+	private String cusId;
 
+	/** 姓名 */
 	@Field
 	private String name;
 
+	/** 身份证 */
 	@Field
 	private String idCard;
 
+	/** 手机号 */
 	@Field
 	private String mobile;
+	
+	/** 信息报告类型：0-标准 1-高级 */
+	@Field
+	private Integer reportType;
 
+	/** 聚信立报告数据 */
+	@Field
+	private String jxlReport;
+	
+	/** 电话邦报告数据 */
+	@Field
+	private String dhbReport;
+	
+	/** 最终处理报告数据 */
 	@Field
 	private String finalReport;
 
+	/** 运营商原始数据 */
 	@Field
 	private String mobileRaw;
 
+	/** 电商原始数据 */
 	@Field
 	private String ebusinessRaw;
-
+	
+	/** 请求时间 */
 	@Field
 	private Date applyDate;
-
+	
+	/** 报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集超时 */
 	@Field
 	private Integer status;
 
+	/** 响应状态码 */
 	@Field
 	private Integer code;
 
-	@Field
-	private String applySn;
+	/* 最近信息报告编号 */
+	private String reportKey;
 
 	public String getId() {
 		return id;
@@ -93,14 +117,6 @@ public class Report implements Serializable {
 
 	public void setMobile(String mobile) {
 		this.mobile = mobile;
-	}
-
-	public String getFinalReport() {
-		return finalReport;
-	}
-
-	public void setFinalReport(String finalReport) {
-		this.finalReport = finalReport;
 	}
 
 	public String getMobileRaw() {
@@ -143,12 +159,52 @@ public class Report implements Serializable {
 		this.code = code;
 	}
 
-	public String getApplySn() {
-		return applySn;
+	public String getCusId() {
+		return cusId;
 	}
 
-	public void setApplySn(String applySn) {
-		this.applySn = applySn;
+	public void setCusId(String cusId) {
+		this.cusId = cusId;
 	}
 
+	public String getJxlReport() {
+		return jxlReport;
+	}
+
+	public void setJxlReport(String jxlReport) {
+		this.jxlReport = jxlReport;
+	}
+
+	public String getDhbReport() {
+		return dhbReport;
+	}
+
+	public void setDhbReport(String dhbReport) {
+		this.dhbReport = dhbReport;
+	}
+
+	public String getReportKey() {
+		return reportKey;
+	}
+
+	public void setReportKey(String reportKey) {
+		this.reportKey = reportKey;
+	}
+	
+	public String getFinalReport() {
+		return finalReport;
+	}
+
+	public void setFinalReport(String finalReport) {
+		this.finalReport = finalReport;
+	}
+
+	public Integer getReportType() {
+		return reportType;
+	}
+
+	public void setReportType(Integer reportType) {
+		this.reportType = reportType;
+	}
+	
 }

@@ -265,4 +265,23 @@ public class SystemProperty {
     public String JXL_SECRET;
     @Value("${JXL_REQ_URL}")
     public String JXL_REQ_URL;
+    
+    /**
+     * @fieldType: String
+     * @author ZhangYadong
+     * @date 2018年1月18日 上午11:09:34
+     * @Description: 电话邦配置
+     */ 
+    @Value("${DHB_ACCOUNT}")
+    public String DHB_ACCOUNT;
+    @Value("${DHB_SECRET}")
+    public String DHB_SECRET;
+    @Value("${DHB_REQ_URL}")
+    public String DHB_REQ_URL;
+    
+    /**
+     * 报告在redis中的基本key
+     */
+    @Value("${REPORT_KEY}")
+    public String REPORT_KEY;
 }

@@ -2,8 +2,7 @@ package com.webill.core.model;
 
 import java.io.Serializable;
 import java.util.Date;
-
-import org.apache.commons.io.filefilter.FalseFileFilter;
+import java.util.List;
 
 import com.webill.framework.annotations.IdType;
 import com.webill.framework.annotations.TableField;
@@ -39,33 +38,51 @@ public class Customer implements Serializable {
 
 	/** 获取信息企业ID */
 	private Integer comId;
-
-	/** 家庭地址 */
+	
+	/** 家庭地址省份城市区县 */
 	private String homeAddr;
+
+	/** 家庭地址码 */
+	private String homeAddrCode;
+
+	/** 家庭地址详情 */
+	private String homeAddrDetail;
 
 	/** 家庭电话 */
 	private String homeTel;
 
-	/** 工作地址 */
+	/** 工作地址省份城市区县 */
 	private String workAddr;
+
+	/** 工作地址码 */
+	private String workAddrCode;
+
+	/** 工作地址详情 */
+	private String workAddrDetail;
 
 	/** 工作电话 */
 	private String workTel;
-
+	
+	/** 手机服务密码 */
+	private String servicePwd;
+	
 	/** 报告获取次数 */
 	private Integer refreshTimes;
 
 	/** 最近信息报告编号 */
 	private String latestReportKey;
 
-	/** 最近信息报告类型：0-标准 1-高级 */
+	/** 最近信息报告类型：0-基础 1-标准 */
 	private Integer latestReportType;
+	
+	/** 临时信息报告类型：0-基础 1-标准 */
+	private Integer temReportType;
 
 	/** 最近报告获取时间 */
 	private Date latestReportTime;
 
-	/** 最近报告状态：-1-准备抓取 0-抓取中 1-抓取成功 2-抓取超时 */
-	private String latestReportStatus;
+	/** 最近报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集失败 */
+	private Integer latestReportStatus;
 
 	/** 状态： -1-逻辑删除 0-正常数据 */
 	private Integer tStatus;
@@ -76,17 +93,29 @@ public class Customer implements Serializable {
 	/** 创建时间 */
 	private Date createdTime;
 
-	/* 排序方式：1-时间倒序排序 2-查询次数高低排序*/
+	/* 最近报告获取时间-年月日*/
 	@TableField(exist = false)
-	private Integer sortWay = 1; 
+	private String latestReportTimeStr;
 	
-	/* 每页显示条数 */
+	/* 排序方式： 1-时间倒序排序 2-查询次数高低排序*/
 	@TableField(exist = false)
-	private int start;
-
-	/* 总页数 */
+	private Integer sortWay;
+	
+	/* 客户信息标准版可用次数*/
 	@TableField(exist = false)
-	private int length;
+	private Integer standardTimes;
+	
+	/* 客户信息高级版可用次数*/
+	@TableField(exist = false)
+	private Integer advancedTimes;
+	
+	/* 联系人集合*/
+	@TableField(exist = false)
+	private List<CusContact> contacts;
+	
+	/* 地址三级联动字符串*/
+	@TableField(exist = false)
+	private String areaJson;
 	
 	public Integer getId() {
 		return this.id;
@@ -137,11 +166,27 @@ public class Customer implements Serializable {
 	}
 
 	public String getHomeAddr() {
-		return this.homeAddr;
+		return homeAddr;
 	}
 
 	public void setHomeAddr(String homeAddr) {
 		this.homeAddr = homeAddr;
+	}
+
+	public String getHomeAddrCode() {
+		return homeAddrCode;
+	}
+
+	public void setHomeAddrCode(String homeAddrCode) {
+		this.homeAddrCode = homeAddrCode;
+	}
+
+	public String getHomeAddrDetail() {
+		return homeAddrDetail;
+	}
+
+	public void setHomeAddrDetail(String homeAddrDetail) {
+		this.homeAddrDetail = homeAddrDetail;
 	}
 
 	public String getHomeTel() {
@@ -153,11 +198,27 @@ public class Customer implements Serializable {
 	}
 
 	public String getWorkAddr() {
-		return this.workAddr;
+		return workAddr;
 	}
 
 	public void setWorkAddr(String workAddr) {
 		this.workAddr = workAddr;
+	}
+
+	public String getWorkAddrCode() {
+		return workAddrCode;
+	}
+
+	public void setWorkAddrCode(String workAddrCode) {
+		this.workAddrCode = workAddrCode;
+	}
+
+	public String getWorkAddrDetail() {
+		return workAddrDetail;
+	}
+
+	public void setWorkAddrDetail(String workAddrDetail) {
+		this.workAddrDetail = workAddrDetail;
 	}
 
 	public String getWorkTel() {
@@ -191,6 +252,14 @@ public class Customer implements Serializable {
 	public void setLatestReportType(Integer latestReportType) {
 		this.latestReportType = latestReportType;
 	}
+	
+	public Integer getTemReportType() {
+		return temReportType;
+	}
+
+	public void setTemReportType(Integer temReportType) {
+		this.temReportType = temReportType;
+	}
 
 	public Date getLatestReportTime() {
 		return this.latestReportTime;
@@ -200,11 +269,11 @@ public class Customer implements Serializable {
 		this.latestReportTime = latestReportTime;
 	}
 
-	public String getLatestReportStatus() {
-		return this.latestReportStatus;
+	public Integer getLatestReportStatus() {
+		return latestReportStatus;
 	}
 
-	public void setLatestReportStatus(String latestReportStatus) {
+	public void setLatestReportStatus(Integer latestReportStatus) {
 		this.latestReportStatus = latestReportStatus;
 	}
 
@@ -232,4 +301,59 @@ public class Customer implements Serializable {
 		this.createdTime = createdTime;
 	}
 
+	public List<CusContact> getContacts() {
+		return contacts;
+	}
+
+	public void setContacts(List<CusContact> contacts) {
+		this.contacts = contacts;
+	}
+
+	public Integer getStandardTimes() {
+		return standardTimes;
+	}
+
+	public void setStandardTimes(Integer standardTimes) {
+		this.standardTimes = standardTimes;
+	}
+
+	public Integer getAdvancedTimes() {
+		return advancedTimes;
+	}
+
+	public void setAdvancedTimes(Integer advancedTimes) {
+		this.advancedTimes = advancedTimes;
+	}
+
+	public Integer getSortWay() {
+		return sortWay;
+	}
+
+	public void setSortWay(Integer sortWay) {
+		this.sortWay = sortWay;
+	}
+
+	public String getServicePwd() {
+		return servicePwd;
+	}
+
+	public void setServicePwd(String servicePwd) {
+		this.servicePwd = servicePwd;
+	}
+
+	public String getAreaJson() {
+		return areaJson;
+	}
+
+	public void setAreaJson(String areaJson) {
+		this.areaJson = areaJson;
+	}
+
+	public String getLatestReportTimeStr() {
+		return latestReportTimeStr;
+	}
+
+	public void setLatestReportTimeStr(String latestReportTimeStr) {
+		this.latestReportTimeStr = latestReportTimeStr;
+	}
 }
