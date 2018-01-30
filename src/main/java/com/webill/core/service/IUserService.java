@@ -48,18 +48,17 @@ public interface IUserService extends ISuperService<User> {
      * @return: User  
      */
     public User checkMobileIsExist(String mobileNo);
-    
-    /*//**   
+    /**   
      * @Title: userLogin   
      * @Description: 用户手机验证登录
      * @author: WangLongFei  
      * @date: 2017年10月26日 下午4:19:58   
      * @return  
      * @return: Integer  
-     *//*
+     */
     public Integer userLogin(User user);
     
-    *//** 
+   /** 
      * @Title: userLoginByPwd 
      * @Description: 用户密码登录
      * @author: WangLongFei
@@ -67,9 +66,9 @@ public interface IUserService extends ISuperService<User> {
      * @param user
      * @return
      * @return: Integer
-     *//*
+     */
     public Integer userLoginByPwd(User user);
-    *//**   
+    /**   
      * @Title: userLogon   
      * @Description: 注销登录  
      * @author: WangLongFei  

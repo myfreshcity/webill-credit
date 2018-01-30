@@ -134,188 +134,64 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
 		}
 	}
 
-	/*@Override
+	@Override
 	public Integer userLogin(User user) {
 		Integer result = null;
-		boolean f = false;
 		//获取系统发送的验证码
 		RedisKeyDto redisWhere = new RedisKeyDto();
-		redisWhere.setKeys(user.getMobile());
+		redisWhere.setKeys(user.getMobileNo());
 		RedisKeyDto redisKeyDto =  redisService.redisGet(redisWhere);
 		if(redisKeyDto!=null){
 			String verifyCode = redisKeyDto.getValues();
-			
-			//获取手机号相关联的用户信息
-			User  userCheck = this.checkMobileIsExist(user.getMobile());
-			
-			//根据微信获取的用户信息
-			Map<String,Object> map = new HashMap<String,Object>();
-			map.put("open_id", user.getOpenId());
-			List<User> uList = this.selectByMap(map);
-			if(uList!=null){
-				if(uList.size()==1){
-					//获取当前登录用户的信息
-					User dbUser = uList.get(0);
-					if(userCheck!=null){
-						//手机号存在,换绑微信号
-						//检测当前账号下是否有手机号
-						//当前账号有手机号时
-						//判断验证码是否正确
-						if(user.getInCode().equals(verifyCode)){
-							//给新手机号关联的数据更新微信信息
-							f = this.updateUserBind(userCheck, dbUser);
-							if(f){
-								//登录成功
-								result = Constant.LOGIN_SUCCESS;
-							}else{
-								//绑定手机号失败，请重试
-								result = Constant.LOGIN_FAIL;
-							}
-						}else{
-							//验证码错误，请重试
-							result = Constant.LOGIN_VERIFY_CODE_ERROR;
-						}
+			if(user.getInCode().equals(verifyCode)){
+				//获取手机号相关联的用户信息
+				User  userCheck = this.checkMobileIsExist(user.getMobileNo());
+				
+				if(userCheck!=null){
+					//手机号存在,换绑微信号
+					//检测当前账号下是否有手机号
+					//当前账号有手机号时
+					//判断验证码是否正确
+					if(user.getInCode().equals(verifyCode)){
+						result = Constant.LOGIN_SUCCESS;
+					}else{
+						//验证码错误，请重试
+						result = Constant.LOGIN_VERIFY_CODE_ERROR;
 					}
 				}else{
 					result = Constant.LOGIN_FAIL;
-					logger.debug("该用户信息不唯一=====>"+user.getOpenId());
+					logger.debug("未找到该用户信息=====>"+user.getMobileNo());
 				}
 			}else{
-				result = Constant.LOGIN_FAIL;
-				logger.debug("未找到该用户信息=====>"+user.getOpenId());
+				result = Constant.LOGIN_VERIFY_CODE_ERROR;
 			}
 		}else{
 			result = Constant.LOGIN_VERIFY_CODE_INVALID;
 		}
 		return result;
-	}*/
+	}
 
-	/*@Transactional
 	@Override
-	public boolean updateUserBind(User mobUser,User wxUser) {
-		boolean f = false;
-		//给新手机号关联的数据更新微信信息
-		mobUser.setOpenId(wxUser.getOpenId());
-		mobUser.setHeadUrl(wxUser.getHeadUrl());
-		mobUser.setWeixinNick(wxUser.getWeixinNick());
-		mobUser.setSex(wxUser.getSex());
-		mobUser.setLoginFlag(Constant.LOGIN_STATUS_YES);
-		mobUser.setUnionId(wxUser.getUnionId());
-		mobUser.settStatus(Constant.NORMAL_STATUS);
-		f = this.updateSelectiveById(mobUser);
-		
-		if(!mobUser.getMobile().equals(wxUser.getMobile())){
-			//如果原来数据没有手机号则删除原来数据，有手机号则制空原来用户的微信信息
-			if(StringUtil.isNotEmpty(wxUser.getMobile())){
-				//有手机号则制空原来用户的微信信息
-				logger.info("*********clear user userId="+wxUser.getId()+"old weixin info:openId="+wxUser.getOpenId()+",HeadUrl="+wxUser.getHeadUrl()+",WeiXinNick="+wxUser.getWeixinNick()+",sex="+wxUser.getSex());
-				wxUser.setLoginFlag(Constant.LOGIN_STATUS_NO);
-				f = this.updateSelectiveById(wxUser); 
-			}else{
-				//没有手机号则删除原来数据
-				f = this.deleteById(wxUser);
-			}
-		}
-		
-		return f;
-	}*/
-
-	/*@Override
-	public boolean userLogon(User user) {
-		user.setLoginFlag(Constant.LOGIN_STATUS_NO);
-		boolean f = this.updateSelectiveById(user);
-		return f;
-	}*/
-
-	/*@Override
 	public Integer userLoginByPwd(User user) {
 		 //根据手机号获取的用户信息
-		 User mobUser = this.checkMobileIsExist(user.getMobile());
-		 
-		 if(StringUtil.isNotEmpty(user.getOpenId())){
-			 //根据微信获取的用户信息
-			 Map<String,Object> map = new HashMap<String,Object>();
-			 map.put("open_id", user.getOpenId());
-			 List<User> uList = this.selectByMap(map);
-			 if(uList!=null){
-				 if(uList.size()==1){
-					 User wxUser = uList.get(0);
-					 
-					 if(mobUser!=null){
-						 if(user.getPassword().equals(mobUser.getPassword())){
-							 boolean f = this.updateUserBind(mobUser, wxUser);
-							 if(f){
-								 return Constant.LOGIN_SUCCESS;
-							 }else{
-								 return Constant.LOGIN_FAIL;
-							 }
-						 }else{
-							 return Constant.LOGIN_PWD_ERROR;
-						 }
-					 }else{
-						 return Constant.LOGIN_NOT_FOUNT_MOBILE;
-					 }
-				 }else{
-					 return Constant.LOGIN_FAIL;
-				 }
+		 User mobUser = this.checkMobileIsExist(user.getMobileNo());
+		 if(mobUser!=null){
+			 if(user.getPassword().equals(mobUser.getPassword())){
+				 return Constant.LOGIN_SUCCESS;
 			 }else{
-				 return Constant.LOGIN_FAIL;
+				 return Constant.LOGIN_PWD_ERROR;
 			 }
 		 }else{
-			 if(mobUser!=null){
-				 if(user.getPassword().equals(mobUser.getPassword())){
-					 return Constant.LOGIN_SUCCESS;
-				 }else{
-					 return Constant.LOGIN_PWD_ERROR;
-				 }
-			 }else{
-				 return Constant.LOGIN_FAIL;
-			 }
+			 return Constant.LOGIN_NOT_FOUNT_MOBILE;
 		 }
-	}*/
+	}
 
 	@Transactional
 	@Override
 	public User saveRegister(User user) {
 		//验证码正确-注册
 		boolean f = false;
-		if(StringUtil.isNotEmpty(user.getOpenId())){
-			//微信端注册
-			//获取当前账号信息
-			Map<String,Object> map = new HashMap<String,Object>();
-			map.put("open_id", user.getOpenId());
-			List<User> uList = this.selectByMap(map); 
-			if(uList!= null){
-				if(uList.size()>0){
-					User dbUser = uList.get(0);
-					if(uList.size()==1){
-						//第一次注册,关联手机号，设置为自动登录状态
-						user.setId(dbUser.getId());
-//						user.setLoginFlag(Constant.LOGIN_STATUS_YES);
-						f = this.updateSelectiveById(user);
-					}else{
-						//第二次或者以后注册
-						//把此前所有用户设置为非登录状态
-						for (User u : uList) {
-//							u.setLoginFlag(Constant.LOGIN_STATUS_NO);
-							f = this.updateSelectiveById(u);
-							if(!f){
-								break;
-							}
-						}
-						if(f){
-							//插入一个自动登录的新用户数据
-//							user.setLoginFlag(Constant.LOGIN_STATUS_YES);
-							f = this.insertSelective(user);
-						}
-					}
-					
-				}
-			}
-		}else{
-			//网页端注册
-			f = this.insertSelective(user);
-		}
+		f = this.insertSelective(user);
 		if(f){
 			User dbUser = new User();
 			dbUser = this.selectById(user.getId());
