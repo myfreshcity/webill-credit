@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.webill.core.service.mapper.UserMapper">
-
 	<!-- 通用查询结果列-->
 	<sql id="Base_Column_List">
 		id, open_id AS openId, bank_mobile_no AS bankMobileNo, mobile_no AS mobileNo, password, id_no AS idNo, bank_card_no AS bankCardNo, real_name AS realName, email, com_id AS comId, is_staff AS isStaff, is_verified AS isVerified, standard_times AS standardTimes, advanced_times AS advancedTimes, memeber_level AS memeberLevel, member_start_date AS memberStartDate, member_end_date AS memberEndDate, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
@@ -31,9 +30,6 @@
 		<if test="timeTo!=null and timeTo!='' ">
 			AND u.created_time &lt;= str_to_date('${timeTo} 23:59:59','%Y-%m-%d %H:%i:%s')
 		</if>		
-		<if test="licenseNo!=null and licenseNo!=''">
-			AND u.id IN (SELECT cur.user_id from car_user_rel cur WHERE cur.license_no LIKE concat(concat('%',#{licenseNo}),'%'))
-		</if>
 	</select>
 	
 </mapper>

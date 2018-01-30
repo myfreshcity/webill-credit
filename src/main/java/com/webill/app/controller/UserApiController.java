@@ -1,7 +1,6 @@
 package com.webill.app.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.webill.app.util.MD5;
 import com.webill.app.util.StringUtil;
 import com.webill.core.Constant;
 import com.webill.core.model.RedisKeyDto;
@@ -25,10 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 
 @Api(value = "userAPI", description = "用户API", produces = MediaType.APPLICATION_JSON_VALUE )
@@ -71,7 +66,7 @@ public class UserApiController extends BaseController {
 			@ApiResponse(code = 400, message = "验证码错误，请重试！"),
 			@ApiResponse(code = 500, message = "注册失败！")
 	})
-    @RequestMapping(value = "/userRegister", method = RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
+    @RequestMapping(value = "/register", method = RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
     @ResponseBody
     public JsonResult userRegister(@RequestBody String jsonStr) {
 		User user = JSONObject.parseObject(jsonStr, User.class);
@@ -114,30 +109,27 @@ public class UserApiController extends BaseController {
 	 * @return  
 	 * @return: JsonResult  
 	 */
-	/*@ApiOperation(value = "用户登录")
+	@ApiOperation(value = "用户登录")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "登录成功！"),
 			@ApiResponse(code = 300, message = "验证码错误，请重试！"),
 			@ApiResponse(code = 303, message = "手机号不能为空！"),
 			@ApiResponse(code = 400, message = "该手机号已关联微信号！"),
 	@ApiResponse(code = 500, message = "登录失败！")
 	})
-    @RequestMapping(value = "/userLogin", method = RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
+    @RequestMapping(value = "/login", method = RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
     @ResponseBody
     public JsonResult userLogin(@RequestBody String jsonStr) {
 		User user = JSONObject.parseObject(jsonStr, User.class);
-		user.settStatus(Constant.NORMAL_STATUS);
 		if(user!=null){
-			if(StringUtil.isNotEmpty(user.getMobile())){
+			if(StringUtil.isNotEmpty(user.getMobileNo())){
 				//获取库中用户信息
-				User mobUser = userService.checkMobileIsExist(user.getMobile());
+				User mobUser = userService.checkMobileIsExist(user.getMobileNo());
 				if(mobUser!= null){
 					if("quick".equals(user.getCheckFlag())){
-						user.setOpenId(user.getOpenId());;
 						//验证码快捷登录
 						Integer result = userService.userLogin(user);
 						
 						if(Constant.LOGIN_SUCCESS.intValue()==result.intValue()){
-							User dbUser = userService.checkMobileIsExist(user.getMobile());
 							return renderSuccess("登录成功！", "200",mobUser);
 						}else if(Constant.LOGIN_VERIFY_CODE_ERROR.intValue()==result.intValue()){
 							return renderError("验证码错误，请重试！", "300");
@@ -147,12 +139,11 @@ public class UserApiController extends BaseController {
 							return renderError("绑定手机号失败，请重试！", "500");
 						}
 					}else if("pwd".equals(user.getCheckFlag())){
-						mobUser.setOpenId(user.getOpenId());
 						//通过密码登录
-						Integer result = userService.userLoginByPwd(mobUser);
+						Integer result = userService.userLoginByPwd(user);
 						
 						if(Constant.LOGIN_SUCCESS.intValue()==result.intValue()){
-							User dbUser = userService.checkMobileIsExist(user.getMobile());
+							User dbUser = userService.checkMobileIsExist(user.getMobileNo());
 							return renderSuccess("登录成功！", "200",dbUser);
 						}else if(Constant.LOGIN_PWD_ERROR.intValue()==result.intValue()){
 							return renderError("密码错误，请重试！", "300");
@@ -169,45 +160,9 @@ public class UserApiController extends BaseController {
 				return renderError("手机号不能为空！", "303");
 			}
 		}else{
-			return renderError("绑定手机号失败，请重试！", "500");
+			return renderError("登录失败，请重试！", "500");
 		}
     }
-	
-	*//** 
-	 * @Title: userLogout 
-	 * @Description: 用户注销
-	 * @author: WangLongFei
-	 * @date: 2017年11月22日 下午2:46:39 
-	 * @param jsonStr
-	 * @return
-	 * @return: JsonResult
-	 *//*
-	@ApiOperation(value = "用户注销")
-	@ApiResponses(value = {@ApiResponse(code = 200, message = "注销成功！"),@ApiResponse(code = 500, message = "注销失败，请重试！"),})
-    @RequestMapping(value = "/userLogout", method = RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
-    @ResponseBody
-    public JsonResult userLogout(@RequestBody String jsonStr) {
-		User user = JSONObject.parseObject(jsonStr, User.class);
-		if(user!=null){
-			//获取当前账号信息
-			User mobUser = userService.checkMobileIsExist(user.getMobile());
-			if(mobUser!=null){
-				boolean f = userService.userLogon(mobUser);
-				if(f){
-					User defaultUser = new User();
-					defaultUser.setId(-1);
-					return renderSuccess("注销成功！", "200",defaultUser);
-				}else{
-					return renderError("注销失败，请重试！", "500");
-				}
-			}else{
-				return renderError("注销失败，请重试！", "500");
-			}
-			
-		}else{
-			return renderError("注销失败，请重试！", "500");
-		}
-    }*/
 	
 	/** 
 	 * @Title: updateIdCard 

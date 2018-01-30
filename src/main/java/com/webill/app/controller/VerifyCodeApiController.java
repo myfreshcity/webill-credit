@@ -49,15 +49,15 @@ public class VerifyCodeApiController extends BaseController {
 	 * @return  
 	 * @return: JsonResult  
 	 */
-	/*@ApiOperation(value = "发送验证码（默认验证手机号唯一性）")
+	@ApiOperation(value = "发送验证码（默认验证手机号唯一性）")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "发送验证码成功！"),@ApiResponse(code = 500, message = "手机号不能为空！")})
 	@RequestMapping(value = "/sendVerifyCode", method = { RequestMethod.POST },produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
 	@ResponseBody
 	public JsonResult sendVerifyCode(@ApiParam(required = true, value = "手机号")@RequestBody String jsonStr) {
 		User user = JSONObject.parseObject(jsonStr, User.class);
 		String checkFlag = user.getCheckFlag();
-		if(StringUtil.isNotEmpty(user.getMobile())){
-			User dbUser = userService.checkMobileIsExist(user.getMobile());
+		if(StringUtil.isNotEmpty(user.getMobileNo())){
+			User dbUser = userService.checkMobileIsExist(user.getMobileNo());
 			if(dbUser!=null){
 				//手机号已存在
 				if(Constant.SEND_MSG_CHECK_FLAG_REGISTER.equals(checkFlag)){
@@ -68,7 +68,7 @@ public class VerifyCodeApiController extends BaseController {
 					return renderError("请使用未绑定的手机号！", "402");
 				}else {
 					//修改密码或者快速登录
-					Integer result = verificationCodeService.sendVerficationCode(user.getMobile());
+					Integer result = verificationCodeService.sendVerficationCode(user.getMobileNo());
 					if(result.intValue() == Constant.STATUS_SUCCESS){
 						return renderSuccess("发送验证码成功！", "200");
 					}else{
@@ -79,7 +79,7 @@ public class VerifyCodeApiController extends BaseController {
 				//手机号不存在
 				if(Constant.SEND_MSG_CHECK_FLAG_REGISTER.equals(checkFlag)||Constant.SEND_MSG_CHECK_FLAG_UPDATEMOB.equals(checkFlag)){
 					//注册或修改手机号
-					Integer result = verificationCodeService.sendVerficationCode(user.getMobile());
+					Integer result = verificationCodeService.sendVerficationCode(user.getMobileNo());
 					if(result.intValue() == Constant.STATUS_SUCCESS){
 						return renderSuccess("发送验证码成功！", "200");
 					}else{
@@ -93,5 +93,5 @@ public class VerifyCodeApiController extends BaseController {
 		}else{
 			return renderError("手机号不能为空！", "500");
 		}
-	}*/
+	}
 }
