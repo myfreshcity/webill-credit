@@ -52,7 +52,7 @@ import com.webill.framework.common.JSONUtil;
  */
 @Service
 public class JuxinliServiceImpl implements IJuxinliService {
-	private static Log logger = LogFactory.getLog(ProductServiceImpl.class);
+	private static Log logger = LogFactory.getLog(JuxinliServiceImpl.class);
 	
 	public static final String REPORT_LOCK = "__JUXINLI__REPORT__LOG__";
 	public static final int max_count = 10;

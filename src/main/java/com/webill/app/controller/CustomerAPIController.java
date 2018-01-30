@@ -106,10 +106,14 @@ public class CustomerAPIController extends BaseController{
 		// 完善客户信息
 		boolean f = customerService.updateCus(cus);
 		if (f) {
-			// 客户信息转聚信立表单提交数据
-			JXLSubmitFormReq req = customerService.cusToJXLSubmitFormReq(cus);
-			// 提交申请表单
-			return juxinliService.submitForm(req, cus.getId());
+			/*if (cus.getTemReportType() == 0) { //临时信息报告类型：0-基础 1-标准
+				
+			} else{*/
+				// 客户信息转聚信立表单提交数据
+				JXLSubmitFormReq req = customerService.cusToJXLSubmitFormReq(cus);
+				// 提交申请表单
+				return juxinliService.submitForm(req, cus.getId());
+//			}
 		}else {
 			return renderError("更新客户信息失败", "510");
 		}

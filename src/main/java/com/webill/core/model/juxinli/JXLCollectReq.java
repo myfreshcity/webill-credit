@@ -28,7 +28,7 @@ public class JXLCollectReq {
 	@JSONField(serialize = false)
 	private Integer cusId;
 	
-	/** 临时信息报告类型：0-标准 1-高级 */
+	/** 临时信息报告类型：0-基础 1-标准 */
 	@JSONField(serialize = false)
 	private Integer temReportType;
 
