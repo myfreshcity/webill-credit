@@ -403,7 +403,7 @@ public class TOrderApiController extends BaseController{
 		String client = this.isClient(request);
 		String newUri = null;
 		if("weixin".equals(client)){
-			if (constPro.IS_PRODUCT) {
+			if (constPro.WEIXIN_ENV) {
 				try {
 					newUri = URLEncoder.encode(constPro.DOMAIN_URL + "/#" + uri, "UTF-8");
 					newUri = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + constPro.WEIXIN_APPID

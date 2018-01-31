@@ -1,0 +1,1 @@
+您好，收到交易流水号${eb.orderNo}在${eb.orderDt}付款，金额：${eb.orderMoney}元整。

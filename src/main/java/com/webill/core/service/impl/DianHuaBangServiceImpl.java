@@ -28,7 +28,7 @@ import com.webill.core.service.IDianHuaBangService;
 import com.webill.core.service.IReportMongoDBService;
 
 /**
- * @ClassName: IDianHuaBangService
+ * @ClassName: DianHuaBangServiceImpl
  * @Description:
  * @author ZhangYadong
  * @date 2018年1月18日 上午11:17:27

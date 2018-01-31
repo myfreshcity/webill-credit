@@ -2,6 +2,7 @@ package com.webill.core.model;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Date;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.IndexDirection;
@@ -48,7 +49,7 @@ public class UserInfo implements Serializable {
 	// 还可以生成索引
 	@Indexed(name = "index_birth", direction = IndexDirection.DESCENDING)
 	@Field
-	private Timestamp birth;
+	private Date birth;
 
 	public String getId() {
 		return id;
@@ -73,12 +74,20 @@ public class UserInfo implements Serializable {
 	public void setAge(Integer age) {
 		this.age = age;
 	}
-
-	public Timestamp getBirth() {
+	
+	/*public Timestamp getBirth() {
 		return birth;
 	}
 
 	public void setBirth(Timestamp birth) {
+		this.birth = birth;
+	}*/
+
+	public Date getBirth() {
+		return birth;
+	}
+
+	public void setBirth(Date birth) {
 		this.birth = birth;
 	}
 

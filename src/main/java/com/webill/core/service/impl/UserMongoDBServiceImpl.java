@@ -1,5 +1,9 @@
 package com.webill.core.service.impl;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -7,11 +11,12 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import com.webill.app.util.DateUtil;
 import com.webill.app.util.EmptyUtil;
 import com.webill.app.util.StringUtil;
 import com.webill.core.model.UserInfo;
+import com.webill.core.model.juxinli.Report;
 import com.webill.core.service.IUserMongoDBService;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
  * 用户接口实现类
@@ -34,6 +39,46 @@ public class UserMongoDBServiceImpl extends BaseMongoDBImpl<UserInfo> implements
 	@Override
 	protected Class<UserInfo> getEntityClass() {
 		return UserInfo.class;
+	}
+	
+	@Override
+	public List<UserInfo> selectAllTimeData(){
+		
+		try {
+			
+			SimpleDateFormat format =  new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
+			Date date = new Date();
+			Query query = new Query();
+			Criteria criteria = Criteria.where("applyDate").gte(format.parse("2018-01-19")).lt("2018-01-20").and("status").is("-1");
+			query.addCriteria(criteria);
+			mgt.remove(query, Report.class, "coll_report");
+			
+			
+			/*SimpleDateFormat format =  new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
+			String starttime="2018-01-23 11:16:15";
+			String endtime="2018-01-23 11:17:06";
+			Date date = new Date();
+			
+			Query query = new Query();
+			Criteria criteria = Criteria.where("birth").gte(format.parse(DateUtil.getYesterdayDate(date))).lt(date);
+			query.addCriteria(criteria);
+			long count = mgt.count(query, UserInfo.class, "coll_user");
+			System.out.println(count);*/
+			
+			List<UserInfo> users = mgt.find(query, UserInfo.class, "coll_user");
+			mgt.remove(query, UserInfo.class, "coll_user");
+			return users;
+			
+			/*SimpleDateFormat format =  new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
+			Date date = new Date();
+			Query query = new Query();
+			Criteria criteria = Criteria.where("status").is("-1");
+			query.addCriteria(criteria);
+			mgt.remove(query, Report.class, "coll_report");*/
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	@Override

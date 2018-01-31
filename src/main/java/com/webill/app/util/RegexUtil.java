@@ -54,6 +54,20 @@ public class RegexUtil {
 		return str_src;
 	}
 	
+	public static void main(String[] args) {
+		String url = "有该联系人电话的通话记录，[208]天内联系[11]次[30.4]分钟，按时长计算排名第[14]位";
+		String str[] = {"\\[(.*?)\\]天", "联系\\[(.*?)\\]次", "次\\[(.*?)\\]分钟", "第d\\[(.*?)\\]位"};
+		for (int i = 0; i < 4; i++) {
+			Pattern p_src = Pattern.compile(str[i]);
+			Matcher m_src = p_src.matcher(url);
+			String str_src = null;
+			if (m_src.find()) {
+				str_src = m_src.group(1);
+			}
+			System.out.println(str_src);
+		}
+	}
+	
     /** 
     * @Title: getImgSrc 
     * @Description: 获取img标签中的src值

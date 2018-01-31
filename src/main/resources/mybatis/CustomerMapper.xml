@@ -4,10 +4,10 @@
 
 	<!-- 通用查询结果列-->
 	<sql id="Base_Column_List">
-		id, real_name AS realName, id_no AS idNo, mobile_no AS mobileNo, user_id AS userId, com_id AS comId, home_addr AS homeAddr, home_addr_code AS homeAddrCode, home_addr_detail AS homeAddrDetail, home_tel AS homeTel, work_addr AS workAddr, work_addr_code AS workAddrCode, work_addr_detail AS workAddrDetail, work_tel AS workTel, service_pwd AS servicePwd, refresh_times AS refreshTimes, latest_report_key AS latestReportKey, latest_report_type AS latestReportType, tem_report_type AS temReportType, latest_report_time AS latestReportTime, latest_report_status AS latestReportStatus, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
+		id, real_name AS realName, id_no AS idNo, mobile_no AS mobileNo, user_id AS userId, com_id AS comId, home_addr AS homeAddr, home_tel AS homeTel, work_addr AS workAddr, work_tel AS workTel, refresh_times AS refreshTimes, latest_report_key AS latestReportKey, latest_report_type AS latestReportType, latest_report_time AS latestReportTime, latest_report_status AS latestReportStatus, t_status AS tStatus, updated_time AS updatedTime, created_time AS createdTime
 	</sql>
 	<sql id="C_Base_Column_List">
-		c.id, c.real_name AS realName, c.id_no AS idNo, c.mobile_no AS mobileNo, c.user_id AS userId, c.com_id AS comId, c.home_addr AS homeAddr, c.home_addr_code AS homeAddrCode, c.home_addr_detail AS homeAddrDetail, c.home_tel AS homeTel, c.work_addr AS workAddr, c.work_addr_code AS workAddrCode, c.work_addr_detail AS workAddrDetail, c.work_tel AS workTel, c.service_pwd AS servicePwd, c.refresh_times AS refreshTimes, c.latest_report_key AS latestReportKey, c.latest_report_type AS latestReportType, c.tem_report_type AS temReportType, c.latest_report_time AS latestReportTime, c.latest_report_status AS latestReportStatus, c.t_status AS tStatus, c.updated_time AS updatedTime, c.created_time AS createdTime
+		c.id, c.real_name AS realName, c.id_no AS idNo, c.mobile_no AS mobileNo, c.user_id AS userId, c.com_id AS comId, c.home_addr AS homeAddr, c.home_tel AS homeTel, c.work_addr AS workAddr, c.work_tel AS workTel, c.refresh_times AS refreshTimes, c.latest_report_key AS latestReportKey, c.latest_report_type AS latestReportType, c.latest_report_time AS latestReportTime, c.latest_report_status AS latestReportStatus, c.t_status AS tStatus, c.updated_time AS updatedTime, c.created_time AS createdTime
 	</sql>
 	
 	<select id="getCusList" resultType="com.webill.core.model.Customer">

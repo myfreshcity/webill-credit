@@ -20,4 +20,13 @@ public interface IReportMongoDBService extends IBaseMongoDBService<Report> {
 	 */
 	void updateReportByToke(Report report);
 
+	/** 
+	 * @Title: deleteExpire 
+	 * @Description: 每小时清除已过期（前一天到现在的）的未提交采集请求的数据 
+	 * @author ZhangYadong
+	 * @date 2018年1月23日 下午2:34:13
+	 * @return void
+	 */
+	void deleteExpire();
+
 }

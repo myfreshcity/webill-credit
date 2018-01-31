@@ -1,17 +1,24 @@
 package com.webill.app.controller;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.webill.app.SystemProperty;
 import com.webill.app.util.PageModel;
-import com.webill.core.model.User;
+import com.webill.app.util.ReportParseUtil;
+import com.webill.core.model.RedisKeyDto;
 import com.webill.core.model.UserInfo;
 import com.webill.core.service.IUserMongoDBService;
+import com.webill.core.service.RedisService;
+import com.webill.framework.common.JSONUtil;
 
 @Controller
 @RequestMapping("/mongoDB")
@@ -19,21 +26,32 @@ public class TestUserService {
 
 	@Autowired
 	private IUserMongoDBService iUserMongoDBService;
+	@Autowired
+	private RedisService redisService;
+	@Autowired
+    private SystemProperty constPro;
 
 	@RequestMapping(value = "/save", method = RequestMethod.GET)
 	public void save() {
 		UserInfo user = new UserInfo();
 		user.setName("王五");
 		user.setAge(29);
-		user.setBirth(new Timestamp(System.currentTimeMillis()));
+		user.setBirth(new Date());
 		iUserMongoDBService.save(user);
 		System.out.println("已生成ID:" + user.getId());
 	}
 
-	@RequestMapping(value = "/find", method = RequestMethod.GET)
-	public void find() {
-		UserInfo user = iUserMongoDBService.find("5a585d1b0cf0744a0b48204c");
-		System.out.println(user.getName());
+	@RequestMapping(value = "/find")
+	@ResponseBody
+	public Object find(@RequestBody String req) {
+		
+		List<UserInfo> list = iUserMongoDBService.selectAllTimeData();
+		System.out.println(JSONUtil.toJSONString(list));
+		return JSONUtil.toJSONString(list);
+		/*UserInfo user = iUserMongoDBService.find("5a585d1b0cf0744a0b48204c");
+		Date birth = user.getBirth();
+		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(birth));
+		System.out.println(user.getName());*/
 	}
 
 	@RequestMapping(value = "/update", method = RequestMethod.GET)

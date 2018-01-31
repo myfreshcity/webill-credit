@@ -54,5 +54,10 @@
         <property name="maxUploadSize" value="1048576000"/>
         <property name="defaultEncoding" value="utf-8"/>
     </bean>
-
+    
+    <!-- freemarker的配置 -->
+	<bean id="freeMarkerConfigurer" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+		<property name="templateLoaderPath" value="/WEB-INF/ftl/"/>
+		<property name="defaultEncoding" value="utf-8"></property>
+	</bean>
 </beans>

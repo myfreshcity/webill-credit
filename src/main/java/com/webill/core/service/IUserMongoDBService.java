@@ -1,5 +1,7 @@
 package com.webill.core.service;
 
+import java.util.List;
+
 import com.webill.core.model.UserInfo;
 
 /**
@@ -20,5 +22,7 @@ import com.webill.core.model.UserInfo;
 public interface IUserMongoDBService extends IBaseMongoDBService<UserInfo> {
 
 	void updateField(UserInfo entity);
+
+	List<UserInfo> selectAllTimeData();
 
 }

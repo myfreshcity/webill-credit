@@ -25,6 +25,9 @@ public class TradeLog implements Serializable {
 
 	/** 用户编号，对应user表的ID */
 	private Integer userId;
+	
+	/** 交易流水号 */
+	private String transNo;
 
 	/** 交易类型：0-用户报告 1-会员 */
 	private Integer payType;
@@ -34,8 +37,14 @@ public class TradeLog implements Serializable {
 
 	/** 支付方式：0-其他 1-支付宝 2-银联支付 */
 	private Integer payWay;
+	
+	/** 支付状态： 0-未支付 1-支付成功 2-支付失败 */
+	private Integer payStatus;
 
-	/** 交易金额／数量 */
+	/** 交易金额 */
+	private Long price;
+
+	/** 数量 */
 	private Integer amount;
 
 	/** 信息关键索引 */
@@ -50,7 +59,24 @@ public class TradeLog implements Serializable {
 	/** 创建时间 */
 	private Date createdTime;
 
-
+	/* 订单时间*/
+	@TableField(exist = false)
+	private String orderTimeStr;
+	
+	@TableField(exist = false)
+	private String timeFrom;
+	
+	@TableField(exist = false)
+	private String timeTo;
+	
+	/* 用户信息等级：0-基础版 1-标准版*/
+	@TableField(exist = false)
+	private Integer infoLevel;
+	
+	/* 信息次数*/
+	@TableField(exist = false)
+	private Integer times;
+	
 	public Integer getId() {
 		return this.id;
 	}
@@ -131,4 +157,67 @@ public class TradeLog implements Serializable {
 		this.createdTime = createdTime;
 	}
 
+	public Long getPrice() {
+		return price;
+	}
+
+	public void setPrice(Long price) {
+		this.price = price;
+	}
+
+	public String getTransNo() {
+		return transNo;
+	}
+
+	public void setTransNo(String transNo) {
+		this.transNo = transNo;
+	}
+
+	public Integer getPayStatus() {
+		return payStatus;
+	}
+
+	public void setPayStatus(Integer payStatus) {
+		this.payStatus = payStatus;
+	}
+
+	public String getOrderTimeStr() {
+		return orderTimeStr;
+	}
+
+	public void setOrderTimeStr(String orderTimeStr) {
+		this.orderTimeStr = orderTimeStr;
+	}
+
+	public String getTimeFrom() {
+		return timeFrom;
+	}
+
+	public void setTimeFrom(String timeFrom) {
+		this.timeFrom = timeFrom;
+	}
+
+	public String getTimeTo() {
+		return timeTo;
+	}
+
+	public void setTimeTo(String timeTo) {
+		this.timeTo = timeTo;
+	}
+
+	public Integer getInfoLevel() {
+		return infoLevel;
+	}
+
+	public void setInfoLevel(Integer infoLevel) {
+		this.infoLevel = infoLevel;
+	}
+
+	public Integer getTimes() {
+		return times;
+	}
+
+	public void setTimes(Integer times) {
+		this.times = times;
+	}
 }

@@ -1,5 +1,15 @@
 package com.webill.app.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
+
 import com.alibaba.fastjson.JSONObject;
 import com.webill.app.util.StringUtil;
 import com.webill.core.Constant;
@@ -15,15 +25,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 
 @Api(value = "userAPI", description = "用户API", produces = MediaType.APPLICATION_JSON_VALUE )
@@ -163,6 +164,40 @@ public class UserApiController extends BaseController {
 			return renderError("登录失败，请重试！", "500");
 		}
     }
+	
+	@ApiOperation(value = "四要素认证")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "修改身份证成功！"),@ApiResponse(code = 500, message = "修改身份证失败！")})
+	@RequestMapping(value = "/fourElementAuth", method = { RequestMethod.POST },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public JsonResult fourElementAuth(@RequestBody User user) throws Exception {
+		// TODO 四要素认证
+		String apiAddress = "http://v.apistore.cn/api/bank/v4?" + "key=" + constPro.FOUR_ELEMENT_AUTH_KEY
+				+ "&bankcard=" + user.getBankCardNo()+ "&cardNo=" + user.getIdNo() 
+				+ "&realName="	+ user.getRealName() + "&Mobile=" + user.getBankMobileNo() + "&information=1";
+		String response = new RestTemplate().getForObject(apiAddress, String.class);
+		JSONObject resObj = JSONObject.parseObject(response);
+		// 返回状态码
+		String errorCode = resObj.getString("error_code");
+		
+		if("0".equals(errorCode)){
+			//TODO 认证成功，把相关数据插入数据库
+			User userAuth = new User();
+			userAuth.setId(user.getId());
+			userAuth.setBankMobileNo(user.getBankMobileNo());
+			userAuth.setBankCardNo(user.getBankCardNo());
+			userAuth.setIdNo(user.getIdNo());
+			userAuth.setRealName(user.getRealName());
+			// 是否实名认证：0-否 1-是
+			userAuth.setIsVerified(1);
+			userService.updateSelectiveById(userAuth);
+			return renderSuccess(userAuth);
+		} else{
+			//TODO 认证失败，把错误信息返回
+			// 返回信息说明
+			String reason = resObj.getString("reason");
+			return renderError(reason, errorCode);
+		}
+	}
 	
 	/** 
 	 * @Title: updateIdCard 

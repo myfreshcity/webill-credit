@@ -4,7 +4,29 @@
 
 	<!-- 通用查询结果列-->
 	<sql id="Base_Column_List">
-		id, user_id AS userId, pay_type AS payType, pay_direc AS payDirec, pay_way AS payWay, amount, msg_key AS msgKey, remark, t_status AS tStatus, created_time AS createdTime
+		id, user_id AS userId, trans_no AS transNo, pay_type AS payType, pay_direc AS payDirec, pay_way AS payWay, pay_status AS payStatus, price, amount, msg_key AS msgKey, remark, t_status AS tStatus, created_time AS createdTime
 	</sql>
+	<sql id="TL_Base_Column_List">
+		tl.id, tl.user_id AS userId, tl.trans_no AS transNo, tl.pay_type AS payType, tl.pay_direc AS payDirec, tl.pay_way AS payWay, tl.pay_status AS payStatus, tl.price, tl.amount, tl.msg_key AS msgKey, tl.remark, tl.t_status AS tStatus, tl.created_time AS createdTime
+	</sql>
+	
+	<select id="getTradeLogList" resultType="com.webill.core.model.TradeLog">
+		SELECT
+			<include refid="TL_Base_Column_List"></include>, ig.info_level AS infoLevel, ig.times AS times
+		FROM 
+			t_trade_log tl
+		LEFT JOIN t_info_goods ig ON ig.id = tl.msg_key
+		WHERE tl.pay_status = 1 AND tl.user_id = #{userId}
+		<if test="payType != null and payType != ''">
+			AND tl.pay_type = #{payType}
+		</if>
+		<if test="timeFrom!=null and timeFrom!='' ">
+			AND tl.created_time &gt;= str_to_date('${timeFrom} 00:00:00','%Y-%m-%d %H:%i:%s')
+		</if>
+		<if test="timeTo!=null and timeTo!='' ">
+			AND tl.created_time &lt;= str_to_date('${timeTo} 23:59:59','%Y-%m-%d %H:%i:%s')
+		</if>
+	</select>
+	
 
 </mapper>

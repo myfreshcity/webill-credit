@@ -20,6 +20,9 @@ public class SystemProperty {
 
     @Value("${IS_PRODUCT}")
     public boolean IS_PRODUCT;
+    
+    @Value("${WEIXIN_ENV}")
+    public boolean WEIXIN_ENV;
 
     @Value("${WEIXIN_APPID}")
     public String WEIXIN_APPID;
@@ -298,4 +301,28 @@ public class SystemProperty {
     public String LIANLIANPAY_PUBLIC_KEY;
     @Value("${LIANLIANPAY_RETURN_URL}")
     public String LIANLIANPAY_RETURN_URL;
+    @Value("${LIANLIANPAY_SIGN_TYPE}")
+    public String LIANLIANPAY_SIGN_TYPE;
+    @Value("${LIANLIANPAY_VERSION}")
+    public String LIANLIANPAY_VERSION;
+    @Value("${LIANLIANPAY_BUSI_PARTNER}")
+    public String LIANLIANPAY_BUSI_PARTNER;
+    /**
+     * 实名认证Key
+     */
+    @Value("${FOUR_ELEMENT_AUTH_KEY}")
+    public String FOUR_ELEMENT_AUTH_KEY;
+    /**
+     * JavaMail+Freemaker
+     */
+    @Value("${JM_SEND_ACCOUNT}")
+    public String JM_SEND_ACCOUNT;
+    @Value("${JM_SEND_PASSWORD}")
+    public String JM_SEND_PASSWORD;
+    @Value("${JM_SEND_SMTPHOST}")
+    public String JM_SEND_SMTPHOST;
+    @Value("${JM_SEND_PORT}")
+    public String JM_SEND_PORT;
+    @Value("${JM_RECEIVE_ACCOUNT}")
+    public String JM_RECEIVE_ACCOUNT;
 }
