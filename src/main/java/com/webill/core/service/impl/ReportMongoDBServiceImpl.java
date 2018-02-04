@@ -2,6 +2,7 @@ package com.webill.core.service.impl;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -30,7 +31,7 @@ public class ReportMongoDBServiceImpl extends BaseMongoDBImpl<Report> implements
 	}
 	
 	@Override
-	public void updateReportByToke(Report report) {
+	public void updateReportByToken(Report report) {
 		// 反向解析对象
 		Map<String, Object> map = null;
 		try {
@@ -51,6 +52,69 @@ public class ReportMongoDBServiceImpl extends BaseMongoDBImpl<Report> implements
 			}
 		}
 		mgt.updateFirst(new Query(Criteria.where("token").is(report.getToken())), update, getEntityClass());  
+	}
+	
+	@Override
+	public void updateReportBySid(Report report) {
+		// 反向解析对象
+		Map<String, Object> map = null;
+		try {
+			map = parseEntity(report);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// 生成参数
+		Update update = new Update();
+		if (EmptyUtil.isNotEmpty(map)) {
+			for (String key : map.keySet()) {
+				if (key.indexOf("{") != -1) {
+					continue;
+				} else if (!StringUtil.isEmpty(map.get(key))) {
+					update.set(key, map.get(key));
+				}
+			}
+		}
+		mgt.updateFirst(new Query(Criteria.where("sid").is(report.getSid())), update, getEntityClass());  
+	}
+	
+	/**
+	 * 查询聚信立和电话邦都采集成功的，最终采集状态为采集中的数据
+	 */
+	@Override
+	public List<Report> selectReportByStatus() {
+		List<Report> reports = mgt.find(new Query(Criteria.where("jxlStatus").is(1).and("dhbStatus").is(1).and("status").is(0)), getEntityClass());
+		return reports;
+	}
+	
+	@Override
+	public Report selectReportByToken(String token){
+		Report mdbReport = null;
+		List<Report> reports = this.findByProp("token", token);
+		if (reports != null && reports.size() > 0) {
+			mdbReport = reports.get(0);
+		}
+		return mdbReport;
+	}
+	
+	@Override
+	public Report selectReportBySid(String sid){
+		Report mdbReport = null;
+		List<Report> reports = this.findByProp("sid", sid);
+		if (reports != null && reports.size() > 0) {
+			mdbReport = reports.get(0);
+		}
+		return mdbReport;
+	}
+	
+	@Override
+	public Report selectReportByReportKey(String reportKey){
+		Report mdbReport = null;
+		List<Report> reports = this.findByProp("reportKey", reportKey);
+		if (reports != null && reports.size() > 0) {
+			mdbReport = reports.get(0);
+		}
+		return mdbReport;
 	}
 	
 	/**

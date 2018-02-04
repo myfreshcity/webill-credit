@@ -25,9 +25,9 @@ public class TopContact {
 	 */
 	private String call_times;
 	/**
-	 * 电话邦-长时间-对应calls_sa_by_length.call_length，通话总时长
+	 * 电话邦-长时间-对应calls_sa_by_length.call_length，通话总时长（秒）
 	 * 电话邦-高频-对应calls_sa_by_times.call_length，通话总时长
-	 * 聚信立-对应contact_list.call_len，通话时长
+	 * 聚信立-对应contact_list.call_len，通话时长（分钟）
 	 */
 	private String call_length;
 

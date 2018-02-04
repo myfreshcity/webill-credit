@@ -20,33 +20,49 @@ public class Report implements Serializable {
 	@Id // 主键使用此注解
 	private String id;
 	
+	/** 最近信息报告编号 */
+	@Field
+	private String reportKey;
+	
 	/** 提交表单获取的token（报告key） */
 	@Field // 字段使用此注解
 	private String token;
+	
+	/** 会话标识  */
+	@Field
+	private String sid;
 	
 	/** 客户ID */
 	@Field
 	private String cusId;
 
-	/** 姓名 */
-	@Field
-	private String name;
-
-	/** 身份证 */
-	@Field
-	private String idCard;
-
-	/** 手机号 */
-	@Field
-	private String mobile;
-	
 	/** 信息报告类型：0-标准 1-高级 */
 	@Field
 	private Integer reportType;
-
+	
+	/** 聚信立报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集超时 */
+	@Field
+	private Integer jxlStatus;
+	
+	/** 电话邦报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集超时 */
+	@Field
+	private Integer dhbStatus;
+	
+	/** 最终报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集超时 */
+	@Field
+	private Integer status;
+	
+	/** 聚信立原始报告数据 */
+	@Field
+	private String jxlOrgReport;
+	
 	/** 聚信立报告数据 */
 	@Field
 	private String jxlReport;
+	
+	/** 电话原始报告数据 */
+	@Field
+	private String dhbOrgReport;
 	
 	/** 电话邦报告数据 */
 	@Field
@@ -64,20 +80,25 @@ public class Report implements Serializable {
 	@Field
 	private String ebusinessRaw;
 	
+	/** 姓名 */
+	@Field
+	private String name;
+
+	/** 身份证 */
+	@Field
+	private String idCard;
+
+	/** 手机号 */
+	@Field
+	private String mobile;
+	
 	/** 请求时间 */
 	@Field
 	private Date applyDate;
-	
-	/** 报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集超时 */
-	@Field
-	private Integer status;
 
 	/** 响应状态码 */
 	@Field
 	private Integer code;
-
-	/* 最近信息报告编号 */
-	private String reportKey;
 
 	public String getId() {
 		return id;
@@ -87,12 +108,124 @@ public class Report implements Serializable {
 		this.id = id;
 	}
 
+	public String getReportKey() {
+		return reportKey;
+	}
+
+	public void setReportKey(String reportKey) {
+		this.reportKey = reportKey;
+	}
+
 	public String getToken() {
 		return token;
 	}
 
 	public void setToken(String token) {
 		this.token = token;
+	}
+
+	public String getSid() {
+		return sid;
+	}
+
+	public void setSid(String sid) {
+		this.sid = sid;
+	}
+
+	public String getCusId() {
+		return cusId;
+	}
+
+	public void setCusId(String cusId) {
+		this.cusId = cusId;
+	}
+
+	public Integer getReportType() {
+		return reportType;
+	}
+
+	public void setReportType(Integer reportType) {
+		this.reportType = reportType;
+	}
+
+	public Integer getJxlStatus() {
+		return jxlStatus;
+	}
+
+	public void setJxlStatus(Integer jxlStatus) {
+		this.jxlStatus = jxlStatus;
+	}
+
+	public Integer getDhbStatus() {
+		return dhbStatus;
+	}
+
+	public void setDhbStatus(Integer dhbStatus) {
+		this.dhbStatus = dhbStatus;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+
+	public String getJxlOrgReport() {
+		return jxlOrgReport;
+	}
+
+	public void setJxlOrgReport(String jxlOrgReport) {
+		this.jxlOrgReport = jxlOrgReport;
+	}
+
+	public String getJxlReport() {
+		return jxlReport;
+	}
+
+	public void setJxlReport(String jxlReport) {
+		this.jxlReport = jxlReport;
+	}
+
+	public String getDhbOrgReport() {
+		return dhbOrgReport;
+	}
+
+	public void setDhbOrgReport(String dhbOrgReport) {
+		this.dhbOrgReport = dhbOrgReport;
+	}
+
+	public String getDhbReport() {
+		return dhbReport;
+	}
+
+	public void setDhbReport(String dhbReport) {
+		this.dhbReport = dhbReport;
+	}
+
+	public String getFinalReport() {
+		return finalReport;
+	}
+
+	public void setFinalReport(String finalReport) {
+		this.finalReport = finalReport;
+	}
+
+	public String getMobileRaw() {
+		return mobileRaw;
+	}
+
+	public void setMobileRaw(String mobileRaw) {
+		this.mobileRaw = mobileRaw;
+	}
+
+	public String getEbusinessRaw() {
+		return ebusinessRaw;
+	}
+
+	public void setEbusinessRaw(String ebusinessRaw) {
+		this.ebusinessRaw = ebusinessRaw;
 	}
 
 	public String getName() {
@@ -119,36 +252,12 @@ public class Report implements Serializable {
 		this.mobile = mobile;
 	}
 
-	public String getMobileRaw() {
-		return mobileRaw;
-	}
-
-	public void setMobileRaw(String mobileRaw) {
-		this.mobileRaw = mobileRaw;
-	}
-
-	public String getEbusinessRaw() {
-		return ebusinessRaw;
-	}
-
-	public void setEbusinessRaw(String ebusinessRaw) {
-		this.ebusinessRaw = ebusinessRaw;
-	}
-
 	public Date getApplyDate() {
 		return applyDate;
 	}
 
 	public void setApplyDate(Date applyDate) {
 		this.applyDate = applyDate;
-	}
-
-	public Integer getStatus() {
-		return status;
-	}
-
-	public void setStatus(Integer status) {
-		this.status = status;
 	}
 
 	public Integer getCode() {
@@ -158,53 +267,4 @@ public class Report implements Serializable {
 	public void setCode(Integer code) {
 		this.code = code;
 	}
-
-	public String getCusId() {
-		return cusId;
-	}
-
-	public void setCusId(String cusId) {
-		this.cusId = cusId;
-	}
-
-	public String getJxlReport() {
-		return jxlReport;
-	}
-
-	public void setJxlReport(String jxlReport) {
-		this.jxlReport = jxlReport;
-	}
-
-	public String getDhbReport() {
-		return dhbReport;
-	}
-
-	public void setDhbReport(String dhbReport) {
-		this.dhbReport = dhbReport;
-	}
-
-	public String getReportKey() {
-		return reportKey;
-	}
-
-	public void setReportKey(String reportKey) {
-		this.reportKey = reportKey;
-	}
-	
-	public String getFinalReport() {
-		return finalReport;
-	}
-
-	public void setFinalReport(String finalReport) {
-		this.finalReport = finalReport;
-	}
-
-	public Integer getReportType() {
-		return reportType;
-	}
-
-	public void setReportType(Integer reportType) {
-		this.reportType = reportType;
-	}
-	
 }

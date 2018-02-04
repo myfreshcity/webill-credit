@@ -190,7 +190,8 @@ public class UserApiController extends BaseController {
 			// 是否实名认证：0-否 1-是
 			userAuth.setIsVerified(1);
 			userService.updateSelectiveById(userAuth);
-			return renderSuccess(userAuth);
+			User retUser = userService.selectById(user.getId());
+			return renderSuccess(retUser);
 		} else{
 			//TODO 认证失败，把错误信息返回
 			// 返回信息说明
@@ -198,6 +199,64 @@ public class UserApiController extends BaseController {
 			return renderError(reason, errorCode);
 		}
 	}
+	
+	/**
+	   * @Title: updatePassword
+	   * @Description: 修改密码,成功：返回用户信息
+	   * @author: WangLongFei
+	   * @date: 2018年2月1日 上午10:50:39
+	   * @param jsonStr
+	   * @return
+	   * @return: JsonResult
+	   */
+	  @ApiOperation(value = "修改密码,成功：返回用户信息")
+	  @ApiResponses(value = { @ApiResponse(code = 200, message = "重置登录密码成功！"),
+	      @ApiResponse(code = 500, message = "修改密码失败，请重试！"), @ApiResponse(code = 400, message = "密码不能为空！"),
+	      @ApiResponse(code = 405, message = "验证码错误，请重试！"), @ApiResponse(code = 406, message = "验证码已失效，请重新发送验证码！"),
+	      @ApiResponse(code = 305, message = "该手机号还未注册，请先注册！"), @ApiResponse(code = 300, message = "手机号不能为空！") })
+	    @RequestMapping(value = "/updatePassword", method = RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
+	    @ResponseBody
+	    public JsonResult updatePassword(@RequestBody String jsonStr) {
+	    User user = JSONObject.parseObject(jsonStr, User.class);
+	    boolean f = false;
+	    if (StringUtil.isNotEmpty(user.getMobileNo())) {
+	      // 获取库中用户信息
+	      User dbUser = userService.checkMobileIsExist(user.getMobileNo());
+	      // 判断用户是否存在
+	      if(dbUser!=null){
+	        // 获取系统发送的验证码
+	        RedisKeyDto redisWhere = new RedisKeyDto();
+	        redisWhere.setKeys(user.getMobileNo());
+	        RedisKeyDto redisKeyDto = redisService.redisGet(redisWhere);
+	        if (redisKeyDto != null) {
+	          String verifyCode = redisKeyDto.getValues();
+	          if (user.getInCode().equals(verifyCode)) {
+	            // 验证码正确
+	            user.setId(dbUser.getId());
+	            if (StringUtil.isNotEmpty(user.getPassword())) {
+	              // 修改密码
+	              f = userService.updateSelectiveById(user);
+	              if (f) {
+	                return renderSuccess("重置登录密码成功！", "200", dbUser);
+	              } else {
+	                return renderError("修改密码失败，请重试！", "500");
+	              }
+	            }else{
+	              return renderError("密码不能为空！", "400");
+	            }
+	          }else{
+	            return renderError("验证码错误，请重试！", "405");
+	          }
+	        } else {
+	          return renderError("验证码已失效，请重新发送验证码！", "406");
+	        }
+	      }else{
+	        return renderError("该手机号还未注册，请先注册！", "305");
+	      }
+	    }else{
+	      return renderError("手机号不能为空！", "300");
+	    }
+	  }
 	
 	/** 
 	 * @Title: updateIdCard 

@@ -1,4 +1,7 @@
 package com.webill.core.model.report;
+
+import java.util.List;
+
 /** 
  * @ClassName: Financial_Call_Info 
  * @Description: 金融类通话信息
@@ -27,7 +30,7 @@ public class FinancialCallInfo {
 	 * 聚信立对应behavior_check.evidence，证据
 	 * 电话邦-对应calls_sa_by_tags_financial.contact_detail，详细记录数据节点（list）
 	 */
-	private String evidence;
+	private List<String> evidence;
 	/**
 	 * 聚信立-对应behavior_check.score，标记
 	 */
@@ -51,10 +54,10 @@ public class FinancialCallInfo {
 	public void setResult(String result) {
 		this.result = result;
 	}
-	public String getEvidence() {
+	public List<String> getEvidence() {
 		return evidence;
 	}
-	public void setEvidence(String evidence) {
+	public void setEvidence(List<String> evidence) {
 		this.evidence = evidence;
 	}
 	public Integer getScore() {

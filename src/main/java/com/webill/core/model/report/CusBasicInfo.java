@@ -14,14 +14,17 @@ public class CusBasicInfo {
 	private String sex; //性别
 	private String id_no; //身份证号
 	private String residence_address; //户籍地址
-	private String residential_address; //居住地址（暂无）
+	private String home_address; //居住地址（家庭地址）
+	private String home_addr_check; //家庭地址检查
 	private String work_address; //工作地址（暂无）
+	private String work_addr_check; //工作地址检查
 	private String website; //移动运营商
 	private String reliability; //实名认证
 	private String mobile_no; //手机号
 	private String reg_time; //手机注册时间
 	private String check_name; //姓名检查
 	private String check_idcard; //身份证号检查
+	private String check_address; //与登记地址检查
 	/**
 	 * 聚信立-对应behavior_check.(check_point="phone_silent")
 	 */
@@ -56,11 +59,11 @@ public class CusBasicInfo {
 	public void setResidence_address(String residence_address) {
 		this.residence_address = residence_address;
 	}
-	public String getResidential_address() {
-		return residential_address;
+	public String getHome_address() {
+		return home_address;
 	}
-	public void setResidential_address(String residential_address) {
-		this.residential_address = residential_address;
+	public void setHome_address(String home_address) {
+		this.home_address = home_address;
 	}
 	public String getWork_address() {
 		return work_address;
@@ -128,4 +131,23 @@ public class CusBasicInfo {
 	public void setContact_each_other_evidence(String contact_each_other_evidence) {
 		this.contact_each_other_evidence = contact_each_other_evidence;
 	}
+	public String getCheck_address() {
+		return check_address;
+	}
+	public void setCheck_address(String check_address) {
+		this.check_address = check_address;
+	}
+	public String getHome_addr_check() {
+		return home_addr_check;
+	}
+	public void setHome_addr_check(String home_addr_check) {
+		this.home_addr_check = home_addr_check;
+	}
+	public String getWork_addr_check() {
+		return work_addr_check;
+	}
+	public void setWork_addr_check(String work_addr_check) {
+		this.work_addr_check = work_addr_check;
+	}
+	
 }

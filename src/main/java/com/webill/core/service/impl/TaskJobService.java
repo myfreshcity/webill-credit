@@ -12,6 +12,7 @@ import com.webill.app.SystemProperty;
 import com.webill.core.Constant;
 import com.webill.core.model.Coupon;
 import com.webill.core.service.ICouponService;
+import com.webill.core.service.IJxlDhbService;
 
 import reactor.core.Reactor;
 
@@ -21,18 +22,17 @@ import reactor.core.Reactor;
  */
 @Service
 public class TaskJobService {
-	
 	private static Log logger = LogFactory.getLog(TaskJobService.class);
 	
     @Autowired
     @Qualifier("rootReactor")
     private Reactor r;
-    
 	@Autowired
 	private ICouponService	couponService;
-	
     @Autowired
     protected SystemProperty constPro; 
+    @Autowired
+    private IJxlDhbService jxlDhbService;
     
 	
     /**   
@@ -42,7 +42,6 @@ public class TaskJobService {
      * @date: 2017年8月2日 下午1:41:54     
      * @return: void  
      */
-    
     public void sendCoupon(){
     	Coupon cp = new Coupon();
     	cp.setStatus(Constant.COUPON_STATUS_CHECK_PASS_NO_SEND);
@@ -57,6 +56,17 @@ public class TaskJobService {
     	if(f){
     		logger.info("定时发放优惠券成功！");
     	}
+    }
+    
+    /** 
+     * @Title: updateReport 
+     * @Description: 每3分钟更新聚信立和电话邦报告
+     * @author ZhangYadong
+     * @date 2018年2月1日 下午3:36:57
+     * @return void
+     */
+    public void updateJxlDhbReport(){
+    	jxlDhbService.updateJxlDhbReport();
     }
     
 }

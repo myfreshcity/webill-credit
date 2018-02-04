@@ -1,10 +1,11 @@
 package com.webill.app.util;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +57,11 @@ public class ReportParseUtil {
 				cbi.setId_no(checkPointsObj.getString("key_value"));
 				cbi.setResidence_address(checkPointsObj.getString("province")+checkPointsObj.getString("city")+checkPointsObj.getString("region"));
 			}
+			// 家庭住址
+			if (appPoint.equals("home_addr")) {
+				cbi.setHome_address(appObj.getJSONObject("check_points").getString("key_value"));
+				cbi.setHome_addr_check(appObj.getJSONObject("check_points").getString("check_addr"));
+			}
 			// 移动运营商、实名认证、手机号、手机注册时间、姓名检查、身份证号检查
 			if (appPoint.equals("cell_phone")) {
 				JSONObject checkPointsObj = appObj.getJSONObject("check_points");
@@ -85,7 +91,7 @@ public class ReportParseUtil {
 	
 	/** 
 	 * @Title: parseReportContact 
-	 * @Description: 聚信立-解析联系人信息
+	 * @Description: 聚信立-解析紧急联系人信息（至少6个月，时间肯定大于6个月）
 	 * @author ZhangYadong
 	 * @date 2018年1月26日 上午10:46:49
 	 * @param json
@@ -166,47 +172,129 @@ public class ReportParseUtil {
 		JSONObject reportObj = JSONObject.parseObject(json);
 		// 客户基本信息
 		CusBasicInfo cbi = new CusBasicInfo();
-		JSONArray appCheckArr = reportObj.getJSONArray("application_check");
-		for (int i = 0; i < appCheckArr.size(); i++) {
-			JSONObject appObj = appCheckArr.getJSONObject(i);
-			String appPoint = appObj.getString("app_point");
-			// 登记姓名
-			if (appPoint.equals("user_name")) {
-				cbi.setUser_name(appObj.getJSONObject("check_points").getString("key_value"));
+		JSONObject userInfoObj = reportObj.getJSONObject("user_info");
+		JSONObject telInfoObj = reportObj.getJSONObject("tel_info");
+		JSONObject callsOverview = reportObj.getJSONObject("calls_overview");
+		
+		// 登记姓名
+		cbi.setUser_name(userInfoObj.getString("user_name"));
+		// （年龄、性别）身份证号、（户籍地址）
+		cbi.setId_no(userInfoObj.getString("user_idcard"));
+		// 居住地址
+		cbi.setHome_address(userInfoObj.getString("user_address"));
+		// 移动运营商、（实名认证）手机号、手机注册时间、姓名检查、身份证号检查
+		// fancha_telloc:手机号归属地
+		String fanchaTelloc = reportObj.getJSONObject("tel_info").getString("fancha_telloc");
+		// telecom：所属运营商，
+		String telecom = reportObj.getJSONObject("call_behavior").getJSONObject("number_used").getString("telecom");
+		cbi.setWebsite(fanchaTelloc+telecom);
+		cbi.setMobile_no(telInfoObj.getString("tel"));
+		cbi.setReg_time(DateUtil.timeStampToDat(Long.parseLong(telInfoObj.getString("open_date"))));
+		// 与登记姓名一致性：0 不适用,1是,2 否，3 模糊匹配一致
+		String checkName = userInfoObj.getString("conclusion_of_user_name_check");
+		String cnFlag = "";
+		if (checkName != null) {
+			if (Integer.parseInt(checkName) == 0) {
+				cnFlag = "不适用";
+			}else if (Integer.parseInt(checkName) == 1) {
+				cnFlag = "匹配一致";
+			}else if (Integer.parseInt(checkName) == 2) {
+				cnFlag = "不匹配";
+			}else{
+				cnFlag = "模糊匹配一致";
 			}
-			// 年龄、性别、身份证号、户籍地址
-			if (appPoint.equals("id_card")) {
-				JSONObject checkPointsObj = appObj.getJSONObject("check_points");
-				cbi.setAge(checkPointsObj.getIntValue("age"));
-				cbi.setSex(checkPointsObj.getString("gender"));
-				cbi.setId_no(checkPointsObj.getString("key_value"));
-				cbi.setResidence_address(checkPointsObj.getString("province")+checkPointsObj.getString("city")+checkPointsObj.getString("region"));
+		}
+		cbi.setCheck_name("与登记姓名" + cnFlag);
+		// 与登记身份证一致性 ：0 不适用,1 是,2 否，3 模糊匹配一致
+		String checkIdcard = userInfoObj.getString("conclusion_of_user_idcard_check");
+		String cidFlag = "";
+		if (checkIdcard != null) {
+			if (Integer.parseInt(checkIdcard) == 0) {
+				cidFlag = "不适用";
+			}else if (Integer.parseInt(checkIdcard) == 1) {
+				cidFlag = "匹配一致";
+			}else if (Integer.parseInt(checkIdcard) == 2) {
+				cidFlag = "不匹配";
+			}else{
+				cidFlag = "模糊匹配一致";
 			}
-			// 移动运营商、实名认证、手机号、手机注册时间、姓名检查、身份证号检查
-			if (appPoint.equals("cell_phone")) {
-				JSONObject checkPointsObj = appObj.getJSONObject("check_points");
-				cbi.setWebsite(checkPointsObj.getString("website"));
-				cbi.setReliability(checkPointsObj.getString("reliability"));
-				cbi.setMobile_no(checkPointsObj.getString("key_value"));
-				cbi.setReg_time(checkPointsObj.getString("reg_time"));
-				cbi.setCheck_name(checkPointsObj.getString("check_name"));
-				cbi.setCheck_idcard(checkPointsObj.getString("check_idcard"));
+		}
+		cbi.setCheck_idcard("与登记身份证" + cidFlag);
+		// 与登记地址一致性 ：0 不适用,1 是,2 否，3 模糊匹配一致
+		String checkAddress = userInfoObj.getString("conclusion_of_user_address_check");
+		String caFlag = "";
+		if (checkAddress != null) {
+			if (Integer.parseInt(checkAddress) == 0) {
+				caFlag = "不适用";
+			}else if (Integer.parseInt(checkAddress) == 1) {
+				caFlag = "匹配一致";
+			}else if (Integer.parseInt(checkAddress) == 2) {
+				caFlag = "不匹配";
+			}else{
+				caFlag = "模糊匹配一致";
 			}
+		}
+		cbi.setCheck_address("与登记地址一致性"+caFlag);
+		
+		// 手机静默最长时间（小时）==>单次静默持续最长的时间
+		int btcm = callsOverview.getIntValue("blank_times_count_max");
+		String btcmStr = DateUtil.hoursToDay(btcm);
+		cbi.setPhone_silent_result("手机静默最长时间："+btcmStr);
+		// 手机静默时间段==>爬取周期内手机静默的时间段
+		JSONArray btArr = callsOverview.getJSONArray("blank_times_list").getJSONArray(0);
+		if (btArr != null && btArr.size() == 3) {
+			String startDate = DateUtil.timeStampToDat(Long.parseLong(btArr.get(0).toString()));
+			String endDate = DateUtil.timeStampToDat(Long.parseLong(btArr.get(1).toString()));
+			String period = btArr.get(2).toString();
+			cbi.setPhone_silent_evidence("手机静默时间段："+startDate+"至"+endDate+"，共"+period+"小时");
+		}
+		cbi.setContact_each_other_evidence("互通号码数量/占比:"+callsOverview.getString("both_side_calls_count")+"个,占总联系人的"+callsOverview.getString("both_side_calls_percent")+"%");
+		
+		return cbi;
+	}
+	
+	/** 
+	 * @Title: parseReportContact 
+	 * @Description: 电话邦-解析紧急联系人信息（6个月）
+	 * @author ZhangYadong
+	 * @date 2018年1月26日 上午10:46:49
+	 * @param json
+	 * @return
+	 * @return ReportContact
+	 */
+	public static List<ReportContact> parseDHBReportContact(String json){
+		JSONObject reportObj = JSONObject.parseObject(json);
+		List<ReportContact> rcList = new ArrayList<>();
+		
+		JSONArray mcArr = reportObj.getJSONArray("mergency_contact");
+		for (int i = 0; i < mcArr.size(); i++) {
+			JSONObject mvObj = mcArr.getJSONObject(i);
+			
+			ReportContact rc = new ReportContact();
+			rc.setContact_name(mvObj.getString("contact_name"));
+			// 如果这个号码没有标记，金融标签，黄页数据就会输出非临时小号
+			JSONArray tfArr = mvObj.getJSONArray("tags_financial");
+			String tl = mvObj.getString("tags_label");
+			String typ = mvObj.getString("tags_yellow_page");
+			if (tfArr.isEmpty() && StringUtil.isEmpty(tl) && StringUtil.isEmpty(typ)) {
+				rc.setCheck_xiaohao("非临时小号");
+			}else {
+				rc.setCheck_xiaohao("临时小号");
+			}
+			
+			rc.setRelationship(mvObj.getString("contact_relationship"));
+			rc.setMobile_no(mvObj.getString("format_tel"));
+			//rc.setCall_day(rcRegex.getCall_day());
+			rc.setCall_time_rank(mvObj.getString("call_length_index"));
+			rc.setCall_cnt(mvObj.getString("call_times"));
+			float callLen = Float.parseFloat(mvObj.getString("call_length"))/60;
+			DecimalFormat df = new DecimalFormat(".00");
+			rc.setCall_len(df.format(callLen));
+
+			rcList.add(rc);
 		}
 		
-		JSONArray behaviorCheckArr = reportObj.getJSONArray("behavior_check");
-		for (int i = 0; i < behaviorCheckArr.size(); i++) {
-			JSONObject behaviorObj = behaviorCheckArr.getJSONObject(i);
-			String checkPoint = behaviorObj.getString("check_point");
-			if (checkPoint.equals("phone_silent")) {
-				cbi.setPhone_silent_result(behaviorObj.getString("result"));
-				cbi.setPhone_silent_evidence(behaviorObj.getString("evidence"));
-			}
-			if (checkPoint.equals("contact_each_other")) {
-				cbi.setContact_each_other_evidence(behaviorObj.getString("evidence"));
-			}
-		}
-		return cbi;
+		return rcList;
 	}
 	
 	/** 
@@ -257,7 +345,9 @@ public class ReportParseUtil {
 			if (FinanceJxlEnum.isExist(checkPoint)) {
 				fci.setCheck_point_cn(checkPointObj.getString("check_point_cn"));
 				fci.setResult(checkPointObj.getString("result"));
-				fci.setEvidence(checkPointObj.getString("evidence"));
+				List<String> evidList = new ArrayList<>();
+				evidList.add(checkPointObj.getString("evidence"));
+				fci.setEvidence(evidList);
 				fciList.add(fci);
 			}
 		}
@@ -284,13 +374,35 @@ public class ReportParseUtil {
 			FinancialCallInfo fci = new FinancialCallInfo();
 			JSONObject csbtfObj = csbtfArr.getJSONObject(i);
 			String tagsName = csbtfObj.getString("tags_name");
-			// 金融高级版
+			// 金融基础版
 			String dbhFinance[] = {"赌博","110","120","律师","公检法","贷款","银行","信用卡热线"};
 			List<String> dbhList = Arrays.asList(dbhFinance);
 			if (dbhList.contains(tagsName)) {
 				fci.setCheck_point_cn(csbtfObj.getString("tags_name"));
-				fci.setResult(csbtfObj.getString("contact_last_time"));
-				fci.setEvidence(csbtfObj.getString("contact_detail"));
+				// 最近一次通话记录
+				String clt = csbtfObj.getString("contact_last_time");
+				if (StringUtil.isNotEmpty(clt)) {
+					fci.setResult("最近一次通话记录："+clt);
+				}else {
+					fci.setResult(clt);
+				}
+				
+				List<String> cdList = new ArrayList<>();
+				JSONArray cdArr = csbtfObj.getJSONArray("contact_detail");
+				if (cdArr.size() > 0) {
+					for (int j = 0; j < cdArr.size(); j++) {
+						JSONObject cdObj = cdArr.getJSONObject(j);
+						String typ = cdObj.getString("tags_yellow_page");
+						int coutt = cdObj.getIntValue("call_out_times");
+						int coutl = cdObj.getIntValue("call_out_length");
+						int cint = cdObj.getIntValue("call_in_times");
+						int cinl = cdObj.getIntValue("call_in_length");
+						String cdStr = "["+typ+"]"+"主叫"+coutt+"次共"+DateUtil.secondToMinute(coutl)+"，被叫"+cint+"次共"+DateUtil.secondToMinute(cinl);
+						cdList.add(cdStr);
+					}
+				}
+				fci.setEvidence(cdList);
+				
 				fciList.add(fci);
 			}
 		}
@@ -300,7 +412,7 @@ public class ReportParseUtil {
 	
 	/** 
 	 * @Title: parseDHBFinancialCallInfo 
-	 * @Description: 电话邦-解析金融类高级版通话信息
+	 * @Description: 电话邦-解析金融类标准版通话信息
 	 * @author ZhangYadong
 	 * @date 2018年1月29日 上午11:43:53
 	 * @param json
@@ -317,13 +429,35 @@ public class ReportParseUtil {
 			FinancialCallInfo fci = new FinancialCallInfo();
 			JSONObject csbtfObj = csbtfArr.getJSONObject(i);
 			String tagsName = csbtfObj.getString("tags_name");
-			// 金融高级版
+			// 金融标准版
 			String dbhFinance[] = {"互联网金融","典当","保险","理财","小号","证券"};
 			List<String> dbhList = Arrays.asList(dbhFinance);
 			if (dbhList.contains(tagsName)) {
 				fci.setCheck_point_cn(csbtfObj.getString("tags_name"));
-				fci.setResult(csbtfObj.getString("contact_last_time"));
-				fci.setEvidence(csbtfObj.getString("contact_detail"));
+				// 最近一次通话记录
+				String clt = csbtfObj.getString("contact_last_time");
+				if (StringUtil.isNotEmpty(clt)) {
+					fci.setResult("最近一次通话记录："+clt);
+				}else {
+					fci.setResult(clt);
+				}
+				
+				List<String> cdList = new ArrayList<>();
+				JSONArray cdArr = csbtfObj.getJSONArray("contact_detail");
+				if (cdArr.size() > 0) {
+					for (int j = 0; j < cdArr.size(); j++) {
+						JSONObject cdObj = cdArr.getJSONObject(j);
+						String typ = cdObj.getString("tags_yellow_page");
+						int coutt = cdObj.getIntValue("call_out_times");
+						int coutl = cdObj.getIntValue("call_out_length");
+						int cint = cdObj.getIntValue("call_in_times");
+						int cinl = cdObj.getIntValue("call_in_length");
+						String cdStr = "["+typ+"]"+"主叫"+coutt+"次共"+DateUtil.secondToMinute(coutl)+"，被叫"+cint+"次共"+DateUtil.secondToMinute(cinl);
+						cdList.add(cdStr);
+					}
+				}
+				fci.setEvidence(cdList);
+
 				fciList.add(fci);
 			}
 		}
@@ -426,6 +560,26 @@ public class ReportParseUtil {
 			tc.setCall_length(jo.getString("call_len"));
 			tcList.add(tc);
 		}
+		
+		//TODO 解析紧急联系人信息
+		JSONArray appCheckArr = reportObj.getJSONArray("application_check");
+		for (int i = 0; i < appCheckArr.size(); i++) {
+			JSONObject appObj = appCheckArr.getJSONObject(i);
+			String appPoint = appObj.getString("app_point");
+			TopContact tc = new TopContact();
+			if (appPoint.equals("contact")) {
+				tc.setFormat_tel(appObj.getJSONObject("check_points").getString("key_value"));
+				tc.setTags_label(appObj.getJSONObject("check_points").getString("relationship"));
+				String check_mobile = appObj.getJSONObject("check_points").getString("check_mobile");
+				if (check_mobile != null) {
+					ReportContact rcRegex = regexMatchContact(check_mobile);
+					tc.setCall_times(rcRegex.getCall_cnt());
+					tc.setCall_length(rcRegex.getCall_len());
+				}
+				tcList.add(tc);
+			}
+		}
+
 		return tcList;
 	}
 	
@@ -449,9 +603,30 @@ public class ReportParseUtil {
 			tc.setFormat_tel(callsSaByLengthObj.getString("format_tel"));
 			tc.setTags_label(callsSaByLengthObj.getString("tags_label"));
 			tc.setCall_times(callsSaByLengthObj.getString("call_times"));
-			tc.setCall_length(callsSaByLengthObj.getString("call_length"));
+			// 秒转分钟，保留2位小数
+			float callLen = Float.parseFloat(callsSaByLengthObj.getString("call_length"))/60;
+			DecimalFormat df = new DecimalFormat(".00");
+			tc.setCall_length(df.format(callLen));
 			tcList.add(tc);
 		}
+		
+		// 解析紧急联系人信息
+		JSONArray mcArr = reportObj.getJSONArray("mergency_contact");
+		for (int i = 0; i < mcArr.size(); i++) {
+			TopContact tc = new TopContact();
+			JSONObject mvObj = mcArr.getJSONObject(i);
+			
+			tc.setFormat_tel(mvObj.getString("format_tel"));
+			tc.setTags_label(mvObj.getString("contact_relationship"));
+			tc.setCall_times(mvObj.getString("call_times"));
+			
+			float callLen = Float.parseFloat(mvObj.getString("call_length"))/60;
+			DecimalFormat df = new DecimalFormat(".00");
+			tc.setCall_length(df.format(callLen));
+
+			tcList.add(tc);
+		}
+		
 		return tcList;
 	}
 	
@@ -498,6 +673,26 @@ public class ReportParseUtil {
 			tc.setCall_length(jo.getString("call_len"));
 			tcList.add(tc);
 		}
+		
+		//TODO 解析紧急联系人信息
+		JSONArray appCheckArr = reportObj.getJSONArray("application_check");
+		for (int i = 0; i < appCheckArr.size(); i++) {
+			JSONObject appObj = appCheckArr.getJSONObject(i);
+			String appPoint = appObj.getString("app_point");
+			TopContact tc = new TopContact();
+			if (appPoint.equals("contact")) {
+				tc.setFormat_tel(appObj.getJSONObject("check_points").getString("key_value"));
+				tc.setTags_label(appObj.getJSONObject("check_points").getString("relationship"));
+				String check_mobile = appObj.getJSONObject("check_points").getString("check_mobile");
+				if (check_mobile != null) {
+					ReportContact rcRegex = regexMatchContact(check_mobile);
+					tc.setCall_times(rcRegex.getCall_cnt());
+					tc.setCall_length(rcRegex.getCall_len());
+				}
+				tcList.add(tc);
+			}
+		}
+		
 		return tcList;
 	}
 	
@@ -521,7 +716,27 @@ public class ReportParseUtil {
 			tc.setFormat_tel(callsSaByLengthObj.getString("format_tel"));
 			tc.setTags_label(callsSaByLengthObj.getString("tags_label"));
 			tc.setCall_times(callsSaByLengthObj.getString("call_times"));
-			tc.setCall_length(callsSaByLengthObj.getString("call_length"));
+			// 秒转分钟，保留2位小数
+			float callLen = Float.parseFloat(callsSaByLengthObj.getString("call_length"))/60;
+			DecimalFormat df = new DecimalFormat(".00");
+			tc.setCall_length(df.format(callLen));
+			tcList.add(tc);
+		}
+		
+		// 解析紧急联系人信息
+		JSONArray mcArr = reportObj.getJSONArray("mergency_contact");
+		for (int i = 0; i < mcArr.size(); i++) {
+			TopContact tc = new TopContact();
+			JSONObject mvObj = mcArr.getJSONObject(i);
+			
+			tc.setFormat_tel(mvObj.getString("format_tel"));
+			tc.setTags_label(mvObj.getString("contact_relationship"));
+			tc.setCall_times(mvObj.getString("call_times"));
+			
+			float callLen = Float.parseFloat(mvObj.getString("call_length"))/60;
+			DecimalFormat df = new DecimalFormat(".00");
+			tc.setCall_length(df.format(callLen));
+
 			tcList.add(tc);
 		}
 		return tcList;
@@ -627,9 +842,7 @@ public class ReportParseUtil {
 
 		JSONObject cuishou = crdObj.getJSONObject("cuishou");
 		JSONObject cuishou_degree = crdObj.getJSONObject("cuishou_degree");
-		if (!StringUtil.isEmpty(cuishou) && !StringUtil.isEmpty(cuishou_degree)) {
-			 cs = parseCuishouJson(cuishou, cuishou_degree);
-		}
+		cs = parseCuishouJson(cuishou, cuishou_degree);
 		
 		return cs;
 	}
@@ -651,9 +864,7 @@ public class ReportParseUtil {
 		
 		JSONObject yisicuishou = crdObj.getJSONObject("yisicuishou");
 		JSONObject yisicuishou_degree = crdObj.getJSONObject("yisicuishou_degree");
-		if (!StringUtil.isEmpty(yisicuishou) && !StringUtil.isEmpty(yisicuishou_degree)) {
-			cs = parseCuishouJson(yisicuishou, yisicuishou_degree);
-		}
+		cs = parseCuishouJson(yisicuishou, yisicuishou_degree);
 		
 		return cs;
 	}
@@ -670,34 +881,142 @@ public class ReportParseUtil {
 	 */
 	private static Cuishou parseCuishouJson(JSONObject cuishou, JSONObject cuishou_degree) {
 		Cuishou cs = new Cuishou();
-		cs.setNums_tel(cuishou.getInteger("nums_tel"));
-		cs.setNums_tel_degree(cuishou_degree.getInteger("nums_tel"));
-		cs.setCall_times(cuishou.getString("call_times"));
-		cs.setCall_in_times(cuishou.getInteger("call_in_times"));
-		cs.setCall_in_times_degree(cuishou_degree.getInteger("call_in_times"));
-		cs.setCall_in_length(cuishou.getInteger("call_in_length"));
-		cs.setCall_in_length_degree(cuishou_degree.getInteger("call_in_length"));
-		cs.setCall_in_less_15(cuishou.getInteger("call_in_less_15"));
-		cs.setCall_in_less_15_degree(cuishou_degree.getInteger("call_in_less_15"));
-		cs.setMost_times_by_tel(cuishou.getInteger("most_times_by_tel"));
-		cs.setMost_times_by_tel_degree(cuishou_degree.getInteger("most_times_by_tel"));
-		cs.setUp_2_times_by_tel(cuishou.getInteger("up_2_times_by_tel"));
-		cs.setUp_2_times_by_tel_degree(cuishou_degree.getInteger("up_2_times_by_tel"));
-		cs.setCall_out_times(cuishou.getInteger("call_out_times"));
-		cs.setCall_out_times_degree(cuishou_degree.getInteger("call_out_times"));
-		cs.setCall_out_length(cuishou.getInteger("call_out_length"));
-		cs.setCall_out_length_degree(cuishou_degree.getInteger("call_out_length"));
-		cs.setDay7_times(cuishou.getInteger("7day_times"));
-		cs.setDay7_times_degree(cuishou_degree.getInteger("7day_times"));
-		cs.setDay30_times(cuishou.getInteger("30day_times"));
-		cs.setDay30_times_degree(cuishou_degree.getInteger("30day_times"));
-		cs.setDay60_times(cuishou.getInteger("60day_times"));
-		cs.setDay60_times_degree(cuishou_degree.getInteger("60day_times"));
-		cs.setDay90_times(cuishou.getInteger("90day_times"));
-		cs.setDay90_times_degree(cuishou_degree.getInteger("90day_times"));
-		cs.setDay120_times(cuishou.getInteger("120day_times"));
-		cs.setDay120_times_degree(cuishou_degree.getInteger("120day_times"));
+		if (cuishou.getInteger("nums_tel") != null) {
+			cs.setNums_tel(cuishou.getInteger("nums_tel"));
+		}else {
+			cs.setNums_tel(0);
+		}
+		if (cuishou_degree.getInteger("nums_tel") != null) {
+			cs.setNums_tel_degree(cuishou_degree.getInteger("nums_tel"));
+		}else {
+			cs.setNums_tel_degree(0);
+		}
+		if (cuishou.getString("call_times") != null) {
+			cs.setCall_times(cuishou.getString("call_times"));
+		}else {
+			cs.setCall_times("0");
+		}
+		if (cuishou.getInteger("call_in_times") != null) {
+			cs.setCall_in_times(cuishou.getInteger("call_in_times"));
+		}else {
+			cs.setCall_in_times(0);
+		}
+		if (cuishou_degree.getInteger("call_in_times") != null) {
+			cs.setCall_in_times_degree(cuishou_degree.getInteger("call_in_times"));
+		}else {
+			cs.setCall_in_times_degree(0);
+		}
+		if (cuishou.getInteger("call_in_length") != null) {
+			cs.setCall_in_length(cuishou.getInteger("call_in_length"));
+		}else {
+			cs.setCall_in_length(0);
+		}
+		if (cuishou_degree.getInteger("call_in_length") != null) {
+			cs.setCall_in_length_degree(cuishou_degree.getInteger("call_in_length"));
+		}else {
+			cs.setCall_in_length_degree(0);
+		}
+		if (cuishou.getInteger("call_in_less_15") != null) {
+			cs.setCall_in_less_15(cuishou.getInteger("call_in_less_15"));
+		}else {
+			cs.setCall_in_less_15(0);
+		}
+		if (cuishou_degree.getInteger("call_in_less_15") != null) {
+			cs.setCall_in_less_15_degree(cuishou_degree.getInteger("call_in_less_15"));
+		}else {
+			cs.setCall_in_less_15_degree(0);
+		}
+		if (cuishou.getInteger("most_times_by_tel") != null) {
+			cs.setMost_times_by_tel(cuishou.getInteger("most_times_by_tel"));
+		}else {
+			cs.setMost_times_by_tel(0);
+		}
+		if (cuishou_degree.getInteger("most_times_by_tel") != null) {
+			cs.setMost_times_by_tel_degree(cuishou_degree.getInteger("most_times_by_tel"));
+		}else {
+			cs.setMost_times_by_tel_degree(0);
+		}
+		if (cuishou.getInteger("up_2_times_by_tel") != null) {
+			cs.setUp_2_times_by_tel(cuishou.getInteger("up_2_times_by_tel"));
+		}else {
+			cs.setUp_2_times_by_tel(0);
+		}
+		if (cuishou_degree.getInteger("up_2_times_by_tel") != null) {
+			cs.setUp_2_times_by_tel_degree(cuishou_degree.getInteger("up_2_times_by_tel"));
+		}else {
+			cs.setUp_2_times_by_tel_degree(0);
+		}
+		if (cuishou.getInteger("call_out_times") != null) {
+			cs.setCall_out_times(cuishou.getInteger("call_out_times"));
+		}else {
+			cs.setCall_out_times(0);
+		}
+		if (cuishou_degree.getInteger("call_out_times") != null) {
+			cs.setCall_out_times_degree(cuishou_degree.getInteger("call_out_times"));
+		}else {
+			cs.setCall_out_times_degree(0);
+		}
+		if (cuishou.getInteger("call_out_length") != null) {
+			cs.setCall_out_length(cuishou.getInteger("call_out_length"));
+		}else {
+			cs.setCall_out_length(0);
+		}
+		if (cuishou_degree.getInteger("call_out_length") != null) {
+			cs.setCall_out_length_degree(cuishou_degree.getInteger("call_out_length"));
+		}else {
+			cs.setCall_out_length_degree(0);
+		}
+		if (cuishou.getInteger("7day_times") != null) {
+			cs.setDay7_times(cuishou.getInteger("7day_times"));
+		}else {
+			cs.setDay7_times(0);
+		}
+		if (cuishou_degree.getInteger("7day_times") != null) {
+			cs.setDay7_times_degree(cuishou_degree.getInteger("7day_times"));
+		}else {
+			cs.setDay7_times_degree(0);
+		}
+		if (cuishou.getInteger("30day_times") != null) {
+			cs.setDay30_times(cuishou.getInteger("30day_times"));
+		}else {
+			cs.setDay30_times(0);
+		}
+		if (cuishou_degree.getInteger("30day_times") != null) {
+			cs.setDay30_times_degree(cuishou_degree.getInteger("30day_times"));
+		}else {
+			cs.setDay30_times_degree(0);
+		}
+		if (cuishou.getInteger("60day_times") != null) {
+			cs.setDay60_times(cuishou.getInteger("60day_times"));
+		}else {
+			cs.setDay60_times(0);
+		}
+		if (cuishou_degree.getInteger("60day_times") != null) {
+			cs.setDay60_times_degree(cuishou_degree.getInteger("60day_times"));
+		}else {
+			cs.setDay60_times_degree(0);
+		}
+		if (cuishou.getInteger("90day_times") != null) {
+			cs.setDay90_times(cuishou.getInteger("90day_times"));
+		}else {
+			cs.setDay90_times(0);
+		}
+		if (cuishou_degree.getInteger("90day_times") != null) {
+			cs.setDay90_times_degree(cuishou_degree.getInteger("90day_times"));
+		}else {
+			cs.setDay90_times_degree(0);
+		}
+		if (cuishou.getInteger("120day_times") != null) {
+			cs.setDay120_times(cuishou.getInteger("120day_times"));
+		}else {
+			cs.setDay120_times(0);
+		}
+		if (cuishou_degree.getInteger("120day_times") != null) {
+			cs.setDay120_times_degree(cuishou_degree.getInteger("120day_times"));
+		}else {
+			cs.setDay120_times_degree(0);
+		}
 		return cs;
 	}
-	
+
 }

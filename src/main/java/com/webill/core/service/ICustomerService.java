@@ -2,6 +2,7 @@ package com.webill.core.service;
 
 import com.baomidou.mybatisplus.plugins.Page;
 import com.webill.core.model.Customer;
+import com.webill.core.model.dianhuabang.DHBGetLoginReq;
 import com.webill.core.model.juxinli.JXLSubmitFormReq;
 import com.webill.framework.service.ISuperService;
 
@@ -78,5 +79,16 @@ public interface ICustomerService extends ISuperService<Customer> {
 	 * @return Customer
 	 */
 	Customer addSelectTimes(Customer cus);
+
+	/** 
+	 * @Title: cusToDHBGetLoginReq 
+	 * @Description: 客户信息转电话邦获取登录方式数据
+	 * @author ZhangYadong
+	 * @date 2018年1月31日 下午7:26:49
+	 * @param cus
+	 * @return
+	 * @return DHBGetLoginReq
+	 */
+	DHBGetLoginReq cusToDHBGetLoginReq(Customer cus);
 
 }

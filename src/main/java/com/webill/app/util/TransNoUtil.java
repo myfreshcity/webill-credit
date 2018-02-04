@@ -12,6 +12,25 @@ public class TransNoUtil {
 
 	/**
 	 * @Title: genTransNo
+	 * @Description: 微账房-生成信息报告reportKey
+	 * @author ZhangYadong
+	 * @date 2017年11月4日 上午10:39:01
+	 * @return
+	 * @return String
+	 */
+	public static String getReportKey() {// 20位
+		// 取当前时间的长整形值包含毫秒
+		long millis = System.currentTimeMillis();
+		// 加上5位随机数
+		Random random = new Random();
+		int end5 = random.nextInt(99999);
+		// 如果不足5位前面补0
+		String str = "rk" + millis + String.format("%05d", end5);
+		return str;
+	}
+
+	/**
+	 * @Title: genTransNo
 	 * @Description: 微账房-认证支付请求交易流水号
 	 * @author ZhangYadong
 	 * @date 2017年11月4日 上午10:39:01
@@ -49,6 +68,6 @@ public class TransNoUtil {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println(genRzTransNo()); 
+		System.out.println(getReportKey()); 
 	}
 }

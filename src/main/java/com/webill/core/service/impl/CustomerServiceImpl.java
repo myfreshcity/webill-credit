@@ -12,9 +12,12 @@ import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.plugins.Page;
 import com.webill.app.SystemProperty;
 import com.webill.app.util.AreaChildrenUtil;
+import com.webill.app.util.DhbContactType;
 import com.webill.core.model.CusContact;
 import com.webill.core.model.Customer;
 import com.webill.core.model.User;
+import com.webill.core.model.dianhuabang.DHBGetLoginReq;
+import com.webill.core.model.dianhuabang.DHBUserContact;
 import com.webill.core.model.juxinli.JXLContact;
 import com.webill.core.model.juxinli.JXLSubmitFormReq;
 import com.webill.core.service.ICusContactService;
@@ -78,21 +81,20 @@ public class CustomerServiceImpl extends SuperServiceImpl<CustomerMapper, Custom
 	
 	@Override
 	public Customer addSelectTimes(Customer cus){
-		Customer cusDetail = new Customer();
 		// 获取用户信息可用次数
 		User user = userService.selectById(cus.getUserId());
-		cusDetail.setStandardTimes(user.getStandardTimes());
-		cusDetail.setAdvancedTimes(user.getAdvancedTimes());
+		cus.setStandardTimes(user.getStandardTimes());
+		cus.setAdvancedTimes(user.getAdvancedTimes());
 		
 		// 获取客户联系人信息
 		Map<String, Object> conMap = new HashMap<>();
 		conMap.put("cus_id", cus.getId());
 		List<CusContact> cusConList = cusContactService.selectByMap(conMap);
 		if (cusConList != null && cusConList.size() > 0) {
-			cusDetail.setContacts(cusConList);
+			cus.setContacts(cusConList);
 		}
-		cusDetail.setAreaJson(constPro.AREA_JSON);
-		return cusDetail;
+		cus.setAreaJson(constPro.AREA_JSON);
+		return cus;
 	}
 	
 	@Override
@@ -162,6 +164,37 @@ public class CustomerServiceImpl extends SuperServiceImpl<CustomerMapper, Custom
 		req.setHomeAddress(cusNew.getHomeAddr() + cusNew.getHomeAddrDetail());
 		req.setWorkAddress(cusNew.getWorkAddr() + cusNew.getWorkAddrDetail());
 		req.setUid(cusNew.getUserId().toString());
+		return req;
+	}
+	
+	@Override
+	public DHBGetLoginReq cusToDHBGetLoginReq(Customer cus){
+		DHBGetLoginReq req = new DHBGetLoginReq();
+		// 解析客戶对应联系人==>电话邦联系人
+		List<DHBUserContact> dhbContacts = new ArrayList<>();
+		List<CusContact> cusConList = cus.getContacts();
+		if (cusConList != null && cusConList.size() > 0) {
+			for (CusContact cusCon : cusConList) {
+				DHBUserContact dhbCon = new DHBUserContact();
+				dhbCon.setContactName(cusCon.getName());
+				dhbCon.setContactPrionity(1); //?
+				//"0":配偶，"1":父母，"2":兄弟姐妹,"3":子女,"4":同事,"5": 同学,"6": 朋友
+				dhbCon.setContactRelationShip(DhbContactType.retValue(cusCon.getContactType()));
+				dhbCon.setContactTel(cusCon.getMobileNo());
+				dhbContacts.add(dhbCon);
+			}
+			req.setContacts(dhbContacts);
+		}
+		
+		Customer cusNew = this.selectById(cus.getId());
+		req.setUserName(cusNew.getRealName());
+		req.setUserIdcard(cusNew.getIdNo());
+//		req.setUserProvince("");
+//		req.setUserCity("");
+		req.setUserAddress(cusNew.getHomeAddr() + cusNew.getHomeAddrDetail());
+		req.setUid(cusNew.getUserId().toString());
+		req.setTel(cusNew.getMobileNo());
+		
 		return req;
 	}
 }

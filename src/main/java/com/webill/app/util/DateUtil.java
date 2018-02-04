@@ -955,4 +955,39 @@ public class DateUtil {
 		c.add(Calendar.DATE, -1);
 		return sdf.format(c.getTime());
     }
+    
+    /** 
+     * @Description: 将Unix时间戳转换成指定格式日期
+     */
+    public static String timeStampToDat(long timestamp){
+    	String date = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(timestamp*1000));    
+    	return date;
+    }
+    
+    /** 
+     * @Description: 将小时转换成天小时
+     */
+    public static String hoursToDay(int hours){
+    	if (hours < 24) {
+    		return hours+"小时";
+		}else if (hours % 24 == 0) {
+			return (hours/24)+"天";
+		}else {
+			return (hours/24)+"天"+(hours%24)+"小时";
+		}
+    }
+    
+    /** 
+     * @Description: 将秒转换成分秒
+     */
+    public static String secondToMinute(int second){
+    	if (second < 60) {
+    		return second+"秒";
+    	}else if (second % 60 == 0) {
+    		return (second/60)+"分钟";
+    	}else {
+    		return (second/60)+"分钟"+(second%60)+"秒";
+    	}
+    }
+    
 }

@@ -16,8 +16,9 @@ public class DHBGetLoginResp {
 	private String smsDuration; // 短信验证码提示有效时间
 	private String captchaImage; // 图形验证码 base64 码
 	private String verifyNotes; // 短信提示（只针对于吉林电信并 sms_duration 不为空）
-	private Integer status; // 
-	private String action; // 
+	private Integer status; // 请求状态码 0 为正常 非 0 为错误
+	private String action; // 爬虫状态 processing 进行中 done 完成 reset 错误
+	private String msg; // 状态描述
 	
 	public static DHBGetLoginResp fromJsonString(String jsonString){
 		JSONObject jsonObject = JSONObject.parseObject(jsonString);
@@ -30,6 +31,10 @@ public class DHBGetLoginResp {
 		if(jsonObject.containsKey("action")) {
 			resp.setAction(jsonObject.getString("action"));
 		}
+		if(jsonObject.containsKey("msg")){
+			resp.setMsg(jsonObject.getString("msg"));
+		}
+		
 		if(jsonObject.containsKey("data")){
 			JSONObject data = jsonObject.getJSONObject("data");
 			resp.setSid(data.getString("sid"));
@@ -97,5 +102,13 @@ public class DHBGetLoginResp {
 	}
 	public void setAction(String action) {
 		this.action = action;
+	}
+
+	public String getMsg() {
+		return msg;
+	}
+
+	public void setMsg(String msg) {
+		this.msg = msg;
 	}
 }

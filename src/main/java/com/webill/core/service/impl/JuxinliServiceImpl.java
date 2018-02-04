@@ -7,14 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.webill.app.SystemProperty;
@@ -31,12 +28,14 @@ import com.webill.core.model.juxinli.JXLResp;
 import com.webill.core.model.juxinli.JXLSubmitFormReq;
 import com.webill.core.model.juxinli.JXLSubmitFormResp;
 import com.webill.core.model.juxinli.Report;
+import com.webill.core.model.report.BlackInfo;
 import com.webill.core.model.report.ContactRegion;
 import com.webill.core.model.report.Cuishou;
 import com.webill.core.model.report.CusBasicInfo;
 import com.webill.core.model.report.FinancialCallInfo;
 import com.webill.core.model.report.ReportContact;
 import com.webill.core.model.report.TopContact;
+import com.webill.core.model.report.TripInfo;
 import com.webill.core.service.ICustomerService;
 import com.webill.core.service.IJuxinliService;
 import com.webill.core.service.IReportMongoDBService;
@@ -69,6 +68,83 @@ public class JuxinliServiceImpl implements IJuxinliService {
 	private RedisService redisService;
 	@Autowired
 	private IUserService userService;
+	
+	/**
+	 * 解析聚信立报告数据
+	 */
+	@Override
+	public String parseJXLReportData(String jxlReportJson){
+		JSONObject jo = new JSONObject();
+		// 聚信立-解析客户基本信息
+		CusBasicInfo cusBasicInfo = ReportParseUtil.parseCusBasicInfo(jxlReportJson);
+		jo.put("cus_basic_info", cusBasicInfo);
+		// 聚信立-解析紧急联系人信息
+		List<ReportContact> rcList = ReportParseUtil.parseReportContact(jxlReportJson);
+		jo.put("report_contact", rcList);
+		// 聚信立-解析用户黑名单信息
+		BlackInfo blackInfo = ReportParseUtil.parseBlackInfo(jxlReportJson);
+		jo.put("black_info", blackInfo);
+		// 聚信立-解析金融类通话信息
+		List<FinancialCallInfo> fciList = ReportParseUtil.parseFinancialCallInfo(jxlReportJson);
+		jo.put("financial_call_info", fciList);
+		// 聚信立-解析联系人区域信息
+		List<ContactRegion> crList = ReportParseUtil.parseContactRegion(jxlReportJson);
+		jo.put("contact_region", crList);
+		// 聚信立-解析长时间联系人（Top10）
+		List<TopContact> dateTopConList = ReportParseUtil.parseDateTopContact(jxlReportJson);
+		jo.put("top10_date_contact", dateTopConList);
+		// 聚信立-解析高频联系人（Top10）
+		List<TopContact> timesTopConList = ReportParseUtil.parseTimesTopContact(jxlReportJson);
+		jo.put("top10_times_contact", timesTopConList);
+		// 聚信立-解析所有联系人数据
+		List<TopContact> allContactList = ReportParseUtil.parseAllContact(jxlReportJson);
+		jo.put("all_contact", allContactList);
+		// 聚信立-解析出行数据
+		List<TripInfo> tripInfoList = ReportParseUtil.parseTripInfo(jxlReportJson);
+		jo.put("trip_info", tripInfoList);
+		
+		return jo.toJSONString();
+	}
+	
+	/**
+	 * 解析电话邦报告数据
+	 */
+	@Override
+	public String parseDHBReportData(String dhbReportJson){
+		JSONObject jo = new JSONObject();
+		// 聚信立-解析客户基本信息
+		CusBasicInfo cbi = ReportParseUtil.parseDHBCusBasicInfo(dhbReportJson);
+		jo.put("cus_basic_info", cbi);
+		// 聚信立-解析紧急联系人信息
+		List<ReportContact> rcList = ReportParseUtil.parseDHBReportContact(dhbReportJson);
+		jo.put("report_contact", rcList);
+		// 电话邦-解析金融类基础版通话信息
+		List<FinancialCallInfo> fciList = ReportParseUtil.parseDHBFinBasCallInfo(dhbReportJson);
+		jo.put("financial_call_info", fciList);
+		// 电话邦-解析金融类标准版通话信息
+		List<FinancialCallInfo> stafciList = ReportParseUtil.parseDHBFinAdvCallInfo(dhbReportJson);
+		jo.put("financial_call_info_sta", stafciList);
+		// 电话邦-解析联系人区域信息
+		List<ContactRegion> crList = ReportParseUtil.parseDHBContactRegion(dhbReportJson);
+		jo.put("contact_region", crList);
+		// 电话邦-解析长时间联系人（Top10）
+		List<TopContact> dateTop10Con = ReportParseUtil.parseDHBDateTopContact(dhbReportJson);
+		jo.put("top10_date_contact", dateTop10Con);
+		// 电话邦-解析高频联系人（Top10）
+		List<TopContact> timesTop10Con = ReportParseUtil.parseDHBTimesTopContact(dhbReportJson);
+		jo.put("top10_times_contact", timesTop10Con);
+		// 聚信立-解析所有联系人数据
+		List<TopContact> allContactList = ReportParseUtil.parseDHBAllContact(dhbReportJson);
+		jo.put("all_contact", allContactList);
+		// 电话邦-解析催收信息数据节点
+		Cuishou cs = ReportParseUtil.parseDHBCuishou(dhbReportJson);
+		jo.put("cuishou", cs);
+		// 电话邦-疑似催收信息数据节点
+		Cuishou yscs = ReportParseUtil.parseDHBYisiCuishou(dhbReportJson);
+		jo.put("yisicuishou", yscs);
+		
+		return jo.toJSONString();
+	}
 	
 	/**
 	 * 聚信立提交申请表单获取回执信息
@@ -150,7 +226,7 @@ public class JuxinliServiceImpl implements IJuxinliService {
 				report.setApplyDate(Calendar.getInstance().getTime());
 				report.setReportType(req.getTemReportType()); //信息报告类型：0-基础 1-标准 
 				report.setStatus(0); //采集中
-				reportMongoDBService.updateReportByToke(report);
+				reportMongoDBService.updateReportByToken(report);
 				
 				// 起一个线程在2分钟后通知获取状态
 				new Thread() {
@@ -236,7 +312,7 @@ public class JuxinliServiceImpl implements IJuxinliService {
 						// 处理聚信立数据到mongoDB
 						String jxlReportJson = this.parseJXLReportData(reportData);
 						report.setFinalReport(jxlReportJson);
-						reportMongoDBService.updateReportByToke(report);
+						reportMongoDBService.updateReportByToken(report);
 						return jxlReportJson;
 					} else {
 						throw new RuntimeException("获取运营商原始数据请求返回报文中没有report_data节点！返回报文：" + report);
@@ -280,7 +356,7 @@ public class JuxinliServiceImpl implements IJuxinliService {
 							report = new Report();
 							report.setToken(token);
 							report.setStatus(1); //采集成功
-							reportMongoDBService.updateReportByToke(report);
+							reportMongoDBService.updateReportByToken(report);
 							
 							// 通过token获取mongodb中的report
 							Report reportToken = null;
@@ -332,7 +408,7 @@ public class JuxinliServiceImpl implements IJuxinliService {
 	/**
 	 * 启动守护线程，定期更新报告状态
 	 */
-	@PostConstruct
+	/*@PostConstruct
 	public void daemon() {
 		// 守护线程1，定期更新报告状态
 		new Thread() {
@@ -426,7 +502,7 @@ public class JuxinliServiceImpl implements IJuxinliService {
 		}.start();
 
 		// 启动守护线程，每小时清除已过期的未提交采集请求的数据
-		/*new Thread() {
+		new Thread() {
 			public void run() {
 				reportMongoDBService.deleteExpire();
 				try {
@@ -435,8 +511,8 @@ public class JuxinliServiceImpl implements IJuxinliService {
 					logger.error("停止被打断", e);
 				}
 			}
-		}.start();*/
-	}
+		}.start();
+	}*/
 	
 	/**
 	 * 获取access_token，如果为空，则发送请求到聚信立获取永久有效期的access_token并保存在accessToken变量中，
@@ -513,72 +589,6 @@ public class JuxinliServiceImpl implements IJuxinliService {
 	}
 
 	/**
-	 * 解析聚信立报告数据
-	 */
-	@Override
-	public String parseJXLReportData(String jxlReportJson){
-		JSONObject jo = new JSONObject();
-		// 聚信立-解析客户基本信息
-		CusBasicInfo cusBasicInfo = ReportParseUtil.parseCusBasicInfo(jxlReportJson);
-		jo.put("cus_basic_info", cusBasicInfo);
-		// 聚信立-解析联系人信息
-		List<ReportContact> rcList = ReportParseUtil.parseReportContact(jxlReportJson);
-		jo.put("report_contact", rcList);
-		// 聚信立-解析用户黑名单信息
-//		BlackInfo blackInfo = ReportParseUtil.parseBlackInfo(jxlReportJson);
-		// 聚信立-解析金融类通话信息
-		List<FinancialCallInfo> fciList = ReportParseUtil.parseFinancialCallInfo(jxlReportJson);
-		jo.put("financial_call_info", fciList);
-		// 聚信立-解析联系人区域信息
-		List<ContactRegion> crList = ReportParseUtil.parseContactRegion(jxlReportJson);
-		jo.put("contact_region", crList);
-		// 聚信立-解析长时间联系人（Top10）
-		List<TopContact> dateTopConList = ReportParseUtil.parseDateTopContact(jxlReportJson);
-		jo.put("top10_date_contact", dateTopConList);
-		// 聚信立-解析高频联系人（Top10）
-		List<TopContact> timesTopConList = ReportParseUtil.parseTimesTopContact(jxlReportJson);
-		jo.put("top10_times_contact", timesTopConList);
-		// 聚信立-解析所有联系人数据
-		List<TopContact> allContactList = ReportParseUtil.parseAllContact(jxlReportJson);
-		jo.put("all_contact", allContactList);
-		// 聚信立-解析出行数据
-//		List<TripInfo> tripInfoList = ReportParseUtil.parseTripInfo(jxlReportJson);
-		
-		return jo.toJSONString();
-	}
-	
-	/**
-	 * 解析电话邦报告数据
-	 */
-	@Override
-	public String parseDHBReportData(String dhbReportJson){
-		JSONObject jo = new JSONObject();
-		// 电话邦-解析金融类基础版通话信息
-		List<FinancialCallInfo> fciList = ReportParseUtil.parseDHBFinBasCallInfo(dhbReportJson);
-		jo.put("financial_call_info", fciList);
-		// 电话邦-解析联系人区域信息
-		List<ContactRegion> crList = ReportParseUtil.parseDHBContactRegion(dhbReportJson);
-		jo.put("contact_region", crList);
-		// 电话邦-解析长时间联系人（Top10）
-		List<TopContact> dateTop10Con = ReportParseUtil.parseDHBDateTopContact(dhbReportJson);
-		jo.put("top10_date_contact", dateTop10Con);
-		// 电话邦-解析高频联系人（Top10）
-		List<TopContact> timesTop10Con = ReportParseUtil.parseDHBTimesTopContact(dhbReportJson);
-		jo.put("top10_times_contact", timesTop10Con);
-		// 聚信立-解析所有联系人数据
-		List<TopContact> allContactList = ReportParseUtil.parseDHBAllContact(dhbReportJson);
-		jo.put("all_contact", allContactList);
-		// 电话邦-解析催收信息数据节点
-		Cuishou cs = ReportParseUtil.parseDHBCuishou(dhbReportJson);
-		jo.put("cuishou", cs);
-		// 电话邦-疑似催收信息数据节点
-		Cuishou yscs = ReportParseUtil.parseDHBYisiCuishou(dhbReportJson);
-		jo.put("yisicuishou", yscs);
-		
-		return jo.toJSONString();
-	}
-	
-	/**
 	 * 通过token获取运营商原始数据
 	 * 申请表单提交时获取的token
 	 */
@@ -614,7 +624,7 @@ public class JuxinliServiceImpl implements IJuxinliService {
 						report = new Report();
 						report.setToken(token);
 						report.setMobileRaw(rawData);
-						reportMongoDBService.updateReportByToke(report);
+						reportMongoDBService.updateReportByToken(report);
 						return rawData;
 					} else {
 						throw new RuntimeException("获取运营商原始数据请求返回报文中没有raw_data节点！返回报文：" + resJson);

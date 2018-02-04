@@ -26,6 +26,9 @@
 		<if test="timeTo!=null and timeTo!='' ">
 			AND tl.created_time &lt;= str_to_date('${timeTo} 23:59:59','%Y-%m-%d %H:%i:%s')
 		</if>
+		<if test="infoLevel != null and infoLevel != ''">
+			AND ig.info_level = #{infoLevel}
+		</if>
 	</select>
 	
 

@@ -19,6 +19,8 @@ public class JXLResp {
 	private int processCode = 0;
 
 	private boolean finish = false;
+	
+	private String message = null;
 
 	public boolean isSuccess() {
 		return success;
@@ -59,6 +61,14 @@ public class JXLResp {
 	public void setFinish(boolean finish) {
 		this.finish = finish;
 	}
+	
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
 
 	public static JXLResp fromJsonString(String jsonString) {
 		JXLResp resp = new JXLResp();
@@ -72,6 +82,9 @@ public class JXLResp {
 			resp.setContent(data.getString("content"));
 			resp.setProcessCode(data.getIntValue("process_code"));
 			resp.setFinish(data.getBoolean("finish"));
+		}
+		if (json.containsKey("message")) {
+			resp.setMessage(json.getString("message"));
 		}
 		return resp;
 	}

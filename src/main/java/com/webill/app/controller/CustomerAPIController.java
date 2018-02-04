@@ -2,6 +2,7 @@ package com.webill.app.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.bouncycastle.jcajce.provider.asymmetric.dsa.DSASigner.detDSA;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -12,14 +13,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.plugins.Page;
+import com.webill.app.util.ReportParseUtil;
 import com.webill.core.model.Customer;
 import com.webill.core.model.User;
+import com.webill.core.model.dianhuabang.DHBGetLoginReq;
+import com.webill.core.model.dianhuabang.DHBLoginReq;
 import com.webill.core.model.juxinli.JXLCollectReq;
 import com.webill.core.model.juxinli.JXLResetPasswordReq;
 import com.webill.core.model.juxinli.JXLSubmitFormReq;
-import com.webill.core.model.juxinli.Report;
 import com.webill.core.service.ICustomerService;
 import com.webill.core.service.IJuxinliService;
+import com.webill.core.service.IJxlDhbService;
 import com.webill.core.service.IUserService;
 import com.webill.framework.common.JSONUtil;
 import com.webill.framework.common.JsonResult;
@@ -46,7 +50,9 @@ public class CustomerAPIController extends BaseController{
 	private IUserService userService;
 	@Autowired
 	private IJuxinliService juxinliService;
-	
+	@Autowired
+	private IJxlDhbService jxlDhbService;
+
 	@ApiOperation(value = "添加客户基本信息")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "获取客户信息成功！"), @ApiResponse(code = 210, message = "客户基本信息入库成功！"),
 			@ApiResponse(code = 220, message = "客户未进行实名认证！"), @ApiResponse(code = 510, message = "客户基本信息入库失败！")})
@@ -97,7 +103,7 @@ public class CustomerAPIController extends BaseController{
 		}
 	}
 	
-	/*************************************************聚信立接口************************************************/
+	/*************************************************聚信立-电话邦接口***********************************************************/
 	
 	@ApiOperation(value = "提交申请表单获取回执信息，并完善客户联系信息")
 	@RequestMapping(value = "/submitForm", method = {RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
@@ -106,14 +112,12 @@ public class CustomerAPIController extends BaseController{
 		// 完善客户信息
 		boolean f = customerService.updateCus(cus);
 		if (f) {
-			/*if (cus.getTemReportType() == 0) { //临时信息报告类型：0-基础 1-标准
-				
-			} else{*/
-				// 客户信息转聚信立表单提交数据
-				JXLSubmitFormReq req = customerService.cusToJXLSubmitFormReq(cus);
-				// 提交申请表单
-				return juxinliService.submitForm(req, cus.getId());
-//			}
+			// 客户信息转聚信立表单提交数据
+			JXLSubmitFormReq jxlReq = customerService.cusToJXLSubmitFormReq(cus); 
+			DHBGetLoginReq dhbReq = customerService.cusToDHBGetLoginReq(cus); 
+			// 提交申请表单
+			//return juxinliService.submitForm(jxlReq, cus.getId());
+			return jxlDhbService.submitFormAndGetSid(jxlReq, dhbReq, cus.getId());
 		}else {
 			return renderError("更新客户信息失败", "510");
 		}
@@ -122,16 +126,27 @@ public class CustomerAPIController extends BaseController{
 	@ApiOperation(value = "提交数据采集请求")
 	@RequestMapping(value = "/collect", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
 	@ResponseBody
-	public Object collect(@RequestBody JXLCollectReq req) {
-		return juxinliService.collect(req);
+//	public Object collect(@RequestBody JXLCollectReq req) {
+	public Object collect(@RequestBody String jsonStr) {
+		JSONObject jo = JSONObject.parseObject(jsonStr);
+		JXLCollectReq jxlReq = JSONUtil.toObject(jo.getString("jxlCollectReq"), JXLCollectReq.class);
+		DHBLoginReq dhbReq = JSONUtil.toObject(jo.getString("dhbLoginReq"), DHBLoginReq.class);
+		Customer cus = JSONUtil.toObject(jo.getString("customer"), Customer.class);
+		if (cus.getTemReportType() == 0) { //临时信息报告类型：0-基础 1-标准
+			return jxlDhbService.jxlOrDhbCollect(jxlReq, dhbReq, cus);
+		}else {
+			return jxlDhbService.jxlAndDhbcollect(jxlReq, dhbReq, cus);
+		}
 	}
 	
 	@ApiOperation(value = "通过token获取报告数据，申请表单提交时获取的token")
 	@RequestMapping(value = "/selectReport")
 	@ResponseBody
-	public Object getReport(@RequestBody Report report) {
-		String reportRes = juxinliService.getReport(report.getReportKey(), report.getName(), report.getIdCard(), report.getMobile());
-		return renderSuccess(JSONObject.parseObject(reportRes));
+//	public Object getReport(@RequestBody Report report) {
+	public Object getReport(@RequestBody Customer cus) {
+		//String rpRes = juxinliService.getReport(report.getReportKey(), report.getName(), report.getIdCard(), report.getMobile());
+		String rpRes = jxlDhbService.selectMdbReport(cus.getLatestReportKey());
+		return renderSuccess(JSONObject.parseObject(rpRes));
 	}
 	
 	@ApiOperation(value = "获取重置密码响应信息")
@@ -146,6 +161,20 @@ public class CustomerAPIController extends BaseController{
 	@ResponseBody
 	public Object resetPasswordSubmit(@RequestBody JXLResetPasswordReq req) {
 		return juxinliService.resetPassword(req);
+	}
+	
+	@RequestMapping(value = "/testParse", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public Object testDHBParse(@RequestBody String jsonStr) {
+		String data = juxinliService.parseDHBReportData(jsonStr);
+		return data;
+	}
+	
+	@RequestMapping(value = "/testjxlParse", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public Object testJXlParse(@RequestBody String jsonStr) {
+		String data = juxinliService.parseJXLReportData(jsonStr);
+		return data;
 	}
 
 }

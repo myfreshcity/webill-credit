@@ -287,6 +287,10 @@ public class SystemProperty {
      */
     @Value("${REPORT_KEY}")
     public String REPORT_KEY;
+    @Value("${DHB_ACC_TOKNE_KEY}")
+    public String DHB_ACC_TOKNE_KEY;
+    @Value("${DHB_ACC_TOKNE_EXPIRE}")
+    public String DHB_ACC_TOKNE_EXPIRE;
     
     /**
      * 连连认证支付
