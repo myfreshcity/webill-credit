@@ -9,8 +9,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.webill.core.model.Customer;
 import com.webill.core.model.report.BlackInfo;
 import com.webill.core.model.report.ContactRegion;
 import com.webill.core.model.report.Cuishou;
@@ -19,6 +23,7 @@ import com.webill.core.model.report.FinancialCallInfo;
 import com.webill.core.model.report.ReportContact;
 import com.webill.core.model.report.TopContact;
 import com.webill.core.model.report.TripInfo;
+import com.webill.core.service.ICustomerService;
 
 /** 
  * @ClassName: ReportParseUtil 
@@ -26,7 +31,10 @@ import com.webill.core.model.report.TripInfo;
  * @author ZhangYadong
  * @date 2018年1月25日 下午2:30:32 
  */
+@Component
 public class ReportParseUtil {
+	@Autowired
+	private ICustomerService customerService;
 	
 	/** 
 	 * @Title: parseCusBasicInfo 
@@ -37,7 +45,9 @@ public class ReportParseUtil {
 	 * @return
 	 * @return CusBasicInfo
 	 */
-	public static CusBasicInfo parseCusBasicInfo(String json){
+	public CusBasicInfo parseCusBasicInfo(String json, Integer cusId){
+		Customer cus = customerService.selectById(cusId);
+		
 		JSONObject reportObj = JSONObject.parseObject(json);
 		// 客户基本信息
 		CusBasicInfo cbi = new CusBasicInfo();
@@ -54,8 +64,17 @@ public class ReportParseUtil {
 				JSONObject checkPointsObj = appObj.getJSONObject("check_points");
 				cbi.setAge(checkPointsObj.getIntValue("age"));
 				cbi.setSex(checkPointsObj.getString("gender"));
-				cbi.setId_no(checkPointsObj.getString("key_value"));
-				cbi.setResidence_address(checkPointsObj.getString("province")+checkPointsObj.getString("city")+checkPointsObj.getString("region"));
+				String idNo = checkPointsObj.getString("key_value"); 
+				cbi.setId_no(idNo);
+				//cbi.setResidence_address(checkPointsObj.getString("province")+checkPointsObj.getString("city")+checkPointsObj.getString("region"));
+				// 查询性别、年龄、户籍地址
+				cbi.setSex(IDCardUtil.parseGender(idNo));
+				cbi.setAge(IDCardUtil.parseAge(idNo));
+				cbi.setResidence_address(IDCardUtil.parseAddress(idNo));
+			}
+			//工作地址
+			if (cus.getWorkAddr() != null && cus.getWorkAddrDetail() != null) {
+				cbi.setWork_address(cus.getWorkAddr()+cus.getWorkAddrDetail());
 			}
 			// 家庭住址
 			if (appPoint.equals("home_addr")) {
@@ -98,7 +117,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return ReportContact
 	 */
-	public static List<ReportContact> parseReportContact(String json){
+	public List<ReportContact> parseReportContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<ReportContact> rcList = new ArrayList<>();
 		
@@ -139,7 +158,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return ReportContact
 	 */
-	public static ReportContact regexMatchContact(String str){
+	public ReportContact regexMatchContact(String str){
 		String strArr[] = {"\\[(.*?)\\]天", "联系\\[(.*?)\\]次", "次\\[(.*?)\\]分钟", "第\\[(.*?)\\]位"};
 		ReportContact rc = new ReportContact();
 		String rcArr[] = new String[4];
@@ -168,7 +187,9 @@ public class ReportParseUtil {
 	 * @return
 	 * @return CusBasicInfo
 	 */
-	public static CusBasicInfo parseDHBCusBasicInfo(String json){
+	public CusBasicInfo parseDHBCusBasicInfo(String json, Integer cusId){
+		Customer cus = customerService.selectById(cusId);
+		
 		JSONObject reportObj = JSONObject.parseObject(json);
 		// 客户基本信息
 		CusBasicInfo cbi = new CusBasicInfo();
@@ -179,7 +200,17 @@ public class ReportParseUtil {
 		// 登记姓名
 		cbi.setUser_name(userInfoObj.getString("user_name"));
 		// （年龄、性别）身份证号、（户籍地址）
-		cbi.setId_no(userInfoObj.getString("user_idcard"));
+		String idNo = userInfoObj.getString("user_idcard");
+		cbi.setId_no(idNo);
+		// 查询性别、年龄、户籍地址
+		cbi.setSex(IDCardUtil.parseGender(idNo));
+		cbi.setAge(IDCardUtil.parseAge(idNo));
+		cbi.setResidence_address(IDCardUtil.parseAddress(idNo));
+		
+		//工作地址
+		if (cus.getWorkAddr() != null && cus.getWorkAddrDetail() != null) {
+			cbi.setWork_address(cus.getWorkAddr()+cus.getWorkAddrDetail());
+		}
 		// 居住地址
 		cbi.setHome_address(userInfoObj.getString("user_address"));
 		// 移动运营商、（实名认证）手机号、手机注册时间、姓名检查、身份证号检查
@@ -262,7 +293,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return ReportContact
 	 */
-	public static List<ReportContact> parseDHBReportContact(String json){
+	public List<ReportContact> parseDHBReportContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<ReportContact> rcList = new ArrayList<>();
 		
@@ -306,7 +337,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return BlackInfo
 	 */
-	public static BlackInfo parseBlackInfo(String json){
+	public BlackInfo parseBlackInfo(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		// 用户黑名单信息
 		BlackInfo blackInfo = new BlackInfo();
@@ -332,7 +363,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<FinancialCallInfo>
 	 */
-	public static List<FinancialCallInfo> parseFinancialCallInfo(String json){
+	public List<FinancialCallInfo> parseFinancialCallInfo(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 
 		List<FinancialCallInfo> fciList = new ArrayList<>();
@@ -364,7 +395,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<FinancialCallInfo>
 	 */
-	public static List<FinancialCallInfo> parseDHBFinBasCallInfo(String json){
+	public List<FinancialCallInfo> parseDHBFinBasCallInfo(String json){
 		JSONObject dhbReportObj = JSONObject.parseObject(json);
 		
 		List<FinancialCallInfo> fciList = new ArrayList<>();
@@ -419,7 +450,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<FinancialCallInfo>
 	 */
-	public static List<FinancialCallInfo> parseDHBFinAdvCallInfo(String json){
+	public List<FinancialCallInfo> parseDHBFinAdvCallInfo(String json){
 		JSONObject dhbReportObj = JSONObject.parseObject(json);
 		
 		List<FinancialCallInfo> fciList = new ArrayList<>();
@@ -474,7 +505,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<ContactRegion>
 	 */
-	public static List<ContactRegion> parseContactRegion(String json){
+	public List<ContactRegion> parseContactRegion(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<ContactRegion> crList = new ArrayList<>();
 		
@@ -500,7 +531,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<ContactRegion>
 	 */
-	public static List<ContactRegion> parseDHBContactRegion(String json){
+	public List<ContactRegion> parseDHBContactRegion(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<ContactRegion> crList = new ArrayList<>();
 		
@@ -526,7 +557,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<TopContact>
 	 */
-	public static List<TopContact> parseDateTopContact(String json){
+	public List<TopContact> parseDateTopContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
@@ -592,7 +623,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<TopContact>
 	 */
-	public static List<TopContact> parseDHBDateTopContact(String json){
+	public List<TopContact> parseDHBDateTopContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
@@ -639,7 +670,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<TopContact>
 	 */
-	public static List<TopContact> parseTimesTopContact(String json){
+	public List<TopContact> parseTimesTopContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
@@ -705,7 +736,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<TopContact>
 	 */
-	public static List<TopContact> parseDHBTimesTopContact(String json){
+	public List<TopContact> parseDHBTimesTopContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
@@ -751,7 +782,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<TopContact>
 	 */
-	public static List<TopContact> parseAllContact(String json){
+	public List<TopContact> parseAllContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
@@ -780,7 +811,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<TopContact>
 	 */
-	public static List<TopContact> parseDHBAllContact(String json){
+	public List<TopContact> parseDHBAllContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
 		
@@ -809,7 +840,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return List<TripInfo>
 	 */
-	public static List<TripInfo> parseTripInfo(String json){
+	public List<TripInfo> parseTripInfo(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TripInfo> tfList = new ArrayList<>();
 		JSONArray tripInfoArr = reportObj.getJSONArray("trip_info");
@@ -835,7 +866,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return Cuishou
 	 */
-	public static Cuishou parseDHBCuishou(String json){
+	public Cuishou parseDHBCuishou(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		Cuishou cs = null;
 		JSONObject crdObj = reportObj.getJSONObject("cuishou_risk_detection");
@@ -856,7 +887,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return Cuishou
 	 */
-	public static Cuishou parseDHBYisiCuishou(String json){
+	public Cuishou parseDHBYisiCuishou(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		Cuishou cs = new Cuishou();
 		
@@ -879,7 +910,7 @@ public class ReportParseUtil {
 	 * @return
 	 * @return Cuishou
 	 */
-	private static Cuishou parseCuishouJson(JSONObject cuishou, JSONObject cuishou_degree) {
+	private Cuishou parseCuishouJson(JSONObject cuishou, JSONObject cuishou_degree) {
 		Cuishou cs = new Cuishou();
 		if (cuishou.getInteger("nums_tel") != null) {
 			cs.setNums_tel(cuishou.getInteger("nums_tel"));

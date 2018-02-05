@@ -20,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.webill.app.SystemProperty;
+import com.webill.app.util.DateUtil;
 import com.webill.app.util.HttpUtils;
 import com.webill.app.util.MD5Util;
 import com.webill.app.util.TransNoUtil;
@@ -351,16 +352,26 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 					if (json.containsKey("data")) {
 						// 获取报告数据
 						String reportData = json.getJSONObject("data").toString();
-						// 获取报告创建时间
-						String created_at = json.getJSONObject("data").getString("created_at");
-						//TODO 1：将报告更新时间更新到数据库中
 						// 根据sid获取mongodb报告
 						Report mdbReport = reportMongoDBService.selectReportBySid(sid);
 						Customer cus = customerService.selectById(Integer.parseInt(mdbReport.getCusId()));
-						/*Customer cus = new Customer();
-						cus.setId(Integer.parseInt(mdbReport.getCusId()));
-//						cus.setLatestReportTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(created_at));
-						customerService.updateSelectiveById(cus);*/
+						// 获取报告创建时间
+						String createdAt = json.getJSONObject("data").getString("created_at");
+						
+						//TODO 1：将报告更新时间更新到数据库中
+						if (createdAt != null) {
+							try {
+								if (createdAt.contains(".")) {
+									createdAt = createdAt.substring(0, createdAt.indexOf("."));
+								}
+								cus.setId(Integer.parseInt(mdbReport.getCusId()));
+								String timeStampToDat = DateUtil.timeStampToDat(Long.parseLong(createdAt));
+								cus.setLatestReportTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStampToDat));
+								customerService.updateSelectiveById(cus);
+							} catch (Exception e) {
+								logger.info("获取报告时间异常");
+							}
+						}
 						
 						//TODO 2：处理电话邦数据到mongoDB
 						Report report = new Report();
@@ -368,7 +379,7 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 						// 原始电话邦数据
 						report.setDhbOrgReport(reportData);
 						// 解析电话邦数据
-						String dhbReportJson = juxinliService.parseDHBReportData(reportData);
+						String dhbReportJson = juxinliService.parseDHBReportData(reportData, cus.getId());
 						report.setDhbReport(dhbReportJson);
 						if (cus.getTemReportType() == 0) { //信息报告类型：0-基础 1-标准
 							report.setFinalReport(dhbReportJson);
@@ -414,13 +425,20 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 						String reportData = json.getJSONObject("report_data").toString();
 						// 获取报告更新时间
 						String update_time = json.getJSONObject("report_data").getJSONObject("report").getString("update_time");
-						//TODO 将报告更新时间更新到数据库中
+						
 						Report mdbReport = reportMongoDBService.selectReportByToken(token);
 						Customer cus = customerService.selectById(Integer.parseInt(mdbReport.getCusId()));
-						/*Customer cus = new Customer();
-						cus.setId(Integer.parseInt(mdbReport.getCusId()));
-						cus.setLatestReportTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(update_time));
-						customerService.updateSelectiveById(cus);*/
+						//TODO 将报告更新时间更新到数据库中
+						if (update_time != null) {
+							try {
+								update_time = update_time.replace("Z", " UTC");
+								cus.setId(Integer.parseInt(mdbReport.getCusId()));
+								cus.setLatestReportTime(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS Z").parse(update_time));
+								customerService.updateSelectiveById(cus);
+							} catch (Exception e) {
+								logger.info("更新报告获取时间异常");
+							}
+						}
 						
 						//TODO 处理聚信立数据到mongoDB
 						Report report = new Report();
@@ -428,7 +446,7 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 						// 原始聚信立数据
 						report.setJxlOrgReport(reportData);
 						// 解析聚信立数据
-						String jxlReportJson = juxinliService.parseJXLReportData(reportData);
+						String jxlReportJson = juxinliService.parseJXLReportData(reportData, cus.getId());
 						report.setJxlReport(jxlReportJson);
 						if (cus.getTemReportType() == 0) { //信息报告类型：0-基础 1-标准
 							report.setFinalReport(jxlReportJson);

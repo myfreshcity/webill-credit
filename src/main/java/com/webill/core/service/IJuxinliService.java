@@ -111,22 +111,24 @@ public interface IJuxinliService{
 	 * @Title: parseJXLReportData 
 	 * @Description: 解析聚信立报告数据
 	 * @author ZhangYadong
-	 * @date 2018年1月24日 下午5:14:21
+	 * @date 2018年2月5日 上午11:19:40
 	 * @param resJson
+	 * @param cusId
 	 * @return
 	 * @return String
 	 */
-	String parseJXLReportData(String resJson);
+	String parseJXLReportData(String resJson, Integer cusId);
 
 	/** 
 	 * @Title: parseDHBReportData 
 	 * @Description: 解析电话邦报告数据
 	 * @author ZhangYadong
-	 * @date 2018年1月26日 下午6:29:18
+	 * @date 2018年2月5日 上午11:19:50
 	 * @param DHBReportJson
+	 * @param cusId
 	 * @return
 	 * @return String
 	 */
-	String parseDHBReportData(String DHBReportJson);
+	String parseDHBReportData(String DHBReportJson, Integer cusId);
 
 }

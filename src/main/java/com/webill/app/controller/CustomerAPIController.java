@@ -1,10 +1,14 @@
 package com.webill.app.controller;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.bouncycastle.jcajce.provider.asymmetric.dsa.DSASigner.detDSA;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreInvocationAuthorizationAdviceVoter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +17,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.plugins.Page;
+import com.webill.app.util.DateUtil;
+import com.webill.app.util.IDCardUtil;
 import com.webill.app.util.ReportParseUtil;
 import com.webill.core.model.Customer;
 import com.webill.core.model.User;
@@ -21,6 +27,7 @@ import com.webill.core.model.dianhuabang.DHBLoginReq;
 import com.webill.core.model.juxinli.JXLCollectReq;
 import com.webill.core.model.juxinli.JXLResetPasswordReq;
 import com.webill.core.model.juxinli.JXLSubmitFormReq;
+import com.webill.core.model.juxinli.Report;
 import com.webill.core.service.ICustomerService;
 import com.webill.core.service.IJuxinliService;
 import com.webill.core.service.IJxlDhbService;
@@ -166,15 +173,36 @@ public class CustomerAPIController extends BaseController{
 	@RequestMapping(value = "/testParse", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
 	@ResponseBody
 	public Object testDHBParse(@RequestBody String jsonStr) {
-		String data = juxinliService.parseDHBReportData(jsonStr);
+		String data = juxinliService.parseDHBReportData(jsonStr, 24);
 		return data;
 	}
 	
 	@RequestMapping(value = "/testjxlParse", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
 	@ResponseBody
 	public Object testJXlParse(@RequestBody String jsonStr) {
-		String data = juxinliService.parseJXLReportData(jsonStr);
+		String cid = "341225199307088210";
+		String sex = IDCardUtil.parseGender(cid);
+		int age = IDCardUtil.parseAge(cid);
+		String address = IDCardUtil.parseAddress(cid);
+		System.out.println(sex+age+address);
+		String data = juxinliService.parseJXLReportData(jsonStr, 24);
 		return data;
 	}
 
+	@RequestMapping(value = "/test2", method = { RequestMethod.POST, RequestMethod.GET }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	public void test2() throws Exception{
+		// 获取报告更新时间
+		String update_time = "2018-02-02T07:42:47.000Z";
+		update_time = update_time.replace("Z", " UTC");
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS Z");
+		Date d = format.parse(update_time);
+		//TODO 将报告更新时间更新到数据库中
+		Customer cus = customerService.selectById(24);
+		System.out.println(d);
+		cus.setId(24);
+		cus.setLatestReportTime(d);
+		customerService.updateSelectiveById(cus);
+
+	}
+		
 }
