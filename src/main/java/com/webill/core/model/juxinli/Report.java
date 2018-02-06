@@ -28,7 +28,7 @@ public class Report implements Serializable {
 	@Field // 字段使用此注解
 	private String token;
 	
-	/** 会话标识  */
+	/** 会话标识 */
 	@Field
 	private String sid;
 	
@@ -44,6 +44,10 @@ public class Report implements Serializable {
 	@Field
 	private Integer jxlStatus;
 	
+	/** 同盾报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集超时 */
+	@Field
+	private Integer tdStatus;
+
 	/** 电话邦报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集超时 */
 	@Field
 	private Integer dhbStatus;
@@ -68,6 +72,14 @@ public class Report implements Serializable {
 	@Field
 	private String dhbReport;
 	
+	/** 同盾原始报告数据 */
+	@Field
+	private String tdOrgReport;
+
+	/** 同盾报告数据 */
+	@Field
+	private String tdReport;
+
 	/** 最终处理报告数据 */
 	@Field
 	private String finalReport;
@@ -99,6 +111,30 @@ public class Report implements Serializable {
 	/** 响应状态码 */
 	@Field
 	private Integer code;
+
+	public Integer getTdStatus() {
+		return tdStatus;
+	}
+
+	public void setTdStatus(Integer tdStatus) {
+		this.tdStatus = tdStatus;
+	}
+
+	public String getTdOrgReport() {
+		return tdOrgReport;
+	}
+
+	public void setTdOrgReport(String tdOrgReport) {
+		this.tdOrgReport = tdOrgReport;
+	}
+
+	public String getTdReport() {
+		return tdReport;
+	}
+
+	public void setTdReport(String tdReport) {
+		this.tdReport = tdReport;
+	}
 
 	public String getId() {
 		return id;

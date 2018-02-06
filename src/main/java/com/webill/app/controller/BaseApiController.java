@@ -1,20 +1,28 @@
 package com.webill.app.controller;
 
 
-import com.webill.app.util.WeixinSupport;
-import com.webill.core.model.User;
-import com.webill.core.service.IUserService;
-import com.webill.framework.common.JsonResult;
-import com.webill.framework.controller.BaseController;
+import java.util.HashMap;
+import java.util.Map;
 
-import io.swagger.annotations.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.webill.app.util.WeixinSupport;
+import com.webill.core.model.User;
+import com.webill.core.service.ICreditService;
+import com.webill.framework.common.JsonResult;
+import com.webill.framework.controller.BaseController;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiParam;
 import reactor.core.Reactor;
 
 
@@ -30,23 +38,22 @@ public class BaseApiController extends BaseController {
     private Reactor r;
 
     @Autowired
-    private IUserService userService;
+	private ICreditService creditService;
     
     
     @Autowired
     WeixinSupport weixinSupport;
     
-	/*@ApiOperation(value = "推荐用户")
-	@ApiResponses(value = {@ApiResponse(code = 200, message = "推荐成功!"),@ApiResponse(code = 500, message = "推荐失败！")})
-    @RequestMapping(value = "/user/recommend", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@RequestMapping(value = "/test", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
     @ResponseBody
-    public JsonResult recommendUser(@ApiParam(required = true, value = "用户") @RequestBody User user){
-		User ruser = userService.saveRecommend(user.getId().toString());
-		if(ruser!=null){
-			logger.info("推荐成功！");
-			return renderSuccess("推荐成功", "200", ruser);
-		}else{
-			return renderError();
-		}
-    }*/
+	public JsonResult recommendUser(@ApiParam(required = true, value = "用户") @RequestBody User user) throws Throwable {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("name", "李小雨");// 用户姓名
+		map.put("id_number", "430725199110015753");// 用户身份证
+		map.put("mobile", "13601658182");// 用户手机号
+		Map<String, String> rspMap = creditService.qryAndSaveCreditInfo(map, (long) 5, 5000L);
+		return renderSuccess(rspMap);
+		// new
+		// CreditService().qryReportRst(0L,(String)rspMap.get("reportId"),5,5000L);
+	}
 }

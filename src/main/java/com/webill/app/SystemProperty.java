@@ -96,172 +96,172 @@ public class SystemProperty {
     @Value("${DEFAULT_PREMIUM_YEAR_NUM}")
     public int DEFAULT_PREMIUM_YEAR_NUM;
     
-    /**  
-     * @fieldName: FILE_SHOW_URL  
-     * @fieldType: String  
-     * @author: WangLongFei  
-     * @date: 2017年9月20日 下午5:32:30   
-     * @Description: 页面文件展示路径
-     */
+    /**
+	 * @fieldName: FILE_SHOW_URL
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年9月20日 下午5:32:30
+	 * @Description: 页面文件展示路径
+	 */
     @Value("${FILE_SHOW_URL}")
     public String FILE_SHOW_URL;
-    /**  
-     * @fieldName: PRM_END_DAY  
-     * @fieldType: String  
-     * @author: WangLongFei  
-     * @date: 2017年9月19日 下午3:13:28   
-     * @Description: 车险到期天数  
-     */
+    /**
+	 * @fieldName: PRM_END_DAY
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年9月19日 下午3:13:28
+	 * @Description: 车险到期天数
+	 */
     @Value("${PRM_END_DAY}")
     public String PRM_END_DAY;
     
-    /**  
-     * @fieldName: PRM_EXPIRE_TEMPLATE_ID  
-     * @fieldType: String  
-     * @author: WangLongFei  
-     * @date: 2017年9月20日 下午5:32:30   
-     * @Description: 车险到期提醒模板id  
-     */
+    /**
+	 * @fieldName: PRM_EXPIRE_TEMPLATE_ID
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年9月20日 下午5:32:30
+	 * @Description: 车险到期提醒模板id
+	 */
     @Value("${PRM_EXPIRE_TEMPLATE_ID}")
     public String PRM_EXPIRE_TEMPLATE_ID;
     
-    /**  
-     * @fieldName: PRM_PRICE_TEMPLATE_ID  
-     * @fieldName: PRM_EXPIRE_TEMPLATE_ID  
-     * @fieldType: String  
-     * @author: WangLongFei  
-     * @date: 2017年9月20日 下午5:32:30   
-     * @Description: 车险报价模板id  
-     */
+    /**
+	 * @fieldName: PRM_PRICE_TEMPLATE_ID
+	 * @fieldName: PRM_EXPIRE_TEMPLATE_ID
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年9月20日 下午5:32:30
+	 * @Description: 车险报价模板id
+	 */
     @Value("${PRM_PRICE_TEMPLATE_ID}")
     public String PRM_PRICE_TEMPLATE_ID;
     
-    /**  
-     * @fieldName: PRM_ISSUE_TEMPLATE_ID  
-     * @fieldName: PRM_EXPIRE_TEMPLATE_ID  
-     * @fieldType: String  
-     * @author: WangLongFei  
-     * @date: 2017年9月20日 下午5:32:30   
-     * @Description: 车险出单完成模板id  
-     */
+    /**
+	 * @fieldName: PRM_ISSUE_TEMPLATE_ID
+	 * @fieldName: PRM_EXPIRE_TEMPLATE_ID
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年9月20日 下午5:32:30
+	 * @Description: 车险出单完成模板id
+	 */
     @Value("${PRM_ISSUE_TEMPLATE_ID}")
     public String PRM_ISSUE_TEMPLATE_ID;
     
-    /**  
-     * @fieldName: ILLEGAL_PAY_TEMPLATE_ID  
-     * @fieldName: PRM_EXPIRE_TEMPLATE_ID  
-     * @fieldType: String  
-     * @author: WangLongFei  
-     * @date: 2017年9月20日 下午5:32:30   
-     * @Description: 违章缴费完成模板id  
-     */
+    /**
+	 * @fieldName: ILLEGAL_PAY_TEMPLATE_ID
+	 * @fieldName: PRM_EXPIRE_TEMPLATE_ID
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年9月20日 下午5:32:30
+	 * @Description: 违章缴费完成模板id
+	 */
     @Value("${ILLEGAL_PAY_TEMPLATE_ID}")
     public String ILLEGAL_PAY_TEMPLATE_ID;
     
-    /**  
-     * @fieldName: PRM_EXPIRE_TEMPLATE_ID  
-     * @fieldType: String  
-     * @author: WangLongFei  
-     * @date: 2017年9月20日 下午5:32:30   
-     * @Description: 再次推送车险到期，天数 
-     */
+    /**
+	 * @fieldName: PRM_EXPIRE_TEMPLATE_ID
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年9月20日 下午5:32:30
+	 * @Description: 再次推送车险到期，天数
+	 */
     @Value("${PRM_PUSH_INTERVAL_DAY}")
     public String PRM_PUSH_INTERVAL_DAY;
     
-    /**  
-     * @author ZhangYadong
-     * @date 2017年11月11日 下午2:48:49
-     * @Description: 慧泽综合险
-     */
+    /**
+	 * @author ZhangYadong
+	 * @date 2017年11月11日 下午2:48:49
+	 * @Description: 慧泽综合险
+	 */
     @Value("${HUIZE_PARTNERID}")
     public String HUIZE_PARTNERID;
     
     /**
-     * @fieldName: HUIZE_KEY
-     * @fieldType: String
-     * @author: WangLongFei
-     * @date: 2017年11月30日 下午2:24:46 
-     * @Description: 开发者账号(接口调试使用固定账号)
-     */
+	 * @fieldName: HUIZE_KEY
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年11月30日 下午2:24:46
+	 * @Description: 开发者账号(接口调试使用固定账号)
+	 */
     @Value("${HUIZE_KEY}")
     public String HUIZE_KEY;
     
     /**
-     * @fieldName: HUIZE_TEST_KEY
-     * @fieldType: String
-     * @author: WangLongFei
-     * @date: 2017年11月30日 下午2:25:35 
-     * @Description: 测试密钥 key
-     */
+	 * @fieldName: HUIZE_TEST_KEY
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年11月30日 下午2:25:35
+	 * @Description: 测试密钥 key
+	 */
     @Value("${HUIZE_TEST_KEY}")
     public String HUIZE_TEST_KEY;
     
     /**
-     * @fieldName: HUIZE_TEST_REQUEST_URL
-     * @fieldType: String
-     * @author: WangLongFei
-     * @date: 2017年11月30日 下午2:25:37 
-     * @Description: 测试环境请求URL
-     */
+	 * @fieldName: HUIZE_TEST_REQUEST_URL
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2017年11月30日 下午2:25:37
+	 * @Description: 测试环境请求URL
+	 */
     @Value("${HUIZE_TEST_REQUEST_URL}")
     public String HUIZE_TEST_REQUEST_URL;
     
     /**
-     * @fieldName: PRODUCT_FILE_SAVE_PATH
-     * @fieldType: String
-     * @author ZhangYadong
-     * @date 2017年12月26日 下午3:17:01
-     * @Description: 商品图片上传路径
-     */ 
+	 * @fieldName: PRODUCT_FILE_SAVE_PATH
+	 * @fieldType: String
+	 * @author ZhangYadong
+	 * @date 2017年12月26日 下午3:17:01
+	 * @Description: 商品图片上传路径
+	 */ 
     @Value("${PRODUCT_FILE_SAVE_PATH}")
     public String PRODUCT_FILE_SAVE_PATH;
     
     /**
-     * @fieldName: CATEGORY_FILE_SAVE_PATH
-     * @fieldType: String
-     * @author ZhangYadong
-     * @date 2017年12月26日 下午3:17:22
-     * @Description: 商品分类图片上传路径
-     */ 
+	 * @fieldName: CATEGORY_FILE_SAVE_PATH
+	 * @fieldType: String
+	 * @author ZhangYadong
+	 * @date 2017年12月26日 下午3:17:22
+	 * @Description: 商品分类图片上传路径
+	 */ 
     @Value("${CATEGORY_FILE_SAVE_PATH}")
     public String CATEGORY_FILE_SAVE_PATH;
     
     /**
-     * @fieldName: PRODUCT_FILE_ACCESS_PATH
-     * @fieldType: String
-     * @author ZhangYadong
-     * @date 2017年12月26日 下午4:16:33
-     * @Description: 商品图片访问路径
-     */ 
+	 * @fieldName: PRODUCT_FILE_ACCESS_PATH
+	 * @fieldType: String
+	 * @author ZhangYadong
+	 * @date 2017年12月26日 下午4:16:33
+	 * @Description: 商品图片访问路径
+	 */ 
     @Value("${PRODUCT_FILE_ACCESS_PATH}")
     public String PRODUCT_FILE_ACCESS_PATH;
     
     /**
-     * @fieldName: CATEGORY_FILE_ACCESS_PATH
-     * @fieldType: String
-     * @author ZhangYadong
-     * @date 2017年12月26日 下午4:16:39
-     * @Description: 商品分类图片访问路径
-     */ 
+	 * @fieldName: CATEGORY_FILE_ACCESS_PATH
+	 * @fieldType: String
+	 * @author ZhangYadong
+	 * @date 2017年12月26日 下午4:16:39
+	 * @Description: 商品分类图片访问路径
+	 */ 
     @Value("${CATEGORY_FILE_ACCESS_PATH}")
     public String CATEGORY_FILE_ACCESS_PATH;
     
     /**
-     * @fieldName: AREA_JSON
-     * @fieldType: String
-     * @author: WangLongFei
-     * @date: 2018年1月4日 下午4:54:54 
-     * @Description: 省市县三级联动
-     */
+	 * @fieldName: AREA_JSON
+	 * @fieldType: String
+	 * @author: WangLongFei
+	 * @date: 2018年1月4日 下午4:54:54
+	 * @Description: 省市县三级联动
+	 */
     @Value("${AREA_JSON}")
     public String AREA_JSON;
     
     /**
-     * @fieldType: String
-     * @author ZhangYadong
-     * @date 2018年1月18日 上午11:09:34
-     * @Description: 聚信立配置
-     */ 
+	 * @fieldType: String
+	 * @author ZhangYadong
+	 * @date 2018年1月18日 上午11:09:34
+	 * @Description: 聚信立配置
+	 */ 
     @Value("${JXL_ACCOUNT}")
     public String JXL_ACCOUNT;
     @Value("${JXL_SECRET}")
@@ -270,11 +270,11 @@ public class SystemProperty {
     public String JXL_REQ_URL;
     
     /**
-     * @fieldType: String
-     * @author ZhangYadong
-     * @date 2018年1月18日 上午11:09:34
-     * @Description: 电话邦配置
-     */ 
+	 * @fieldType: String
+	 * @author ZhangYadong
+	 * @date 2018年1月18日 上午11:09:34
+	 * @Description: 电话邦配置
+	 */ 
     @Value("${DHB_ACCOUNT}")
     public String DHB_ACCOUNT;
     @Value("${DHB_SECRET}")
@@ -283,8 +283,8 @@ public class SystemProperty {
     public String DHB_REQ_URL;
     
     /**
-     * 报告在redis中的基本key
-     */
+	 * 报告在redis中的基本key
+	 */
     @Value("${REPORT_KEY}")
     public String REPORT_KEY;
     @Value("${DHB_ACC_TOKNE_KEY}")
@@ -293,8 +293,8 @@ public class SystemProperty {
     public String DHB_ACC_TOKNE_EXPIRE;
     
     /**
-     * 连连认证支付
-     */
+	 * 连连认证支付
+	 */
     @Value("${LIANLIANPAY_CERT_PAETNER}")
     public String LIANLIANPAY_CERT_PAETNER;
     @Value("${LIANLIANPAY_MD5_KEY}")
@@ -312,8 +312,8 @@ public class SystemProperty {
     @Value("${LIANLIANPAY_BUSI_PARTNER}")
     public String LIANLIANPAY_BUSI_PARTNER;
     /**
-     * 实名认证Key
-     */
+	 * 实名认证Key
+	 */
     @Value("${FOUR_ELEMENT_AUTH_KEY}")
     public String FOUR_ELEMENT_AUTH_KEY;
     /**
@@ -329,4 +329,24 @@ public class SystemProperty {
     public String JM_SEND_PORT;
     @Value("${JM_RECEIVE_ACCOUNT}")
     public String JM_RECEIVE_ACCOUNT;
+
+	// ----------------------------------------------------------------同盾配置
+	@Value("${TD_PARTNER_CODE}")
+	public String TD_PARTNER_CODE;
+
+	@Value("${TD_PARTNER_KEY}")
+	public String TD_PARTNER_KEY;
+
+	@Value("${TD_APP_NAME}")
+	public String TD_APP_NAME;
+
+	@Value("${TD_SUB_URL}")
+	public String TD_SUB_URL;
+
+	@Value("${TD_QRY_URL}")
+	public String TD_QRY_URL;
+
+	@Value("${TD_CHK_URL}")
+	public String TD_CHK_URL;
+	// ------------------------------------------------------------------同盾配置
 }

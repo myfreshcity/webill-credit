@@ -14,9 +14,8 @@
 	<task:scheduler id="scheduler" pool-size="10" />
 	<task:annotation-driven scheduler="scheduler"
 		executor="executor" proxy-target-class="true" />
-	<!-- <task:scheduled-tasks scheduler="scheduler">
-	自动发放优惠券，每五分钟发放一次执行
-	<task:scheduled ref="taskJobService" method="sendCoupon"	cron="0 0/5 * * * ?" />
-	</task:scheduled-tasks> -->
-
+	<task:scheduled-tasks scheduler="scheduler">
+		<!-- 重新获取采集中的同盾报告信息，并入库 每五分钟执行一次-->
+		<task:scheduled ref="taskJobService" method="updateTdReport"	cron="0 0/1 * * * ?" />
+	</task:scheduled-tasks>
 </beans>

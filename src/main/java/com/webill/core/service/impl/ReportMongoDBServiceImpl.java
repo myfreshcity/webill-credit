@@ -16,11 +16,11 @@ import com.webill.app.util.StringUtil;
 import com.webill.core.model.juxinli.Report;
 import com.webill.core.service.IReportMongoDBService;
 
-/** 
- * @ClassName: ReportMongoDBServiceImpl 
- * @Description: 
+/**
+ * @ClassName: ReportMongoDBServiceImpl
+ * @Description:
  * @author ZhangYadong
- * @date 2018年1月18日 下午3:14:19 
+ * @date 2018年1月18日 下午3:14:19
  */
 @Service
 public class ReportMongoDBServiceImpl extends BaseMongoDBImpl<Report> implements IReportMongoDBService {
@@ -87,6 +87,20 @@ public class ReportMongoDBServiceImpl extends BaseMongoDBImpl<Report> implements
 		return reports;
 	}
 	
+	/**
+	 * @Title: selectTDReportByTdStatus
+	 * @Description: 查询同盾状态为采集中的数据
+	 * @author: WangLongFei
+	 * @date: 2018年2月6日 下午1:13:01
+	 * @return
+	 * @return: List<Report>
+	 */
+	@Override
+	public List<Report> selectTDReportByTdStatus() {
+		List<Report> reports = mgt.find(new Query(Criteria.where("tdStatus").is(0)), getEntityClass());
+		return reports;
+	}
+
 	@Override
 	public Report selectReportByToken(String token){
 		Report mdbReport = null;
@@ -118,7 +132,7 @@ public class ReportMongoDBServiceImpl extends BaseMongoDBImpl<Report> implements
 	}
 	
 	/**
-	 * 每小时清除已过期（前一天到现在的）的未提交采集请求的数据 
+	 * 每小时清除已过期（前一天到现在的）的未提交采集请求的数据
 	 */
 	@Override
 	public void deleteExpire(){
