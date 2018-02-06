@@ -9,7 +9,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.webill.app.SystemProperty;
 import com.webill.app.controller.BaseApiController;
@@ -27,10 +26,10 @@ import com.webill.core.service.ITongDunService;
 import com.webill.framework.common.JSONUtil;
 
 /**
- * @author zhangjia
- * @createDate 2016年12月5日 下午2:04:01
- * @className CrrditService
- * @classDescribe 同盾征信处理
+ * @ClassName: TongDunServiceImpl
+ * @Description: 同盾接口
+ * @author: WangLongFei
+ * @date: 2018年2月6日 下午2:23:02
  */
 @Service
 public class TongDunServiceImpl implements ITongDunService {
@@ -59,14 +58,9 @@ public class TongDunServiceImpl implements ITongDunService {
 		columnMap.put("cus_id", userId);
 		List<CusContact> ccList = cusContactService.selectByMap(columnMap);
 		// 客户信息
-		// map.put("name", cus.getRealName());
-		// map.put("id_number", cus.getIdNo());
-		// map.put("mobile", cus.getMobileNo());
-		// map.put("home_address", cus.getHomeAddr());
-		// map.put("company_address", cus.getWorkAddr());
-		map.put("name", "曾丽洁");
-		map.put("id_number", "430602199507252599");
-		map.put("mobile", "13564616288");
+		map.put("name", cus.getRealName());
+		map.put("id_number", cus.getIdNo());
+		map.put("mobile", cus.getMobileNo());
 		map.put("home_address", cus.getHomeAddr());
 		map.put("company_address", cus.getWorkAddr());
 		// 联系人信息
@@ -113,7 +107,8 @@ public class TongDunServiceImpl implements ITongDunService {
 				JSONObject jsonObject = JSONObject.parseObject(resultQry);
 
 				if (recResultQry.getSuccess().equals("true")) {
-					JSONArray risk_items = jsonObject.getJSONArray("risk_items");
+					// JSONArray risk_items =
+					// jsonObject.getJSONArray("risk_items");
 					report.setTdReport(resultQry);
 					report.setTdOrgReport(resultQry);
 					report.setTdStatus(1);
@@ -151,7 +146,7 @@ public class TongDunServiceImpl implements ITongDunService {
 		JSONObject jsonObject = JSONObject.parseObject(resultQry);
 
 		if (recResultQry.getSuccess().equals("true")) {
-			JSONArray risk_items = jsonObject.getJSONArray("risk_items");
+			// JSONArray risk_items = jsonObject.getJSONArray("risk_items");
 			report.setTdReport(resultQry);
 			report.setTdOrgReport(resultQry);
 			report.setTdStatus(1);
