@@ -130,7 +130,12 @@ public class ReportParseUtil {
 			if (appPoint.equals("contact")) {
 				ReportContact rc = new ReportContact();
 				rc.setContact_name(appObj.getJSONObject("check_points").getString("contact_name"));
-				rc.setCheck_xiaohao(appObj.getJSONObject("check_points").getString("check_xiaohao"));
+				String xiaohao = appObj.getJSONObject("check_points").getString("check_xiaohao");
+				if (xiaohao.contains("非临时小号")) {
+					rc.setCheck_xiaohao(1); // 0-临时小号 1-非临时小号
+				}else {
+					rc.setCheck_xiaohao(0);
+				}
 				rc.setRelationship(appObj.getJSONObject("check_points").getString("relationship"));
 				rc.setMobile_no(appObj.getJSONObject("check_points").getString("key_value"));
 				
@@ -308,9 +313,9 @@ public class ReportParseUtil {
 			String tl = mvObj.getString("tags_label");
 			String typ = mvObj.getString("tags_yellow_page");
 			if (tfArr.isEmpty() && StringUtil.isEmpty(tl) && StringUtil.isEmpty(typ)) {
-				rc.setCheck_xiaohao("非临时小号");
+				rc.setCheck_xiaohao(1); // 0-临时小号 1-非临时小号
 			}else {
-				rc.setCheck_xiaohao("临时小号");
+				rc.setCheck_xiaohao(0);
 			}
 			
 			rc.setRelationship(mvObj.getString("contact_relationship"));
@@ -566,16 +571,19 @@ public class ReportParseUtil {
 		Collections.sort(contactArrList, new Comparator<JSONObject>() {
 			public int compare(JSONObject jo1, JSONObject jo2) {
 				// 通话时长
-				int callLen1 = jo1.getIntValue("call_len");
-				int callLen2 = jo2.getIntValue("call_len");
+				Integer callLen1 = jo1.getIntValue("call_len");
+				Integer callLen2 = jo2.getIntValue("call_len");
 				// 通话次数
-				int callCnt1 = jo1.getIntValue("call_cnt");
-				int callCnt2 = jo1.getIntValue("call_cnt");
+				Integer callCnt1 = jo1.getIntValue("call_cnt");
+				Integer callCnt2 = jo1.getIntValue("call_cnt");
 
 				if (callLen1 != callLen2) {
-					return callLen1 < callLen2 ? 1 : -1;
+					return callLen2.compareTo(callLen1);
+					//return callLen1 < callLen2 ? 1 : -1;
+					//return callLen2 > callLen1 ? 1 : -1;
 				} else {
-					return callCnt1 < callCnt2 ? 1 : -1;
+					return callCnt2.compareTo(callCnt1);
+					//return callCnt1 < callCnt2 ? 1 : -1;
 				}
 			}
 
@@ -679,23 +687,29 @@ public class ReportParseUtil {
 		Collections.sort(contactArrList, new Comparator<JSONObject>() {
 			public int compare(JSONObject jo1, JSONObject jo2) {
 				// 通话次数
-				int callCnt1 = jo1.getIntValue("call_cnt");
-				int callCnt2 = jo1.getIntValue("call_cnt");
+				Integer callCnt1 = jo1.getIntValue("call_cnt");
+				Integer callCnt2 = jo1.getIntValue("call_cnt");
 				// 通话时长
-				int callLen1 = jo1.getIntValue("call_len");
-				int callLen2 = jo2.getIntValue("call_len");
+				Integer callLen1 = jo1.getIntValue("call_len");
+				Integer callLen2 = jo2.getIntValue("call_len");
 
 				if (callCnt1 != callCnt2) {
-					return callCnt1 < callCnt2 ? 1 : -1;
+					return callCnt2.compareTo(callCnt1);
+					//return callCnt1 < callCnt2 ? 1 : -1;
 				} else {
-					return callLen1 < callLen2 ? 1 : -1;
+					return callLen2.compareTo(callLen1);
+					//return callLen1 < callLen2 ? 1 : -1;
 				}
 			}
 
 		});
 		
+		int size = contactArrList.size();
+		if (size > 10) {
+			size = 10;
+		}
 		// 取前10条数据
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < size; i++) {
 			JSONObject jo = contactArrList.get(i);
 			TopContact tc = new TopContact();
 			tc.setFormat_tel(jo.getString("phone_num"));
@@ -870,10 +884,13 @@ public class ReportParseUtil {
 		JSONObject reportObj = JSONObject.parseObject(json);
 		Cuishou cs = null;
 		JSONObject crdObj = reportObj.getJSONObject("cuishou_risk_detection");
-
-		JSONObject cuishou = crdObj.getJSONObject("cuishou");
-		JSONObject cuishou_degree = crdObj.getJSONObject("cuishou_degree");
-		cs = parseCuishouJson(cuishou, cuishou_degree);
+		if (crdObj.containsKey("cuishou") && crdObj.containsKey("cuishou_degree")) {
+			JSONObject cuishou = crdObj.getJSONObject("cuishou");
+			JSONObject cuishou_degree = crdObj.getJSONObject("cuishou_degree");
+			cs = parseCuishouJson(cuishou, cuishou_degree);
+		}else {
+			cs = parseCuishouIsEmptyJson();
+		}
 		
 		return cs;
 	}
@@ -892,10 +909,14 @@ public class ReportParseUtil {
 		Cuishou cs = new Cuishou();
 		
 		JSONObject crdObj = reportObj.getJSONObject("cuishou_risk_detection");
-		
-		JSONObject yisicuishou = crdObj.getJSONObject("yisicuishou");
-		JSONObject yisicuishou_degree = crdObj.getJSONObject("yisicuishou_degree");
-		cs = parseCuishouJson(yisicuishou, yisicuishou_degree);
+
+		if (crdObj.containsKey("yisicuishou") && crdObj.containsKey("yisicuishou_degree")) {
+			JSONObject yisicuishou = crdObj.getJSONObject("yisicuishou");
+			JSONObject yisicuishou_degree = crdObj.getJSONObject("yisicuishou_degree");
+			cs = parseCuishouJson(yisicuishou, yisicuishou_degree);
+		}else {
+			cs = parseCuishouIsEmptyJson();
+		}
 		
 		return cs;
 	}
@@ -1047,6 +1068,48 @@ public class ReportParseUtil {
 		}else {
 			cs.setDay120_times_degree(0);
 		}
+		return cs;
+	}
+	
+	/** 
+	 * @Title: parseCuishouIsEmptyJson 
+	 * @Description: 解析催收数据为null的json数据
+	 * @author ZhangYadong
+	 * @date 2018年1月29日 上午11:16:28
+	 * @param cuishou
+	 * @param cuishou_degree
+	 * @return
+	 * @return Cuishou
+	 */
+	private Cuishou parseCuishouIsEmptyJson() {
+		Cuishou cs = new Cuishou();
+		cs.setNums_tel(0);
+		cs.setNums_tel_degree(0);
+		cs.setCall_times("0");
+		cs.setCall_in_times(0);
+		cs.setCall_in_times_degree(0);
+		cs.setCall_in_length(0);
+		cs.setCall_in_length_degree(0);
+		cs.setCall_in_less_15(0);
+		cs.setCall_in_less_15_degree(0);
+		cs.setMost_times_by_tel(0);
+		cs.setMost_times_by_tel_degree(0);
+		cs.setUp_2_times_by_tel(0);
+		cs.setUp_2_times_by_tel_degree(0);
+		cs.setCall_out_times(0);
+		cs.setCall_out_times_degree(0);
+		cs.setCall_out_length(0);
+		cs.setCall_out_length_degree(0);
+		cs.setDay7_times(0);
+		cs.setDay7_times_degree(0);
+		cs.setDay30_times(0);
+		cs.setDay30_times_degree(0);
+		cs.setDay60_times(0);
+		cs.setDay60_times_degree(0);
+		cs.setDay90_times(0);
+		cs.setDay90_times_degree(0);
+		cs.setDay120_times(0);
+		cs.setDay120_times_degree(0);
 		return cs;
 	}
 

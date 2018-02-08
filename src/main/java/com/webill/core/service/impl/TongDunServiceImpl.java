@@ -84,14 +84,12 @@ public class TongDunServiceImpl implements ITongDunService {
 			if (Boolean.valueOf(recResult.getSuccess())) {
 				logger.info("【同盾】提交申请信息=====>成功");
 				// 调用成功
-				report.setCusId(userId.toString());
+				report.setReportKey(reportKey);
 				report.setTdStatus(0);// 采集中
-				report.setSid(recResult.getReport_id());
-				report.setName(map.get("name"));
-				report.setIdCard(map.get("id_number"));
-				report.setMobile(map.get("mobile"));
+				report.setTdTaskStatus(0); // 同盾定时查询状态：0-不加入定时更新 1-加入定时更新
+				report.setReportId(recResult.getReport_id());
 				// 入库
-				reportMongoDBService.save(report);
+				reportMongoDBService.updateReportByReportKey(report);
 				logger.info("【同盾】提交申请=====>返回信息保存成功");
 				// 用reportid请求query接口入库
 				String reportId = recResult.getReport_id();
@@ -111,11 +109,11 @@ public class TongDunServiceImpl implements ITongDunService {
 					// jsonObject.getJSONArray("risk_items");
 					report.setTdReport(resultQry);
 					report.setTdOrgReport(resultQry);
-					report.setTdStatus(1);
-					report.setSid(reportId);
-					report.setReportKey(reportKey);
+					report.setTdStatus(1); 
+					report.setTdTaskStatus(1); // 同盾定时查询状态：0-不加入定时更新 1-加入定时更新
+					report.setReportId(reportId);
 					// 报告信息入库
-					reportMongoDBService.updateReportBySid(report);
+					reportMongoDBService.updateReportByReportId(report);
 					return null;
 				} else {
 					String msg = "错误码：" + jsonObject.getString("reason_code") + " " + "错误信息："
@@ -127,7 +125,12 @@ public class TongDunServiceImpl implements ITongDunService {
 				logger.info("【同盾】=====>提交申请失败，未获取到报告id");
 				return recResult;
 			}
-		} else {
+		} else { //同盾错误码：104，请求参数错误
+			report.setReportKey(reportKey);
+			report.setTdStatus(-1);// 请求参数错误
+			report.setTdTaskStatus(1); // 同盾定时查询状态：0-不加入定时更新 1-加入定时更新
+			// 入库
+			reportMongoDBService.updateReportByReportKey(report);
 			logger.info("【同盾】=====>提交申请失败，未获取到报告id");
 			return resultSub;
 		}
@@ -150,10 +153,10 @@ public class TongDunServiceImpl implements ITongDunService {
 			report.setTdReport(resultQry);
 			report.setTdOrgReport(resultQry);
 			report.setTdStatus(1);
-			report.setSid(reportId);
-			report.setReportKey(reportKey);
+			report.setTdTaskStatus(1); // 同盾定时查询状态：0-不加入定时更新 1-加入定时更新
+			report.setReportId(reportId);
 			// 报告信息入库
-			reportMongoDBService.updateReportBySid(report);
+			reportMongoDBService.updateReportByReportId(report);
 		} else {
 			String msg = "错误码：" + jsonObject.getString("reason_code") + " " + "错误信息："
 					+ jsonObject.getString("reason_desc");

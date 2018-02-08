@@ -17,7 +17,7 @@ public class IDCardUtil {
 	//Properties默认编码是iso8859-1
     private static Properties props = new Properties();
     //当前目录下的IDCardAddressCode.properties
-    private static String filePath = "/IDCardAddressCode.properties";
+    private static String filePath = "/addrCode.properties";
     static {
         InputStream in = IDCardUtil.class.getResourceAsStream(filePath);
         try {

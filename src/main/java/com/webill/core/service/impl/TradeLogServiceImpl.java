@@ -72,7 +72,8 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		// 构造认证支付请求对象
         CertPayWebReq cpwr = new CertPayWebReq();
         cpwr.setVersion(constPro.LIANLIANPAY_VERSION);
-        cpwr.setOid_partner(constPro.LIANLIANPAY_CERT_PAETNER);
+//        cpwr.setOid_partner(constPro.LIANLIANPAY_CERT_PAETNER);
+        cpwr.setOid_partner(constPro.YT_PARTNER);
         cpwr.setUser_id(userId.toString());
         cpwr.setBusi_partner(constPro.LIANLIANPAY_BUSI_PARTNER);
         cpwr.setNo_order(transNo);
@@ -103,7 +104,8 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		String rj = JSONUtil.toJSONString(riskJson);
 		cpwr.setRisk_item(rj);
 		cpwr.setSign_type(constPro.LIANLIANPAY_SIGN_TYPE);
-		cpwr.setSign(LianLianUtil.genSign(JSON.parseObject(JSON.toJSONString(cpwr)), constPro.LIANLIANPAY_PRIVATE_KEY));
+//		cpwr.setSign(LianLianUtil.genSign(JSON.parseObject(JSON.toJSONString(cpwr)), constPro.LIANLIANPAY_PRIVATE_KEY));
+		cpwr.setSign(LianLianUtil.genSign(JSON.parseObject(JSON.toJSONString(cpwr)), constPro.YT_PRI_KEY));
 
 		return cpwr;
 	}

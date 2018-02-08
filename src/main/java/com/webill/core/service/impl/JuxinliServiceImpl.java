@@ -7,11 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.webill.app.SystemProperty;
@@ -56,7 +59,7 @@ public class JuxinliServiceImpl implements IJuxinliService {
 	public static final String REPORT_LOCK = "__JUXINLI__REPORT__LOG__";
 	public static final int max_count = 10;
 	public static final long interval = 1000*30; //30s
-	private String accessToken = null;
+	private String jxlToken = null;
 	
 	@Autowired
     private SystemProperty constPro;
@@ -144,70 +147,104 @@ public class JuxinliServiceImpl implements IJuxinliService {
 		// 电话邦-疑似催收信息数据节点
 		Cuishou yscs = reportParseUtil.parseDHBYisiCuishou(dhbReportJson);
 		jo.put("yisicuishou", yscs);
-		// 电话邦-解析同盾征信数据
-		jo.put("tongdun", "");
 		
 		return jo.toJSONString();
 	}
 	
 	/**
-	 * 聚信立提交申请表单获取回执信息
+	 * 聚信立==>提交申请表单获取回执信息
+	 * 电话邦==>获取登录方式（获取会话标识sid）
 	 */
 	@Override
-	public JXLSubmitFormResp submitForm(JXLSubmitFormReq req, Integer cusId) {
-		JXLSubmitFormResp resp = null;
-		logger.info("聚信立提交申请表单请求参数："+req.toJsonString());
+	@Transactional
+	public Object submitForm(Integer cusId, String reportKey) {
+		JXLSubmitFormReq jxlReq = customerService.getJXLSubmitFormReq(cusId);
+		
+		JXLSubmitFormResp jxlResp = null;
 		try {
-			String resJson = HttpUtils.httpPostJsonRequest(constPro.JXL_REQ_URL+"/orgApi/rest/v3/applications/"+ constPro.JXL_ACCOUNT, req.toJsonString());
-			if (resJson != null) {
-				resp = JXLSubmitFormResp.fromJsonString(resJson);
+			//TODO 聚信立请求
+			logger.info("聚信立提交申请表单请求参数-request："+jxlReq.toJsonString());
+			String jxlResJson = HttpUtils.httpPostJsonRequest(constPro.JXL_REQ_URL+"/orgApi/rest/v3/applications/"+ constPro.JXL_ACCOUNT, jxlReq.toJsonString());
+			logger.info("聚信立提交申请表单响应数据-response："+jxlResJson);
+			if (jxlResJson != null) {
+				jxlResp = JXLSubmitFormResp.fromJsonString(jxlResJson);
 			} else {
 				throw new RuntimeException("提交申请表单请求聚信立响应失败！");
 			}
+			
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-		if (resp.isSuccess()) {
+		if (jxlResp.isSuccess()) {
+			Report mongodbReport = reportMongoDBService.selectReportByReportKey(reportKey);
+			
 			// 写mongoDB
 			Report report = new Report();
-			report.setToken(resp.getToken());
-			report.setIdCard(req.getIdCardNum());
-			report.setMobile(req.getMobileNo());
-			report.setName(req.getName());
-			report.setCusId(cusId.toString());
-			report.setApplyDate(Calendar.getInstance().getTime()); //请求时间
+			report.setReportKey(mongodbReport.getReportKey());
+			report.setToken(jxlResp.getToken());
+			report.setJxlStatus(-1); //准备采集
 			report.setStatus(-1); //准备采集
-			reportMongoDBService.save(report);
+			report.setApplyDate(Calendar.getInstance().getTime()); //请求时间
+
+			//report.setIdCard(jxlReq.getIdCardNum());
+			//report.setMobile(jxlReq.getMobileNo());
+			//report.setName(jxlReq.getName());
+			//report.setCusId(cusId.toString());
+			//report.setSid(dhbResp.getSid());
+			//report.setDhbStatus(-1); //准备采集
 			
-			// 修改报告采集状态
+			reportMongoDBService.updateReportByReportKey(report);
+			//reportMongoDBService.save(report);
+			
+			// 修改报告为准备采集状态
 			Customer cus = new Customer();
 			cus.setId(cusId);
+			cus.setLatestJxlRepStatus(-1); //准备采集
 			cus.setLatestReportStatus(-1); //准备采集
 			customerService.updateSelectiveById(cus);
 		}
-		return resp;
+		JSONObject jo = new JSONObject();
+		jo.put("jxlSubmitForm", jxlResp);
+		//jo.put("dhbGetLogin", dhbResp);
+		return jo;
 	}
 	
 	/**
-	 * 聚信立提交数据采集请求,根据返回的processCode，可能会请求多次
+	 * 聚信立==>提交数据采集请求,根据返回的processCode，可能会请求多次
 	 */
 	@Override
-	public JXLResp collect(JXLCollectReq req) {
-		// 服务密码和最近信息报告类型更新入库
-		Customer cus = new Customer();
-		cus.setId(req.getCusId());
-		cus.setServicePwd(req.getPassword());
-		// 临时报告类型入库
-		cus.setTemReportType(req.getTemReportType());
-		customerService.updateSelectiveById(cus);
+	@Transactional
+	public Object jxlCollect(JXLCollectReq jxlReq, Customer cus, String reportKey) {
+		JSONObject jo = new JSONObject();
+		JSONObject joToken = new JSONObject();
+		String token = null;
+		String website = null;
+		
+		if (StringUtil.isEmpty(jxlReq.getToken()) && StringUtil.isEmpty(jxlReq.getWebsite())) {
+			JSONObject jxljo = (JSONObject)this.submitForm(cus.getId(), reportKey);
+			JSONObject jxlsfObj = jxljo.getJSONObject("jxlSubmitForm");
+			token = jxlsfObj.getString("token");
+			website = jxlsfObj.getJSONObject("dataSource").getString("website");
+			jxlReq.setToken(token);
+			jxlReq.setWebsite(website);
+			
+			joToken.put("token", token);
+			joToken.put("website", website);
+		}else {
+			joToken.put("token", jxlReq.getToken());
+			joToken.put("website", jxlReq.getWebsite());
+		}
 		
 		// 提交数据采集请求
-		JXLResp resp = null;
+		JXLResp jxlResp = null;
 		try {
-			String resJson = HttpUtils.httpPostJsonRequest(constPro.JXL_REQ_URL+"/orgApi/rest/v2/messages/collect/req", JSONUtil.toJSONString(req));
-			if (resJson != null) {
-				resp = JXLResp.fromJsonString(resJson);
+			//TODO 聚信立请求
+			logger.info("聚信立提交数据采集请求参数-request："+JSONUtil.toJSONString(jxlReq));
+			String jxlResJson = HttpUtils.httpPostJsonRequest(constPro.JXL_REQ_URL+"/orgApi/rest/v2/messages/collect/req", JSONUtil.toJSONString(jxlReq));
+			logger.info("聚信立提交数据采集响应数据-response："+jxlResJson);
+			if (jxlResJson != null) {
+				jxlResp = JXLResp.fromJsonString(jxlResJson);
 			} else {
 				throw new RuntimeException("提交数据源采集请求聚信立失败！");
 			}
@@ -215,21 +252,24 @@ public class JuxinliServiceImpl implements IJuxinliService {
 			throw new RuntimeException(e);
 		}
 
-		if (resp.isSuccess()) {
+		if (jxlResp.isSuccess()) {
+			//TODO 聚信立响应
 			// 更新数据采集时间到数据库
-			if (resp.getProcessCode() == 10008) {
+			if (jxlResp.getProcessCode() == 10008) { //10008：开始采集行为数据
 				// 修改报告采集状态
-				Customer cust = new Customer();
-				cust.setId(req.getCusId());
-				cust.setLatestReportStatus(0); //采集中
-				customerService.updateSelectiveById(cust);
+				Customer custo = new Customer();
+				custo.setId(cus.getId());
+				custo.setLatestJxlRepStatus(0); //采集中
+				custo.setLatestReportStatus(0); //采集中
+				customerService.updateSelectiveById(custo);
 				
 				// 更新mongoDB信息
 				Report report = new Report();
-				report.setToken(req.getToken());
-				report.setApplyDate(Calendar.getInstance().getTime());
-				report.setReportType(req.getTemReportType()); //信息报告类型：0-基础 1-标准 
+				report.setToken(jxlReq.getToken());
+				report.setJxlStatus(0); //采集中
 				report.setStatus(0); //采集中
+				report.setReportType(cus.getTemReportType()); //信息报告类型：0-基础 1-标准 
+				report.setApplyDate(Calendar.getInstance().getTime());
 				reportMongoDBService.updateReportByToken(report);
 				
 				// 起一个线程在2分钟后通知获取状态
@@ -238,6 +278,7 @@ public class JuxinliServiceImpl implements IJuxinliService {
 						try {
 							logger.debug("===>等待122秒后去唤醒状态更新线程");
 //							sleep(2 * 61 * 1000);
+							sleep(61 * 1000);
 						} catch (Throwable e) {
 							logger.error("等待被打断", e);
 						}
@@ -248,172 +289,19 @@ public class JuxinliServiceImpl implements IJuxinliService {
 						logger.debug("===>唤醒状态更新线程结束");
 					}
 				}.start();
+				
 			}
 		}
 
-		return resp;
+		jo.put("jxlSubmitForm", joToken);
+		jo.put("jxlCollect", jxlResp);
+		return jo;
 	}
 	
 	/**
-	 * 通过token获取报告数据
-	 * 申请表单提交时获取的token
+	 * 聚信立==>启动守护线程，定期更新报告状态
 	 */
-	@Override
-	public String getReport(String token, String name, String idCard, String mobile) {
-		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");// 把JDK变成1.6
-		
-		// 尝试从数据库中获取，如果数据库中有，则直接返回
-		Report report = null;
-		if (StringUtil.isEmpty(token)) {
-			return null;
-		}
-		if (token != null) {
-			// 通过token获取mongodb中的report
-			List<Report> reports = reportMongoDBService.findByProp("token", token);
-			if (reports != null && reports.size() > 0) {
-				report = reports.get(0);
-			}
-		} 
-		if (report == null) {
-			throw new RuntimeException("尚未提交申请表单");
-		}
-		if (report.getStatus() != 1) {
-			throw new RuntimeException("报告尚未准备好");
-		}
-		if (StringUtil.isNotEmpty(report.getFinalReport())) {
-			return report.getFinalReport();
-		}
-		
-		token = report.getToken();
-
-		Map<String, Object> reqMap = new HashMap<>();
-		reqMap.put("client_secret", constPro.JXL_SECRET);
-		reqMap.put("access_token", this.getAccessToken());
-		reqMap.put("token", token);
-		
-		try {
-			String resJson = HttpUtils.httpGetRequest(constPro.JXL_REQ_URL+"/api/access_report_data_by_token", reqMap);
-			logger.info(resJson);
-			if (resJson != null) {
-				JSONObject json = JSONObject.parseObject(resJson);
-				if (json.getBoolean("success")) {
-					if (json.containsKey("report_data")) {
-						String reportData = json.getJSONObject("report_data").toString();
-						// 获取报告更新时间
-						String update_time = json.getJSONObject("report_data").getJSONObject("report").getString("update_time");
-						// 将报告更新时间更新到数据库中
-						List<Report> reports = reportMongoDBService.findByProp("token", token);
-						if (reports != null && reports.size() > 0) {
-							Customer cus = new Customer();
-							cus.setId(Integer.parseInt(reports.get(0).getCusId()));
-							cus.setLatestReportTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(update_time));
-							customerService.updateSelectiveById(cus);
-						}
-						
-						report = new Report();
-						report.setToken(token);
-						report.setJxlReport(reportData);
-						// 处理聚信立数据到mongoDB
-//						String jxlReportJson = this.parseJXLReportData(reportData);
-//						report.setFinalReport(jxlReportJson);
-//						reportMongoDBService.updateReportByToken(report);
-//						return jxlReportJson;
-						return null;
-					} else {
-						throw new RuntimeException("获取运营商原始数据请求返回报文中没有report_data节点！返回报文：" + report);
-					}
-				} else {
-					throw new Exception("获取运营商原始数据请求聚信立失败！返回报文 ：" + report);
-				}
-			} else {
-				throw new RuntimeException("获取报告请求聚信立失败！");
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	/**
-	 * 获取报告状态并更新数据库
-	 */
-	@Override
-	@Transactional
-	public void updateReportStatus(Report report) {
-		// 必须是采集中的记录才需要更新状态
-		if (report.getStatus() != 0) {
-			return;
-		}
-		Map<String, Object> reqMap = new HashMap<>();
-		reqMap.put("client_secret", constPro.JXL_SECRET);
-		reqMap.put("access_token", this.getAccessToken());
-		reqMap.put("token", report.getToken());
-
-		try {
-			String resJson = HttpUtils.httpGetRequest(constPro.JXL_REQ_URL+"/api/v2/job/access_jobs_status_by_token", reqMap);
-			if (resJson != null) {
-				JSONObject json = JSONObject.parseObject(resJson);
-
-				if (json.getBoolean("success")) {
-					if (json.containsKey("data")) {
-						if ("完成".equals(json.getJSONObject("data").getString("status"))) {
-							String token = report.getToken();
-							// 更新mongoDB报告状态
-							report = new Report();
-							report.setToken(token);
-							report.setStatus(1); //采集成功
-							reportMongoDBService.updateReportByToken(report);
-							
-							// 通过token获取mongodb中的report
-							Report reportToken = null;
-							List<Report> reports = reportMongoDBService.findByProp("token", token);
-							if (reports != null && reports.size() > 0) {
-								reportToken = reports.get(0);
-							}
-							
-							// 更新最新报告key编号等信息入库 
-							String cusId = reportToken.getCusId();
-							Customer cus = customerService.selectById(Integer.parseInt(cusId));
-							cus.setId(Integer.parseInt(cusId));
-							cus.setRefreshTimes(cus.getRefreshTimes() + 1);
-							cus.setLatestReportKey(token);
-							cus.setLatestReportType(cus.getTemReportType()); //信息报告类型：0-基础 1-标准
-							cus.setLatestReportTime(new Date()); //报告更新时间（先设置为系统）
-							cus.setLatestReportStatus(1); //采集成功
-							customerService.updateSelectiveById(cus);
-							
-							// 更新user用户查询次数
-							User user = userService.selectById(cus.getUserId());
-							user.setId(cus.getUserId());
-							if (cus.getTemReportType() == 0) {//信息报告类型：0-基础 1-标准
-								user.setStandardTimes(user.getStandardTimes() - 1);
-							}else {
-								user.setAdvancedTimes(user.getAdvancedTimes() - 1);
-							}
-							userService.updateSelectiveById(user);
-							
-							// 删除redis中的采集记录
-							RedisKeyDto redisReq = new RedisKeyDto();
-							redisReq.setKeys(constPro.REPORT_KEY + report.getToken());
-							redisService.delete(redisReq);
-						}
-					} else {
-						throw new RuntimeException("获取报告状态请求响应中没有data节点！返回报文 ：" + resJson);
-					}
-				} else {
-					throw new RuntimeException("获取运营商原始数据请求聚信立失败！返回报文 ：" + resJson);
-				}
-			} else {
-				throw new RuntimeException("获取运营商原始数据请求聚信立失败！");
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	/**
-	 * 启动守护线程，定期更新报告状态
-	 */
-	/*@PostConstruct
+	@PostConstruct
 	public void daemon() {
 		// 守护线程1，定期更新报告状态
 		new Thread() {
@@ -423,12 +311,13 @@ public class JuxinliServiceImpl implements IJuxinliService {
 					List<Report> reportList = null;
 					try {
 						// 查询申请时间2分钟之前到现在，100条采集中的报告
-//						reportList = juxinliReportDao.selectTop100();
-						reportList = reportMongoDBService.findByProp("status", 0);
+						// reportList = juxinliReportDao.selectTop100();
+						//获取采集中的报告
+						reportList = reportMongoDBService.findByProp("jxlStatus", 0);
 					} catch (Throwable e) {
-						logger.error("查询数据库失败入,5分钟后重试", e);
+						logger.error("查询数据库失败,5分钟后重试", e);
 						try {
-//							sleep(5 * 60 * 1000);
+							sleep(5 * 60 * 1000);
 						} catch (Throwable e1) {
 							logger.error("5分钟等待过程中出现问题", e);
 						}
@@ -466,17 +355,15 @@ public class JuxinliServiceImpl implements IJuxinliService {
 								jr.setFinalReport("获取聚信力报告超时，重试次数："+jsonObj.get("tryCount")+"结束时间："+new SimpleDateFormat("yyyyMMddHHmmss").format(now));
 								jr.setToken(report.getToken());
 								jr.setStatus(2); //采集超时失败
-								reportMongoDBService.updateReportByToke(report);
+								reportMongoDBService.updateReportByToken(report);
 								redisService.delete(redisReq);
 								
 								// 修改报告采集状态
-								List<Report> reports = reportMongoDBService.findByProp("token", report.getToken());
-								if (reports != null && reports.size() > 0) {
-									Customer cus = new Customer();
-									cus.setId(Integer.parseInt(reports.get(0).getCusId()));
-									cus.setLatestReportStatus(2); //采集超时失败
-									customerService.updateSelectiveById(cus);
-								}
+								Report mdbReport = reportMongoDBService.selectReportByToken(report.getToken());
+								Customer cus = new Customer();
+								cus.setId(Integer.parseInt(mdbReport.getCusId()));
+								cus.setLatestReportStatus(2); //采集超时失败
+								customerService.updateSelectiveById(cus);
 								
 							}else if (dt > now.getTime()){ // 下一次采集时间大于30s，本次不请求采集
 								continue;
@@ -497,7 +384,7 @@ public class JuxinliServiceImpl implements IJuxinliService {
 							redisService.addData(redisReq);
 						}
 						try {
-							updateReportStatus(report);
+							updateJxlReportStatus(report);
 						} catch (Throwable e) {
 							logger.error("更新状态失败", e);
 						}
@@ -505,28 +392,159 @@ public class JuxinliServiceImpl implements IJuxinliService {
 				}
 			}
 		}.start();
-
-		// 启动守护线程，每小时清除已过期的未提交采集请求的数据
-		new Thread() {
-			public void run() {
-				reportMongoDBService.deleteExpire();
-				try {
-					sleep(60 * 60 * 1000);
-				} catch (Exception e) {
-					logger.error("停止被打断", e);
-				}
-			}
-		}.start();
-	}*/
+	}
 	
 	/**
-	 * 获取access_token，如果为空，则发送请求到聚信立获取永久有效期的access_token并保存在accessToken变量中，
-	 * 下次使用不需要再次请求
+	 * 聚信立==>获取报告状态并更新数据库
 	 */
 	@Override
-	public String getAccessToken() {
-		if (accessToken != null) {
-			return accessToken;
+	@Transactional
+	public void updateJxlReportStatus(Report report) {
+		// 必须是采集中的记录才需要更新状态
+		if (report.getStatus() != 0) {
+			return;
+		}
+		Map<String, Object> reqMap = new HashMap<>();
+		reqMap.put("client_secret", constPro.JXL_SECRET);
+		reqMap.put("access_token", this.getJxlToken());
+		reqMap.put("token", report.getToken());
+
+		try {
+			String resJson = HttpUtils.httpGetRequest(constPro.JXL_REQ_URL+"/api/v2/job/access_jobs_status_by_token", reqMap);
+			if (resJson != null) {
+				JSONObject json = JSONObject.parseObject(resJson);
+
+				if (json.getBoolean("success")) {
+					if (json.containsKey("data")) {
+						if ("完成".equals(json.getJSONObject("data").getString("status"))) {
+							String token = report.getToken();
+							// 更新聚信立报告
+							String ujr = this.updateJxlReport(token);
+							if (ujr != null) {
+								//TODO 更新mongoDB报告状态：采集成功
+								report = new Report();
+								report.setToken(token);
+								report.setJxlStatus(1); //采集成功
+								reportMongoDBService.updateReportByToken(report);
+								
+								//TODO 更新聚信立报告数据
+								// 通过token获取mongodb中的report
+								Report mdbReport = reportMongoDBService.selectReportByToken(token);
+								Customer cus = customerService.selectById(Integer.parseInt(mdbReport.getCusId()));
+								
+								//TODO 更新最新报告key编号等信息入库 
+								if (cus.getTemReportType() == 0) { //信息报告类型：0-基础 1-标准 
+									cus.setId(Integer.parseInt(mdbReport.getCusId()));
+									cus.setRefreshTimes(cus.getRefreshTimes() + 1);
+									cus.setLatestReportKey(mdbReport.getReportKey());
+									cus.setLatestReportType(cus.getTemReportType()); //信息报告类型：0-基础 1-标准
+									cus.setLatestReportStatus(1); //采集成功
+									customerService.updateSelectiveById(cus);
+									
+									// 更新user用户查询次数
+									User user = userService.selectById(cus.getUserId());
+									user.setId(cus.getUserId());
+									if (cus.getTemReportType() == 0) {//信息报告类型：0-基础 1-标准
+										user.setStandardTimes(user.getStandardTimes() - 1);
+									}else {
+										user.setAdvancedTimes(user.getAdvancedTimes() - 1);
+									}
+									userService.updateSelectiveById(user);
+								}
+								
+								// 删除redis中的采集记录
+								RedisKeyDto redisReq = new RedisKeyDto();
+								redisReq.setKeys(constPro.REPORT_KEY + report.getToken());
+								redisService.delete(redisReq);
+							}
+						}
+					} else {
+						throw new RuntimeException("获取报告状态请求响应中没有data节点！返回报文 ：" + resJson);
+					}
+				} else {
+					throw new RuntimeException("获取运营商原始数据请求聚信立失败！返回报文 ：" + resJson);
+				}
+			} else {
+				throw new RuntimeException("获取运营商原始数据请求聚信立失败！");
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * 聚信立==>根据token获取报告数据，申请表单提交时获取的token
+	 */
+	@Override
+	@Transactional
+	public String updateJxlReport(String token) {
+		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");// 把JDK变成1.6
+		logger.info("聚信立报告的token:"+token);
+		Map<String, Object> reqMap = new HashMap<>();
+		reqMap.put("client_secret", constPro.JXL_SECRET);
+		reqMap.put("access_token", this.getJxlToken());
+		reqMap.put("token", token);
+		
+		try {
+			String resJson = HttpUtils.httpGetRequest(constPro.JXL_REQ_URL+"/api/access_report_data_by_token", reqMap);
+			if (resJson != null) {
+				logger.info("聚信立报告信息==>"+resJson);
+				JSONObject json = JSONObject.parseObject(resJson);
+				if (json.getBoolean("success")) {
+					if (json.containsKey("report_data")) {
+						// 获取报告数据
+						String reportData = json.getJSONObject("report_data").toString();
+						// 获取报告更新时间
+						String update_time = json.getJSONObject("report_data").getJSONObject("report").getString("update_time");
+						
+						Report mdbReport = reportMongoDBService.selectReportByToken(token);
+						Customer cus = customerService.selectById(Integer.parseInt(mdbReport.getCusId()));
+						//TODO 将报告更新时间更新到数据库中
+						if (update_time != null) {
+							try {
+								update_time = update_time.replace("Z", " UTC");
+								cus.setId(Integer.parseInt(mdbReport.getCusId()));
+								cus.setLatestReportTime(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS Z").parse(update_time));
+								customerService.updateSelectiveById(cus);
+							} catch (Exception e) {
+								logger.info("更新报告获取时间异常");
+							}
+						}
+						
+						//TODO 处理聚信立数据到mongoDB
+						Report report = new Report();
+						report.setToken(token);
+						// 原始聚信立数据
+						report.setJxlOrgReport(reportData);
+						// 解析聚信立数据
+						String jxlReportJson = this.parseJXLReportData(reportData, cus.getId());
+						report.setJxlReport(jxlReportJson);
+						if (cus.getTemReportType() == 0) { //信息报告类型：0-基础 1-标准
+							report.setFinalReport(jxlReportJson);
+						}
+						reportMongoDBService.updateReportByToken(report);
+						return jxlReportJson;
+					} else {
+						throw new RuntimeException("获取运营商原始数据请求返回报文中没有report_data节点！");
+					}
+				} else {
+					throw new Exception("获取运营商原始数据请求聚信立失败！");
+				}
+			} else {
+				throw new RuntimeException("获取报告请求聚信立失败！");
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * 聚信立==>获取access_token，如果为空，则发送请求到聚信立获取永久有效期的access_token并保存在accessToken变量中，
+	 * 下次使用不需要再次请求
+	 */
+	public String getJxlToken() {
+		if (jxlToken != null) {
+			return jxlToken;
 		}
 		Map<String, Object> reqMap = new HashMap<>();
 		reqMap.put("org_name", constPro.JXL_ACCOUNT);
@@ -541,14 +559,14 @@ public class JuxinliServiceImpl implements IJuxinliService {
 				if (code != 200) {
 					throw new RuntimeException("获取access-token返回code:" + code);
 				}
-				accessToken = json.getString("access_token");
+				jxlToken = json.getString("access_token");
 			} else {
 				throw new RuntimeException("获取access-token请求聚信立失败!");
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		return accessToken;
+		return jxlToken;
 	}
 	
 	/**
@@ -593,57 +611,4 @@ public class JuxinliServiceImpl implements IJuxinliService {
 		return rsp;
 	}
 
-	/**
-	 * 通过token获取运营商原始数据
-	 * 申请表单提交时获取的token
-	 */
-	@Override
-	public String getMobileRawData(String token) {
-
-		// 通过token获取mongodb中的report
-		Report report = null;
-		List<Report> reports = reportMongoDBService.findByProp("token", token);
-		if (reports != null && reports.size() > 0) {
-			report = reports.get(0);
-		}
-		
-		if (report == null) {
-			throw new RuntimeException("尚未提交申请表单");
-		}
-		if (!StringUtil.isEmpty(report.getMobileRaw())) {
-			return report.getMobileRaw();
-		}
-
-		Map<String, Object> reqMap = new HashMap<>();
-		reqMap.put("client_secret", constPro.JXL_SECRET);
-		reqMap.put("access_token", this.getAccessToken());
-		reqMap.put("token", token);
-		try {
-			String resJson = HttpUtils.httpGetRequest(constPro.JXL_REQ_URL+"/api/access_raw_data_by_token", reqMap);
-			if (resJson != null) {
-				JSONObject json = JSONObject.parseObject(resJson);
-				if (json.getBoolean("success")) {
-					if (json.containsKey("raw_data")) {
-						String rawData = json.getJSONObject("raw_data").toString();
-						// 将获取到的数据更新到数据库中
-						report = new Report();
-						report.setToken(token);
-						report.setMobileRaw(rawData);
-						reportMongoDBService.updateReportByToken(report);
-						return rawData;
-					} else {
-						throw new RuntimeException("获取运营商原始数据请求返回报文中没有raw_data节点！返回报文：" + resJson);
-					}
-				} else {
-					throw new RuntimeException("获取运营商原始数据请求聚信立失败！返回报文 ：" + resJson);
-				}
-
-			} else {
-				throw new RuntimeException("获取运营商原始数据请求聚信立失败!");
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
 }

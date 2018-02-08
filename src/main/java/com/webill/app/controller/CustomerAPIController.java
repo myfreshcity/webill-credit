@@ -1,15 +1,11 @@
 package com.webill.app.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import javax.servlet.http.HttpServletRequest;
 
-import org.bouncycastle.jcajce.provider.asymmetric.dsa.DSASigner.detDSA;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreInvocationAuthorizationAdviceVoter;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,9 +13,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.plugins.Page;
-import com.webill.app.util.DateUtil;
-import com.webill.app.util.IDCardUtil;
-import com.webill.app.util.ReportParseUtil;
 import com.webill.core.model.Customer;
 import com.webill.core.model.User;
 import com.webill.core.model.dianhuabang.DHBGetLoginReq;
@@ -27,10 +20,9 @@ import com.webill.core.model.dianhuabang.DHBLoginReq;
 import com.webill.core.model.juxinli.JXLCollectReq;
 import com.webill.core.model.juxinli.JXLResetPasswordReq;
 import com.webill.core.model.juxinli.JXLSubmitFormReq;
-import com.webill.core.model.juxinli.Report;
 import com.webill.core.service.ICustomerService;
+import com.webill.core.service.IDianHuaBangService;
 import com.webill.core.service.IJuxinliService;
-import com.webill.core.service.IJxlDhbService;
 import com.webill.core.service.IUserService;
 import com.webill.framework.common.JSONUtil;
 import com.webill.framework.common.JsonResult;
@@ -58,7 +50,7 @@ public class CustomerAPIController extends BaseController{
 	@Autowired
 	private IJuxinliService juxinliService;
 	@Autowired
-	private IJxlDhbService jxlDhbService;
+	private IDianHuaBangService dianHuaBangService;
 
 	@ApiOperation(value = "添加客户基本信息")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "获取客户信息成功！"), @ApiResponse(code = 210, message = "客户基本信息入库成功！"),
@@ -96,113 +88,134 @@ public class CustomerAPIController extends BaseController{
         return JSONUtil.toJSONString(page);
     }
 	
-	@ApiOperation(value = "完善客户联系信息")
-	@RequestMapping(value = "/improveCusInfo", method = {RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	/*************************************************电话邦-聚信立接口***********************************************************/
+	
+	@ApiOperation(value = "通过token获取报告数据，申请表单提交时获取的token")
+	@RequestMapping(value = "/selectReport")
 	@ResponseBody
-	@Deprecated
-	public JsonResult improveCusInfo(@RequestBody Customer cus){
+	public Object getReport(@RequestBody Customer cus) {
+		String rpRes = dianHuaBangService.selectMdbReport(cus.getLatestReportKey());
+		return renderSuccess(JSONObject.parseObject(rpRes));
+	}
+	
+	@ApiOperation(value = "电话邦-提交申请表单获取回执信息，并完善客户联系信息")
+	@RequestMapping(value = "/dhbSubmitForm", method = {RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public Object dhbSubmitForm(@RequestBody Customer cus) {
+		// 完善客户信息
 		boolean f = customerService.updateCus(cus);
 		if (f) {
-			Customer cusDetail = customerService.getCusByUserIdCusId(cus);
-			return renderSuccess(cusDetail);
+			// 客户信息转聚信立表单提交数据
+			DHBGetLoginReq dhbReq = customerService.cusToDHBGetLoginReq(cus); 
+			// 提交申请表单
+			// return jxlDhbService.submitFormAndGetSid(jxlReq, dhbReq, cus.getId());
+			return dianHuaBangService.dhbGetSid(dhbReq, cus.getId());
 		}else {
 			return renderError("更新客户信息失败", "510");
 		}
 	}
 	
-	/*************************************************聚信立-电话邦接口***********************************************************/
-	
-	@ApiOperation(value = "提交申请表单获取回执信息，并完善客户联系信息")
-	@RequestMapping(value = "/submitForm", method = {RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ApiOperation(value = "电话邦-提交数据采集请求")
+	@RequestMapping(value = "/dhbCollect", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
 	@ResponseBody
-	public Object submitForm(@RequestBody Customer cus) {
+	public Object dhbCollect(@RequestBody String jsonStr) {
+		JSONObject jo = JSONObject.parseObject(jsonStr);
+		DHBLoginReq dhbReq = JSONUtil.toObject(jo.getString("dhbLoginReq"), DHBLoginReq.class);
+		Customer cus = JSONUtil.toObject(jo.getString("customer"), Customer.class);
+		return dianHuaBangService.dhbCollect(dhbReq, cus);
+	}
+	
+	@ApiOperation(value = "电话邦-提交数据采集请求")
+	@RequestMapping(value = "/dhbCollectSec", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public Object dhbCollectSec(@RequestBody String jsonStr) {
+		JSONObject jo = JSONObject.parseObject(jsonStr);
+		DHBLoginReq dhbReq = JSONUtil.toObject(jo.getString("dhbLoginReq"), DHBLoginReq.class);
+		Customer cus = JSONUtil.toObject(jo.getString("customer"), Customer.class);
+		return dianHuaBangService.dhbCollectSec(dhbReq, cus);
+	}
+	
+	@ApiOperation(value = "聚信立-提交申请表单获取回执信息，并完善客户联系信息")
+	@RequestMapping(value = "/jxlSubmitForm", method = {RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public Object jxlSubmitForm(@RequestBody Customer cus, String reportKey) {
 		// 完善客户信息
 		boolean f = customerService.updateCus(cus);
 		if (f) {
 			// 客户信息转聚信立表单提交数据
 			JXLSubmitFormReq jxlReq = customerService.cusToJXLSubmitFormReq(cus); 
-			DHBGetLoginReq dhbReq = customerService.cusToDHBGetLoginReq(cus); 
 			// 提交申请表单
-			//return juxinliService.submitForm(jxlReq, cus.getId());
-			return jxlDhbService.submitFormAndGetSid(jxlReq, dhbReq, cus.getId());
+			//return jxlDhbService.submitFormAndGetSid(jxlReq, dhbReq, cus.getId());
+			return juxinliService.submitForm(cus.getId(), reportKey);
 		}else {
 			return renderError("更新客户信息失败", "510");
 		}
 	}
 	
-	@ApiOperation(value = "提交数据采集请求")
-	@RequestMapping(value = "/collect", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ApiOperation(value = "聚信立-提交数据采集请求")
+	@RequestMapping(value = "/jxlCollect", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
 	@ResponseBody
-//	public Object collect(@RequestBody JXLCollectReq req) {
-	public Object collect(@RequestBody String jsonStr) {
+	public Object jxlCollect(@RequestBody String jsonStr) {
 		JSONObject jo = JSONObject.parseObject(jsonStr);
 		JXLCollectReq jxlReq = JSONUtil.toObject(jo.getString("jxlCollectReq"), JXLCollectReq.class);
-		DHBLoginReq dhbReq = JSONUtil.toObject(jo.getString("dhbLoginReq"), DHBLoginReq.class);
 		Customer cus = JSONUtil.toObject(jo.getString("customer"), Customer.class);
-		if (cus.getTemReportType() == 0) { //临时信息报告类型：0-基础 1-标准
-			return jxlDhbService.jxlOrDhbCollect(jxlReq, dhbReq, cus);
-		}else {
-			return jxlDhbService.jxlAndDhbcollect(jxlReq, dhbReq, cus);
-		}
+		String reportKey = jo.getString("reportKey");
+		return juxinliService.jxlCollect(jxlReq, cus, reportKey);
 	}
 	
-	@ApiOperation(value = "通过token获取报告数据，申请表单提交时获取的token")
-	@RequestMapping(value = "/selectReport")
-	@ResponseBody
-//	public Object getReport(@RequestBody Report report) {
-	public Object getReport(@RequestBody Customer cus) {
-		//String rpRes = juxinliService.getReport(report.getReportKey(), report.getName(), report.getIdCard(), report.getMobile());
-		String rpRes = jxlDhbService.selectMdbReport(cus.getLatestReportKey());
-		return renderSuccess(JSONObject.parseObject(rpRes));
-	}
-	
-	@ApiOperation(value = "获取重置密码响应信息")
-	@RequestMapping(value = "/resetPasswordResp", method = { RequestMethod.POST })
-	@ResponseBody
-	public Object resetPasswordResp(@RequestBody JXLResetPasswordReq req) {
-		return juxinliService.resetPasswordResp(req);
-	}
-	
-	@ApiOperation(value = "提交重置密码请求")
+	@ApiOperation(value = "聚信立-提交重置密码请求")
 	@RequestMapping(value = "/resetPassword", method = { RequestMethod.POST })
 	@ResponseBody
 	public Object resetPasswordSubmit(@RequestBody JXLResetPasswordReq req) {
 		return juxinliService.resetPassword(req);
 	}
 	
-	@RequestMapping(value = "/testParse", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ApiOperation(value = "电话邦-忘记密码")
+	@RequestMapping(value = "/dhbforgetPwd", method = { RequestMethod.POST })
 	@ResponseBody
-	public Object testDHBParse(@RequestBody String jsonStr) {
-		String data = juxinliService.parseDHBReportData(jsonStr, 24);
-		return data;
+	public Object dhbforgetPwd(@RequestBody String jsonStr) {
+		JSONObject jo = JSONObject.parseObject(jsonStr);
+		String tel = jo.getString("tel");
+		String userName = jo.getString("userName");
+		String idCard = jo.getString("idCard");
+		return dianHuaBangService.forgetPwd(tel, userName, idCard);
 	}
 	
-	@RequestMapping(value = "/testjxlParse", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ApiOperation(value = "电话邦-设置新的服务密码")
+	@RequestMapping(value = "/dhbSetServicePwd", method = { RequestMethod.POST })
 	@ResponseBody
-	public Object testJXlParse(@RequestBody String jsonStr) {
-		String cid = "341225199307088210";
-		String sex = IDCardUtil.parseGender(cid);
-		int age = IDCardUtil.parseAge(cid);
-		String address = IDCardUtil.parseAddress(cid);
-		System.out.println(sex+age+address);
-		String data = juxinliService.parseJXLReportData(jsonStr, 24);
-		return data;
+	public Object dhbSetServicePwd(@RequestBody String jsonStr) {
+		JSONObject jo = JSONObject.parseObject(jsonStr);
+		String tid = jo.getString("tid");
+		String newPwd = jo.getString("newPwd");
+		return dianHuaBangService.setServicePwd(tid, newPwd);
 	}
-
-	@RequestMapping(value = "/test2", method = { RequestMethod.POST, RequestMethod.GET }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
-	public void test2() throws Exception{
-		// 获取报告更新时间
-		String update_time = "2018-02-02T07:42:47.000Z";
-		update_time = update_time.replace("Z", " UTC");
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS Z");
-		Date d = format.parse(update_time);
-		//TODO 将报告更新时间更新到数据库中
-		Customer cus = customerService.selectById(24);
-		System.out.println(d);
-		cus.setId(24);
-		cus.setLatestReportTime(d);
-		customerService.updateSelectiveById(cus);
-
+	
+	@ApiOperation(value = "电话邦-忘记服务密码短信校验")
+	@RequestMapping(value = "/dhbForgotPwdSms", method = { RequestMethod.POST })
+	@ResponseBody
+	public Object dhbForgotPwdSms(@RequestBody String jsonStr) {
+		JSONObject jo = JSONObject.parseObject(jsonStr);
+		String tid = jo.getString("tid");
+		String smsCode = jo.getString("smsCode");
+		return dianHuaBangService.forgotPwdSms(tid, smsCode);
 	}
-		
+	
+	@ApiOperation(value = "电话邦-忘记密码登录校验")
+	@RequestMapping(value = "/dhbForgotPwdLogin", method = { RequestMethod.POST })
+	@ResponseBody
+	public Object dhbForgotPwdLogin(@RequestBody String jsonStr) {
+		JSONObject jo = JSONObject.parseObject(jsonStr);
+		String tid = jo.getString("tid");
+		String loginCode = jo.getString("loginCode");
+		return dianHuaBangService.forgotPwdLogin(tid, loginCode);
+	}
+	
+	@ApiOperation(value = "电话邦-刷新图形验证码")
+	@RequestMapping(value = "/refreshGraphic/{sid}", method = { RequestMethod.GET})
+	@ResponseBody
+	public Object refreshGraphic(@PathVariable String sid) {
+		return dianHuaBangService.refreshGraphic(sid);
+	}
+	
 }

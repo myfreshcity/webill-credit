@@ -78,12 +78,60 @@ public class ReportMongoDBServiceImpl extends BaseMongoDBImpl<Report> implements
 		mgt.updateFirst(new Query(Criteria.where("sid").is(report.getSid())), update, getEntityClass());  
 	}
 	
+	@Override
+	public void updateReportByReportId(Report report) {
+		// 反向解析对象
+		Map<String, Object> map = null;
+		try {
+			map = parseEntity(report);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// 生成参数
+		Update update = new Update();
+		if (EmptyUtil.isNotEmpty(map)) {
+			for (String key : map.keySet()) {
+				if (key.indexOf("{") != -1) {
+					continue;
+				} else if (!StringUtil.isEmpty(map.get(key))) {
+					update.set(key, map.get(key));
+				}
+			}
+		}
+		mgt.updateFirst(new Query(Criteria.where("reportId").is(report.getReportId())), update, getEntityClass());  
+	}
+	
+	@Override
+	public void updateReportByReportKey(Report report) {
+		// 反向解析对象
+		Map<String, Object> map = null;
+		try {
+			map = parseEntity(report);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// 生成参数
+		Update update = new Update();
+		if (EmptyUtil.isNotEmpty(map)) {
+			for (String key : map.keySet()) {
+				if (key.indexOf("{") != -1) {
+					continue;
+				} else if (!StringUtil.isEmpty(map.get(key))) {
+					update.set(key, map.get(key));
+				}
+			}
+		}
+		mgt.updateFirst(new Query(Criteria.where("reportKey").is(report.getReportKey())), update, getEntityClass());  
+	}
+	
 	/**
 	 * 查询聚信立和电话邦都采集成功的，最终采集状态为采集中的数据
 	 */
 	@Override
 	public List<Report> selectReportByStatus() {
-		List<Report> reports = mgt.find(new Query(Criteria.where("jxlStatus").is(1).and("dhbStatus").is(1).and("status").is(0)), getEntityClass());
+		List<Report> reports = mgt.find(new Query(Criteria.where("jxlStatus").is(1).and("dhbStatus").is(1).and("status").is(0).and("tdTaskStatus").is(1)), getEntityClass());
 		return reports;
 	}
 	

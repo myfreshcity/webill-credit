@@ -141,6 +141,38 @@ public class CustomerServiceImpl extends SuperServiceImpl<CustomerMapper, Custom
 	}
 	
 	@Override
+	public JXLSubmitFormReq getJXLSubmitFormReq(Integer cusId){
+		Customer cusNew = this.selectById(cusId);
+		// 根据cusId获取联系人列表
+		Map<String, Object> map = new HashMap<>();
+		map.put("cus_id", cusId);
+		List<CusContact> cusConList = cusContactService.selectByMap(map);
+		
+		JXLSubmitFormReq req = new JXLSubmitFormReq();
+		// 解析客戶对应联系人==>提交表单到聚信立联系人
+		List<JXLContact> jxlContacts = new ArrayList<>();
+		
+		if (cusConList != null && cusConList.size() > 0) {
+			for (CusContact cusCon : cusConList) {
+				JXLContact jxlCon = new JXLContact();
+				jxlCon.setContactTel(cusCon.getMobileNo());
+				jxlCon.setContactName(cusCon.getName());
+				jxlCon.setContactType(cusCon.getContactType().toString());
+				jxlContacts.add(jxlCon);
+			}
+			req.setContacts(jxlContacts);
+		}
+		
+		req.setName(cusNew.getRealName());
+		req.setIdCardNum(cusNew.getIdNo());
+		req.setMobileNo(cusNew.getMobileNo());
+		req.setHomeAddress(cusNew.getHomeAddr() + cusNew.getHomeAddrDetail());
+		req.setWorkAddress(cusNew.getWorkAddr() + cusNew.getWorkAddrDetail());
+		req.setUid(cusNew.getUserId().toString());
+		return req;
+	}
+	
+	@Override
 	public JXLSubmitFormReq cusToJXLSubmitFormReq(Customer cus){
 		JXLSubmitFormReq req = new JXLSubmitFormReq();
 		// 解析客戶对应联系人==>提交表单到聚信立联系人
@@ -177,7 +209,7 @@ public class CustomerServiceImpl extends SuperServiceImpl<CustomerMapper, Custom
 			for (CusContact cusCon : cusConList) {
 				DHBUserContact dhbCon = new DHBUserContact();
 				dhbCon.setContactName(cusCon.getName());
-				dhbCon.setContactPrionity(1); //?
+				//dhbCon.setContactPrionity(1);
 				//"0":配偶，"1":父母，"2":兄弟姐妹,"3":子女,"4":同事,"5": 同学,"6": 朋友
 				dhbCon.setContactRelationShip(DhbContactType.retValue(cusCon.getContactType()));
 				dhbCon.setContactTel(cusCon.getMobileNo());

@@ -90,4 +90,15 @@ public interface ICustomerService extends ISuperService<Customer> {
 	 * @return DHBGetLoginReq
 	 */
 	DHBGetLoginReq cusToDHBGetLoginReq(Customer cus);
+
+	/** 
+	 * @Title: getJXLSubmitFormReq 
+	 * @Description: 获取聚信立表单提交数据
+	 * @author ZhangYadong
+	 * @date 2018年2月6日 下午3:37:18
+	 * @param cusId
+	 * @return
+	 * @return JXLSubmitFormReq
+	 */
+	JXLSubmitFormReq getJXLSubmitFormReq(Integer cusId);
 }

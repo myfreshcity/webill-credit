@@ -3,19 +3,15 @@ package com.webill.core.service.impl;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -73,6 +69,32 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 	public static final long interval = 1000*30; //30s
 	private String jxlToken = null;
 
+	
+	/**
+	 * 串行处理3
+	 * 聚信立==>提交申请表单获取回执信息
+	 */
+	@Override
+	@Transactional
+	public JXLSubmitFormResp jxlSubmitForm(JXLSubmitFormReq jxlReq, Integer cusId) {
+		JXLSubmitFormResp jxlResp = null;
+		
+		try {
+			//TODO 聚信立请求
+			logger.info("聚信立提交申请表单请求参数-request："+jxlReq.toJsonString());
+			String jxlResJson = HttpUtils.httpPostJsonRequest(constPro.JXL_REQ_URL+"/orgApi/rest/v3/applications/"+ constPro.JXL_ACCOUNT, jxlReq.toJsonString());
+			logger.info("聚信立提交申请表单响应数据-response："+jxlResJson);
+			if (jxlResJson != null) {
+				jxlResp = JXLSubmitFormResp.fromJsonString(jxlResJson);
+			} else {
+				throw new RuntimeException("提交申请表单请求聚信立响应失败！");
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		return jxlResp;
+	}
 	
 	/**
 	 * 聚信立==>提交申请表单获取回执信息
@@ -158,7 +180,7 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 			//TODO 请求电话邦采集接口
 			logger.info("电话邦登录请求参数-request："+dhbReq.toJsonString());
 			String dhbResJson = HttpUtils.httpPostJsonRequest(constPro.DHB_REQ_URL+"/calls/login?token="+this.getDhbToken(), dhbReq.toJsonString());
-			logger.info("电话邦登录请求参数-response："+dhbResJson);
+			logger.info("电话邦登录响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbResp = DHBLoginResp.fromJsonString(dhbResJson);
 			} else {
@@ -188,7 +210,7 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 			//TODO 聚信立请求
 			logger.info("聚信立提交数据采集请求参数-request："+JSONUtil.toJSONString(jxlReq));
 			String jxlResJson = HttpUtils.httpPostJsonRequest(constPro.JXL_REQ_URL+"/orgApi/rest/v2/messages/collect/req", JSONUtil.toJSONString(jxlReq));
-			logger.info("聚信立提交数据采集请求参数-response："+jxlResJson);
+			logger.info("聚信立提交数据采集响应数据-response："+jxlResJson);
 			if (jxlResJson != null) {
 				jxlResp = JXLResp.fromJsonString(jxlResJson);
 			} else {
@@ -247,7 +269,6 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 	
 	/**
 	 * 聚信立==>提交数据采集请求,根据返回的processCode，可能会请求多次
-	 * 聚信立==>提交数据采集请求,根据返回的processCode，可能会请求多次
 	 */
 	@Override
 	@Transactional
@@ -267,7 +288,7 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 			//TODO 电话邦请求
 			logger.info("电话邦登录请求参数-request："+dhbReq.toJsonString());
 			String dhbResJson = HttpUtils.httpPostJsonRequest(constPro.DHB_REQ_URL+"/calls/login?token="+this.getDhbToken(), dhbReq.toJsonString());
-			logger.info("电话邦登录请求参数-response："+dhbResJson);
+			logger.info("电话邦登录响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbResp = DHBLoginResp.fromJsonString(dhbResJson);
 			} else {
@@ -328,6 +349,118 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 				}.start();
 			}
 			//TODO 电话邦响应（回调获取报告数据）
+		}
+
+		JSONObject jo = new JSONObject();
+		jo.put("jxlCollect", jxlResp);
+		jo.put("dhbCollect", dhbResp);
+		return jo;
+	}
+	
+	/**
+	 * 串行采集数据1：电话邦
+	 * 聚信立==>提交数据采集请求,根据返回的processCode，可能会请求多次
+	 */
+//	@Override
+	@Transactional
+	public Object dhbcollect(DHBLoginReq dhbReq, Customer cus) {
+		Customer cust = new Customer();
+		cust.setId(cus.getId());
+		// 服务密码更新入库
+		cust.setServicePwd(dhbReq.getPinPwd());
+		// 临时报告类型更新入库
+		cust.setTemReportType(cus.getTemReportType());
+		customerService.updateSelectiveById(cust);
+		
+		// 提交数据采集请求
+		DHBLoginResp dhbResp = null;
+		try {
+			//TODO 电话邦请求
+			logger.info("电话邦登录请求参数-request："+dhbReq.toJsonString());
+			String dhbResJson = HttpUtils.httpPostJsonRequest(constPro.DHB_REQ_URL+"/calls/login?token="+this.getDhbToken(), dhbReq.toJsonString());
+			logger.info("电话邦登录响应数据-response："+dhbResJson);
+			if(dhbResJson != null) {
+				dhbResp = DHBLoginResp.fromJsonString(dhbResJson);
+			} else {
+				throw new RuntimeException("登录请求失败");
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+		JSONObject jo = new JSONObject();
+		jo.put("dhbCollect", dhbResp);
+		return jo;
+	}
+	
+	/**
+	 * 串行采集数据2：聚信立
+	 * 聚信立==>提交数据采集请求,根据返回的processCode，可能会请求多次
+	 */
+//	@Override
+	@Transactional
+	public Object jxlcollect(JXLCollectReq jxlReq, Customer cus) {
+		Customer cust = customerService.selectById(cus.getId());
+		jxlReq.setPassword(cust.getServicePwd());
+		
+		// 提交数据采集请求
+		JXLResp jxlResp = null;
+		DHBLoginResp dhbResp = null;
+		try {
+			//TODO 聚信立请求
+			logger.info("聚信立提交数据采集请求参数-request："+JSONUtil.toJSONString(jxlReq));
+			String jxlResJson = HttpUtils.httpPostJsonRequest(constPro.JXL_REQ_URL+"/orgApi/rest/v2/messages/collect/req", JSONUtil.toJSONString(jxlReq));
+			logger.info("聚信立提交数据采集响应数据-response："+jxlResJson);
+			if (jxlResJson != null) {
+				jxlResp = JXLResp.fromJsonString(jxlResJson);
+			} else {
+				throw new RuntimeException("提交数据源采集请求聚信立失败！");
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		if (jxlResp.isSuccess()) {
+			//TODO 聚信立响应
+			// 更新数据采集时间到数据库
+			if (jxlResp.getProcessCode() == 10008) { //10008：开始采集行为数据
+				// 修改报告采集状态
+				Customer custo = new Customer();
+				custo.setId(cus.getId());
+				custo.setLatestReportStatus(0); //采集中
+				customerService.updateSelectiveById(custo);
+				
+				// 更新mongoDB信息
+				Report report = new Report();
+				report.setToken(jxlReq.getToken());
+				report.setApplyDate(Calendar.getInstance().getTime());
+				report.setReportType(cus.getTemReportType()); //信息报告类型：0-基础 1-标准 
+				report.setJxlStatus(0); //采集中
+				report.setDhbStatus(0); //采集中
+				report.setStatus(0); //采集中
+				reportMongoDBService.updateReportByToken(report);
+				
+				// 起一个线程在2分钟后通知获取状态
+				new Thread() {
+					public void run() {
+						try {
+							logger.debug("===>等待122秒后去唤醒状态更新线程");
+//							sleep(2 * 61 * 1000);
+							sleep(60 * 1000);
+						} catch (Throwable e) {
+							logger.error("等待被打断", e);
+						}
+						logger.debug("===>开始唤醒状态更新线程");
+						synchronized (REPORT_LOCK) {
+							REPORT_LOCK.notifyAll();
+						}
+						logger.debug("===>唤醒状态更新线程结束");
+					}
+				}.start();
+			}
+		}else { // 请求超时,请重新认证(token过期)
+			JXLSubmitFormReq sfReq = new JXLSubmitFormReq();
+			JXLSubmitFormResp sfResp = this.jxlSubmitForm(sfReq, cus.getId());
 		}
 
 		JSONObject jo = new JSONObject();
@@ -472,7 +605,7 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 	 */
 	@Override
 	@Transactional
-	public void updateJxlReportStatus(Report report) {
+	/*public void updateJxlReportStatus(Report report) {
 		// 必须是采集中的记录才需要更新状态
 		if (report.getStatus() != 0) {
 			return;
@@ -544,11 +677,11 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 			throw new RuntimeException(e);
 		}
 	}
-	
+	*/
 	/**
 	 * 聚信立==>启动守护线程，定期更新报告状态
 	 */
-	@PostConstruct
+	/*@PostConstruct
 	public void daemon() {
 		// 守护线程1，定期更新报告状态
 		new Thread() {
@@ -639,12 +772,12 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 				}
 			}
 		}.start();
-	}
+	}*/
 	
 	/**
 	 * 电话邦==>获取token，用于之后的接口访问,由于token存在过期时间，所以后面判断返回code为4000的时候重新获取
 	 */
-	@Override
+//	@Override
 	public String getDhbToken() {
 		String dhbToken = null;
 		// 从redis查询电话邦访问token
@@ -731,6 +864,7 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 			//TODO 合并聚信立和电话邦报告
 			JSONObject jxlObj = JSON.parseObject(report.getJxlReport());
 			JSONObject dhbObj = JSON.parseObject(report.getDhbReport());
+			JSONObject tdObj = JSON.parseObject(report.getTdReport());
 			if (jxlObj != null && dhbObj != null) {
 				// 更新客户信息
 				Customer cus = customerService.selectById(report.getCusId());
@@ -738,7 +872,6 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 				cus.setRefreshTimes(cus.getRefreshTimes() + 1);
 				cus.setLatestReportKey(report.getReportKey());
 				cus.setLatestReportType(cus.getTemReportType()); //信息报告类型：0-基础 1-标准
-//				cus.setLatestReportTime(new Date()); //报告更新时间（先设置为系统）
 				cus.setLatestReportStatus(1); //采集成功
 				customerService.updateSelectiveById(cus);
 				
@@ -758,12 +891,14 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 				allFciOList.addAll(dhbFciStaList);
 				jo.put("financial_call_info", allFciOList);
 				jo.put("contact_region", jxlObj.getJSONArray("contact_region"));
-				jo.put("top10_date_contact", dhbObj.getJSONArray("top10_date_contact"));
-				jo.put("top10_times_contact", dhbObj.getJSONArray("top10_times_contact"));
+				jo.put("top10_date_contact", jxlObj.getJSONArray("top10_date_contact"));
+				jo.put("top10_times_contact", jxlObj.getJSONArray("top10_times_contact"));
 				jo.put("all_contact", jxlObj.getJSONArray("all_contact"));
 				jo.put("trip_info", jxlObj.getJSONArray("trip_info"));
 				jo.put("cuishou", dhbObj.getJSONObject("cuishou"));
 				jo.put("yisicuishou", dhbObj.getJSONObject("yisicuishou"));
+				// 解析同盾征信数据
+				jo.put("tongdun", tdObj);
 				report.setFinalReport(jo.toString());
 				reportMongoDBService.updateReportByToken(report);
 				

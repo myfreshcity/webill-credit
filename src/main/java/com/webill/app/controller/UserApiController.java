@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -51,8 +52,24 @@ public class UserApiController extends BaseController {
         return "login";
     }
 
-    /**
-	 * @Title: userRegister
+    /** 
+     * @Title: getUserByid 
+     * @Description: 根据用户ID获取用户信息
+     * @author ZhangYadong
+     * @date 2018年2月5日 下午2:57:17
+     * @param id
+     * @return
+     * @return JsonResult
+     */
+    @RequestMapping(value = "/getUserById/{id}", method = { RequestMethod.GET }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public JsonResult getUserById(@PathVariable Integer id) {
+    	User user = userService.selectById(id);
+    	return renderSuccess(user);
+	}
+    
+    /** 
+	 * @Title: userRegister 
 	 * @Description: 用户注册
 	 * @author ZhangYadong
 	 * @date 2018年1月17日 上午10:06:43

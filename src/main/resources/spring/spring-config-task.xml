@@ -12,10 +12,12 @@
 	<!-- 如下实现是通过线程池执行的 -->
 	<task:executor id="executor" pool-size="10" />
 	<task:scheduler id="scheduler" pool-size="10" />
-	<task:annotation-driven scheduler="scheduler"
-		executor="executor" proxy-target-class="true" />
+	<task:annotation-driven scheduler="scheduler" executor="executor" proxy-target-class="true" />
 	<task:scheduled-tasks scheduler="scheduler">
 		<!-- 重新获取采集中的同盾报告信息，并入库 每五分钟执行一次-->
 		<task:scheduled ref="taskJobService" method="updateTdReport"	cron="0 0/1 * * * ?" />
+		<!-- 每五分钟更新聚信立和电话邦报告 -->
+		<task:scheduled ref="taskJobService" method="updateJxlDhbReport" cron="0/10 * * * * ? " />
 	</task:scheduled-tasks>
+	
 </beans>

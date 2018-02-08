@@ -31,6 +31,16 @@ public interface IReportMongoDBService extends IBaseMongoDBService<Report> {
 	 * @return void
 	 */
 	void updateReportBySid(Report report);
+	
+	/** 
+	 * @Title: updateReportByReportKey 
+	 * @Description: 根据reportKey更新报告
+	 * @author ZhangYadong
+	 * @date 2018年2月6日 下午2:18:52
+	 * @param report
+	 * @return void
+	 */
+	void updateReportByReportKey(Report report);
 
 	/**
 	 * @Title: selectReportByStatus
@@ -93,4 +103,14 @@ public interface IReportMongoDBService extends IBaseMongoDBService<Report> {
 	 * @return: List<Report>
 	 */
 	List<Report> selectTDReportByTdStatus();
+
+	/** 
+	 * @Title: updateReportByReportId 
+	 * @Description:  根据ReportId更新报告
+	 * @author ZhangYadong
+	 * @date 2018年2月6日 下午5:43:52
+	 * @param report
+	 * @return void
+	 */
+	void updateReportByReportId(Report report);
 }

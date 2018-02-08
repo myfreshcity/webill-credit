@@ -112,7 +112,8 @@ public class TradeLogController extends BaseController{
             logger.info("接收支付异步通知数据：【" + reqStr + "】");
             JSONObject reqObj = JSON.parseObject(reqStr);
             try {
-            	if (!LianLianUtil.checkSignRSA(reqObj, constPro.LIANLIANPAY_PUBLIC_KEY)) {
+//            	if (!LianLianUtil.checkSignRSA(reqObj, constPro.LIANLIANPAY_PUBLIC_KEY)) {
+            	if (!LianLianUtil.checkSignRSA(reqObj, constPro.YT_PUB_KEY)) {
             		logger.info("支付异步通知验签失败");
             		ReturnBean rb = new ReturnBean("9999", "交易失败");
             		response.getWriter().write(JSON.toJSONString(rb));

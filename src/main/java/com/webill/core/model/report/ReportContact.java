@@ -13,7 +13,7 @@ public class ReportContact {
 	/**
 	 * 聚信立-对应application_check.(app_point="contact",check_points.check_xiaohao)，临时小号检查
 	 */
-	private String check_xiaohao;
+	private Integer check_xiaohao; // 0-临时小号 1-非临时小号
 	/**
 	 * 聚信立-对应application_check.(app_point="contact",check_points.relationship)，联系人关系
 	 */
@@ -45,10 +45,10 @@ public class ReportContact {
 	public void setContact_name(String contact_name) {
 		this.contact_name = contact_name;
 	}
-	public String getCheck_xiaohao() {
+	public Integer getCheck_xiaohao() {
 		return check_xiaohao;
 	}
-	public void setCheck_xiaohao(String check_xiaohao) {
+	public void setCheck_xiaohao(Integer check_xiaohao) {
 		this.check_xiaohao = check_xiaohao;
 	}
 	public String getRelationship() {

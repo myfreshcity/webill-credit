@@ -32,6 +32,10 @@ public class Report implements Serializable {
 	@Field
 	private String sid;
 	
+	/** 同盾标识 */
+	@Field
+	private String reportId;
+	
 	/** 客户ID */
 	@Field
 	private String cusId;
@@ -44,9 +48,13 @@ public class Report implements Serializable {
 	@Field
 	private Integer jxlStatus;
 	
-	/** 同盾报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集超时 */
+	/** 同盾报告状态：-1-请求参数错误 0-采集中 1-采集成功 2-采集超时 */
 	@Field
 	private Integer tdStatus;
+	
+	/** 同盾定时查询状态：0-不加入定时更新 1-加入定时更新*/
+	@Field
+	private Integer tdTaskStatus;
 
 	/** 电话邦报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集超时 */
 	@Field
@@ -302,5 +310,21 @@ public class Report implements Serializable {
 
 	public void setCode(Integer code) {
 		this.code = code;
+	}
+
+	public String getReportId() {
+		return reportId;
+	}
+
+	public void setReportId(String reportId) {
+		this.reportId = reportId;
+	}
+
+	public Integer getTdTaskStatus() {
+		return tdTaskStatus;
+	}
+
+	public void setTdTaskStatus(Integer tdTaskStatus) {
+		this.tdTaskStatus = tdTaskStatus;
 	}
 }

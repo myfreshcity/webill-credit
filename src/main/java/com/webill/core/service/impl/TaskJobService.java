@@ -13,7 +13,7 @@ import com.webill.core.Constant;
 import com.webill.core.model.Coupon;
 import com.webill.core.model.juxinli.Report;
 import com.webill.core.service.ICouponService;
-import com.webill.core.service.IJxlDhbService;
+import com.webill.core.service.IDianHuaBangService;
 import com.webill.core.service.IReportMongoDBService;
 import com.webill.core.service.ITongDunService;
 
@@ -34,7 +34,7 @@ public class TaskJobService {
     @Autowired
     protected SystemProperty constPro; 
     @Autowired
-    private IJxlDhbService jxlDhbService;
+    private IDianHuaBangService dianHuaBangService;
 	@Autowired
 	private ITongDunService tongDunService;
 	@Autowired
@@ -72,7 +72,7 @@ public class TaskJobService {
 	 * @return void
 	 */
     public void updateJxlDhbReport(){
-    	jxlDhbService.updateJxlDhbReport();
+    	dianHuaBangService.updateJxlDhbReport();
     }
     
 	public void updateTdReport() {

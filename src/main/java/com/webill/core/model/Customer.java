@@ -81,6 +81,12 @@ public class Customer implements Serializable {
 	/** 最近报告获取时间 */
 	private Date latestReportTime;
 
+	/** 最近聚信立报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集失败 */
+	private Integer latestJxlRepStatus;
+
+	/** 最近电话邦报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集失败 */
+	private Integer latestDhbRepStatus;
+	
 	/** 最近报告状态：-1-准备采集 0-采集中 1-采集成功 2-采集失败 */
 	private Integer latestReportStatus;
 
@@ -356,4 +362,21 @@ public class Customer implements Serializable {
 	public void setLatestReportTimeStr(String latestReportTimeStr) {
 		this.latestReportTimeStr = latestReportTimeStr;
 	}
+
+	public Integer getLatestJxlRepStatus() {
+		return latestJxlRepStatus;
+	}
+
+	public void setLatestJxlRepStatus(Integer latestJxlRepStatus) {
+		this.latestJxlRepStatus = latestJxlRepStatus;
+	}
+
+	public Integer getLatestDhbRepStatus() {
+		return latestDhbRepStatus;
+	}
+
+	public void setLatestDhbRepStatus(Integer latestDhbRepStatus) {
+		this.latestDhbRepStatus = latestDhbRepStatus;
+	}
+	
 }

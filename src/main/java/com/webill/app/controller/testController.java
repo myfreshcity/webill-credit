@@ -1,8 +1,5 @@
 package com.webill.app.controller;  
   
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Set;
 
 import org.junit.Test;
@@ -30,33 +27,5 @@ public class testController {
           }  
     }
 	public static void main(String[] args) throws Exception {
-		/*Integer ms = 1482552000;
-		if(ms==null){  
-            ms=0;  
-        }  
-        long msl=(long)ms*1000;  
-        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");  
-        Date temp=null;  
-        if(ms!=null){  
-            try {  
-                String str=sdf.format(msl);  
-                temp=sdf.parse(str);  
-            } catch (ParseException e) {  
-                e.printStackTrace();  
-            }  
-        }  
-        System.out.println(temp);
-		
-		String res="1482552000";
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        long lt = new Long(res);
-        Date date = new Date(lt);
-        String parse = simpleDateFormat.format(date);
-        return res;
-		
-		String a = "1482552000";
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date parse = sdf.parse(a);
-		System.out.println(parse);*/
 	}
 }

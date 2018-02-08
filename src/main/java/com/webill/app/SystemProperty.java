@@ -349,4 +349,16 @@ public class SystemProperty {
 	@Value("${TD_CHK_URL}")
 	public String TD_CHK_URL;
 	// ------------------------------------------------------------------同盾配置
+	/**
+     * 连连web认证支付测试账号
+     */
+	@Value("${YT_PUB_KEY}")
+	public String YT_PUB_KEY;
+	@Value("${YT_PRI_KEY}")
+	public String YT_PRI_KEY;
+	@Value("${YT_MD5_KEY}")
+	public String YT_MD5_KEY;
+	@Value("${YT_PARTNER}")
+	public String YT_PARTNER;
+	
 }

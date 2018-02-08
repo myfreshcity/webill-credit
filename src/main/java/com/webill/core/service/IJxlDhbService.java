@@ -86,7 +86,7 @@ public interface IJxlDhbService {
 	 * @param report
 	 * @return void
 	 */
-	void updateJxlReportStatus(Report report);
+//	void updateJxlReportStatus(Report report);
 
 	/** 
 	 * @Title: updateJxlReport 
@@ -129,4 +129,6 @@ public interface IJxlDhbService {
 	 * @return String
 	 */
 	String selectMdbReport(String reportKey);
+
+	Object jxlSubmitForm(JXLSubmitFormReq jxlReq, Integer cusId);
 }

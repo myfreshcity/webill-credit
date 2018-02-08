@@ -1,7 +1,5 @@
 package com.webill.app.controller;
 
-import java.util.List;
-
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +16,7 @@ import com.webill.core.model.User;
 import com.webill.core.model.dianhuabang.DHBCallbackResp;
 import com.webill.core.model.juxinli.Report;
 import com.webill.core.service.ICustomerService;
-import com.webill.core.service.IJxlDhbService;
+import com.webill.core.service.IDianHuaBangService;
 import com.webill.core.service.IReportMongoDBService;
 import com.webill.core.service.IUserService;
 import com.webill.framework.controller.BaseController;
@@ -33,7 +31,7 @@ import com.webill.framework.controller.BaseController;
 @RequestMapping(value = "/api/dhbReport")
 public class DianHuaBangController  extends BaseController{
 	@Autowired
-	private IJxlDhbService jxlDhbService;
+	private IDianHuaBangService dianHuaBangService;
 	@Autowired
 	private IReportMongoDBService reportMongoDBService;
 	@Autowired
@@ -53,7 +51,7 @@ public class DianHuaBangController  extends BaseController{
         		//TODO 更新电话邦报告状态：采集成功
         		String sid = callbackResp.getSid();
         		//TODO 更新聚信立报告数据
-        		String udr = jxlDhbService.updateDhbReport(sid);
+        		String udr = dianHuaBangService.updateDhbReport(sid);
         		if (udr != null) {
         			Report report = new Report();
         			report.setSid(sid);
@@ -95,12 +93,4 @@ public class DianHuaBangController  extends BaseController{
 		}
 	}
 	
-	@RequestMapping(value = "/test", method = { RequestMethod.POST },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
-	public void test() {
-		List<Report> reports = reportMongoDBService.selectReportByStatus();
-		for (Report report : reports) {
-			System.out.println(report.getCusId()+","+report.getName());
-		}
-	}
-
 }
