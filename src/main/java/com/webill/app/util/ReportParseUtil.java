@@ -232,7 +232,10 @@ public class ReportParseUtil {
 		String telecom = reportObj.getJSONObject("call_behavior").getJSONObject("number_used").getString("telecom");
 		cbi.setWebsite(fanchaTelloc+telecom);
 		cbi.setMobile_no(telInfoObj.getString("tel"));
-		cbi.setReg_time(DateUtil.timeStampToDat(Long.parseLong(telInfoObj.getString("open_date"))));
+		String open_date = telInfoObj.getString("open_date");
+		if (!"运营商未透露".equals(open_date)) {
+			cbi.setReg_time(DateUtil.timeStampToDat(Long.parseLong(open_date)));
+		}
 		// 与登记姓名一致性：0 不适用,1是,2 否，3 模糊匹配一致
 		String checkName = userInfoObj.getString("conclusion_of_user_name_check");
 		String cnFlag = "";
@@ -284,12 +287,15 @@ public class ReportParseUtil {
 		String btcmStr = DateUtil.hoursToDay(btcm);
 		cbi.setPhone_silent_result("手机静默最长时间："+btcmStr);
 		// 手机静默时间段==>爬取周期内手机静默的时间段
-		JSONArray btArr = callsOverview.getJSONArray("blank_times_list").getJSONArray(0);
-		if (btArr != null && btArr.size() == 3) {
-			String startDate = DateUtil.timeStampToDat(Long.parseLong(btArr.get(0).toString()));
-			String endDate = DateUtil.timeStampToDat(Long.parseLong(btArr.get(1).toString()));
-			String period = btArr.get(2).toString();
-			cbi.setPhone_silent_evidence("手机静默时间段："+startDate+"至"+endDate+"，共"+period+"小时");
+		JSONArray blankTimesArr = callsOverview.getJSONArray("blank_times_list");
+		if (!blankTimesArr.isEmpty()) {
+			JSONArray btArr = blankTimesArr.getJSONArray(0);
+			if (!btArr.isEmpty() && btArr.size() == 3) {
+				String startDate = DateUtil.timeStampToDat(Long.parseLong(btArr.get(0).toString()));
+				String endDate = DateUtil.timeStampToDat(Long.parseLong(btArr.get(1).toString()));
+				String period = btArr.get(2).toString();
+				cbi.setPhone_silent_evidence("手机静默时间段："+startDate+"至"+endDate+"，共"+period+"小时");
+			}
 		}
 		cbi.setContact_each_other_evidence("互通号码数量/占比:"+callsOverview.getString("both_side_calls_count")+"个,占总联系人的"+callsOverview.getString("both_side_calls_percent")+"%");
 		

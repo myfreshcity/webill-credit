@@ -32,10 +32,10 @@
 			AND c.latest_report_type = #{latestReportType}
 		</if>
 		<if test="timeFrom!=null and timeFrom!='' ">
-			AND tl.latest_report_time &gt;= str_to_date('${timeFrom} 00:00:00','%Y-%m-%d %H:%i:%s')
+			AND c.latest_report_time &gt;= str_to_date('${timeFrom} 00:00:00','%Y-%m-%d %H:%i:%s')
 		</if>
 		<if test="timeFrom!=null and timeFrom!='' ">
-			AND tl.latest_report_time &lt;= str_to_date('${timeFrom} 23:59:59','%Y-%m-%d %H:%i:%s')
+			AND c.latest_report_time &lt;= str_to_date('${timeFrom} 23:59:59','%Y-%m-%d %H:%i:%s')
 		</if>
 		<if test="sortWay == 1">
 			ORDER BY c.latest_report_time DESC

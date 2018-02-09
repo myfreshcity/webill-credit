@@ -137,6 +137,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		// 提交数据采集请求
 		DHBLoginResp dhbResp = null;
 		try {
+			Customer dhbCus = customerService.selectById(cus.getId());
+			dhbReq.setIdCard(dhbCus.getIdNo());
+			dhbReq.setFullName(dhbCus.getRealName());
 			//TODO 请求【电话邦】采集接口
 			logger.info("【电话邦】登录授权-请求参数-request："+dhbReq.toJsonString());
 			String dhbResJson = HttpUtils.httpPostJsonRequest(constPro.DHB_REQ_URL+"/calls/login?token="+this.getDhbToken(), dhbReq.toJsonString());
@@ -621,6 +624,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 					}
 				} catch (Exception e) {
 					logger.info("【电话邦】或【聚信立】-解析报告异常！");
+					throw new RuntimeException(e);
 				}
 				
 			}
@@ -670,6 +674,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 					}
 				} catch (Exception e) {
 					logger.info("【电话邦】-解析报告异常！");
+					throw new RuntimeException(e);
 				}
 			}
 		}
