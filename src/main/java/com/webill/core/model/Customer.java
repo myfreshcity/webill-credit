@@ -123,6 +123,9 @@ public class Customer implements Serializable {
 	@TableField(exist = false)
 	private String areaJson;
 	
+	@TableField(exist = false)
+	private String timeFrom;
+	
 	public Integer getId() {
 		return this.id;
 	}
@@ -378,5 +381,12 @@ public class Customer implements Serializable {
 	public void setLatestDhbRepStatus(Integer latestDhbRepStatus) {
 		this.latestDhbRepStatus = latestDhbRepStatus;
 	}
-	
+
+	public String getTimeFrom() {
+		return timeFrom;
+	}
+
+	public void setTimeFrom(String timeFrom) {
+		this.timeFrom = timeFrom;
+	}
 }

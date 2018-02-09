@@ -71,6 +71,13 @@ public class ReportParseUtil {
 				cbi.setSex(IDCardUtil.parseGender(idNo));
 				cbi.setAge(IDCardUtil.parseAge(idNo));
 				cbi.setResidence_address(IDCardUtil.parseAddress(idNo));
+				// 法院黑名单检查
+				Boolean court_black = checkPointsObj.getJSONObject("court_blacklist").getBoolean("arised"); //arised：是否出现	
+				if (court_black) {
+					cbi.setCheck_court_black(0); // 0-黑名单 1-非黑名单
+				}else {
+					cbi.setCheck_court_black(1); // 0-黑名单 1-非黑名单
+				}
 			}
 			//工作地址
 			if (cus.getWorkAddr() != null && cus.getWorkAddrDetail() != null) {
@@ -565,6 +572,7 @@ public class ReportParseUtil {
 	public List<TopContact> parseDateTopContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
+		List<TopContact> urgentList = new ArrayList<>();
 		
 		// 联系人按照通话时长排序
 		List<JSONObject> contactArrList = JSONObject.parseArray(reportObj.getString("contact_list"), JSONObject.class);
@@ -590,14 +598,19 @@ public class ReportParseUtil {
 		});
 		
 		// 取前10条数据
-		for (int i = 0; i < 10; i++) {
-			JSONObject jo = contactArrList.get(i);
-			TopContact tc = new TopContact();
-			tc.setFormat_tel(jo.getString("phone_num"));
-			tc.setTags_label(jo.getString("contact_name"));
-			tc.setCall_times(jo.getString("call_cnt"));
-			tc.setCall_length(jo.getString("call_len"));
-			tcList.add(tc);
+		if (contactArrList != null && contactArrList.size() > 0) {
+			if (contactArrList != null && contactArrList.size() > 0) {
+				int size = contactArrList.size() > 10 ? 10 : contactArrList.size();
+				for (int i = 0; i < size; i++) {
+					JSONObject jo = contactArrList.get(i);
+					TopContact tc = new TopContact();
+					tc.setFormat_tel(jo.getString("phone_num"));
+					tc.setTags_label(jo.getString("contact_name"));
+					tc.setCall_times(jo.getString("call_cnt"));
+					tc.setCall_length(jo.getString("call_len"));
+					tcList.add(tc);
+				}
+			}
 		}
 		
 		//TODO 解析紧急联系人信息
@@ -607,19 +620,63 @@ public class ReportParseUtil {
 			String appPoint = appObj.getString("app_point");
 			TopContact tc = new TopContact();
 			if (appPoint.equals("contact")) {
-				tc.setFormat_tel(appObj.getJSONObject("check_points").getString("key_value"));
-				tc.setTags_label(appObj.getJSONObject("check_points").getString("relationship"));
+				String mobile = appObj.getJSONObject("check_points").getString("key_value");
+				tc.setFormat_tel(mobile);
+				String tagsLabel = appObj.getJSONObject("check_points").getString("relationship"); 
+				tc.setTags_label(tagsLabel);
 				String check_mobile = appObj.getJSONObject("check_points").getString("check_mobile");
 				if (check_mobile != null) {
 					ReportContact rcRegex = regexMatchContact(check_mobile);
 					tc.setCall_times(rcRegex.getCall_cnt());
 					tc.setCall_length(rcRegex.getCall_len());
 				}
-				tcList.add(tc);
+				urgentList.add(tc);
 			}
 		}
-
+		
+		if (tcList != null && tcList.size() > 0) {
+			// 修改标签
+			for (int i = 0; i < tcList.size(); i++) {
+				for (int j = 0; j < urgentList.size(); j++) {
+					if (tcList.get(i).getFormat_tel().equals(urgentList.get(j).getFormat_tel())) {
+						tcList.get(i).setTags_label(urgentList.get(j).getTags_label());
+					}
+				}
+			}
+			// 添加紧急联系人
+			for (TopContact topCon: urgentList) {
+				boolean f = parseIsExistCon(tcList, topCon.getFormat_tel());
+				if (!f) {
+					tcList.add(topCon);
+				}
+			}
+		}else {
+			tcList = urgentList;
+		}
+		
 		return tcList;
+	}
+	
+	/** 
+	 * @Title: parseIsExistCon 
+	 * @Description: 解析是否存在紧急联系人
+	 * @author ZhangYadong
+	 * @date 2018年2月9日 上午10:06:37
+	 * @param tcList
+	 * @param mobile
+	 * @return
+	 * @return boolean
+	 */
+	private boolean parseIsExistCon(List<TopContact> tcList, String mobile){
+		boolean f = false;
+		if (tcList != null && tcList.size() > 0) {
+			for (int i = 0; i < tcList.size(); i++) {
+				if (mobile.equals(tcList.get(i).getFormat_tel())) {
+					f = true;
+				}
+			}
+		}
+		return f;
 	}
 	
 	/** 
@@ -634,6 +691,7 @@ public class ReportParseUtil {
 	public List<TopContact> parseDHBDateTopContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
+		List<TopContact> urgentList = new ArrayList<>();
 		
 		JSONArray callsSaByLengthArr = reportObj.getJSONArray("calls_sa_by_length");
 		for (int i = 0; i < callsSaByLengthArr.size(); i++) {
@@ -654,18 +712,39 @@ public class ReportParseUtil {
 		for (int i = 0; i < mcArr.size(); i++) {
 			TopContact tc = new TopContact();
 			JSONObject mvObj = mcArr.getJSONObject(i);
-			
-			tc.setFormat_tel(mvObj.getString("format_tel"));
-			tc.setTags_label(mvObj.getString("contact_relationship"));
+			String mobile = mvObj.getString("format_tel");
+			tc.setFormat_tel(mobile);
+			String tagsLabel = mvObj.getString("contact_relationship");
+			tc.setTags_label(tagsLabel);
 			tc.setCall_times(mvObj.getString("call_times"));
 			
 			float callLen = Float.parseFloat(mvObj.getString("call_length"))/60;
 			DecimalFormat df = new DecimalFormat(".00");
 			tc.setCall_length(df.format(callLen));
 
-			tcList.add(tc);
+			urgentList.add(tc);
 		}
 		
+		if (tcList != null && tcList.size() > 0) {
+			// 修改标签
+			for (int i = 0; i < tcList.size(); i++) {
+				for (int j = 0; j < urgentList.size(); j++) {
+					if (tcList.get(i).getFormat_tel().equals(urgentList.get(j).getFormat_tel())) {
+						tcList.get(i).setTags_label(urgentList.get(j).getTags_label());
+					}
+				}
+			}
+			// 添加紧急联系人
+			for (TopContact topCon: urgentList) {
+				boolean f = parseIsExistCon(tcList, topCon.getFormat_tel());
+				if (!f) {
+					tcList.add(topCon);
+				}
+			}
+		}else {
+			tcList = urgentList;
+		}
+
 		return tcList;
 	}
 	
@@ -681,6 +760,7 @@ public class ReportParseUtil {
 	public List<TopContact> parseTimesTopContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
+		List<TopContact> urgentList = new ArrayList<>();
 		
 		// 联系人按照通话次数排序
 		List<JSONObject> contactArrList = JSONObject.parseArray(reportObj.getString("contact_list"), JSONObject.class);
@@ -704,21 +784,19 @@ public class ReportParseUtil {
 
 		});
 		
-		int size = contactArrList.size();
-		if (size > 10) {
-			size = 10;
-		}
 		// 取前10条数据
-		for (int i = 0; i < size; i++) {
-			JSONObject jo = contactArrList.get(i);
-			TopContact tc = new TopContact();
-			tc.setFormat_tel(jo.getString("phone_num"));
-			tc.setTags_label(jo.getString("contact_name"));
-			tc.setCall_times(jo.getString("call_cnt"));
-			tc.setCall_length(jo.getString("call_len"));
-			tcList.add(tc);
+		if (contactArrList != null && contactArrList.size() > 0) {
+			int size = contactArrList.size() > 10 ? 10 : contactArrList.size();
+			for (int i = 0; i < size; i++) {
+				JSONObject jo = contactArrList.get(i);
+				TopContact tc = new TopContact();
+				tc.setFormat_tel(jo.getString("phone_num"));
+				tc.setTags_label(jo.getString("contact_name"));
+				tc.setCall_times(jo.getString("call_cnt"));
+				tc.setCall_length(jo.getString("call_len"));
+				tcList.add(tc);
+			}
 		}
-		
 		//TODO 解析紧急联系人信息
 		JSONArray appCheckArr = reportObj.getJSONArray("application_check");
 		for (int i = 0; i < appCheckArr.size(); i++) {
@@ -726,16 +804,39 @@ public class ReportParseUtil {
 			String appPoint = appObj.getString("app_point");
 			TopContact tc = new TopContact();
 			if (appPoint.equals("contact")) {
-				tc.setFormat_tel(appObj.getJSONObject("check_points").getString("key_value"));
-				tc.setTags_label(appObj.getJSONObject("check_points").getString("relationship"));
+				String mobile = appObj.getJSONObject("check_points").getString("key_value");
+				tc.setFormat_tel(mobile);
+				String tagsLabel = appObj.getJSONObject("check_points").getString("relationship");
+				tc.setTags_label(tagsLabel);
 				String check_mobile = appObj.getJSONObject("check_points").getString("check_mobile");
 				if (check_mobile != null) {
 					ReportContact rcRegex = regexMatchContact(check_mobile);
 					tc.setCall_times(rcRegex.getCall_cnt());
 					tc.setCall_length(rcRegex.getCall_len());
 				}
-				tcList.add(tc);
+				
+				urgentList.add(tc);
 			}
+		}
+		
+		if (tcList != null && tcList.size() > 0) {
+			// 修改标签
+			for (int i = 0; i < tcList.size(); i++) {
+				for (int j = 0; j < urgentList.size(); j++) {
+					if (tcList.get(i).getFormat_tel().equals(urgentList.get(j).getFormat_tel())) {
+						tcList.get(i).setTags_label(urgentList.get(j).getTags_label());
+					}
+				}
+			}
+			// 添加紧急联系人
+			for (TopContact topCon: urgentList) {
+				boolean f = parseIsExistCon(tcList, topCon.getFormat_tel());
+				if (!f) {
+					tcList.add(topCon);
+				}
+			}
+		}else {
+			tcList = urgentList;
 		}
 		
 		return tcList;
@@ -753,8 +854,10 @@ public class ReportParseUtil {
 	public List<TopContact> parseDHBTimesTopContact(String json){
 		JSONObject reportObj = JSONObject.parseObject(json);
 		List<TopContact> tcList = new ArrayList<>();
+		List<TopContact> urgentList = new ArrayList<>();
 		
 		JSONArray callsSaByLengthArr = reportObj.getJSONArray("calls_sa_by_times");
+
 		for (int i = 0; i < callsSaByLengthArr.size(); i++) {
 			TopContact tc = new TopContact();
 			JSONObject callsSaByLengthObj = callsSaByLengthArr.getJSONObject(i);
@@ -773,16 +876,37 @@ public class ReportParseUtil {
 		for (int i = 0; i < mcArr.size(); i++) {
 			TopContact tc = new TopContact();
 			JSONObject mvObj = mcArr.getJSONObject(i);
-			
-			tc.setFormat_tel(mvObj.getString("format_tel"));
-			tc.setTags_label(mvObj.getString("contact_relationship"));
+			String mobile = mvObj.getString("format_tel");
+			tc.setFormat_tel(mobile);
+			String tagsLabel = mvObj.getString("contact_relationship");
+			tc.setTags_label(tagsLabel);
 			tc.setCall_times(mvObj.getString("call_times"));
 			
 			float callLen = Float.parseFloat(mvObj.getString("call_length"))/60;
 			DecimalFormat df = new DecimalFormat(".00");
 			tc.setCall_length(df.format(callLen));
-
-			tcList.add(tc);
+			
+			urgentList.add(tc);
+		}
+		
+		if (tcList != null && tcList.size() > 0) {
+			// 修改标签
+			for (int i = 0; i < tcList.size(); i++) {
+				for (int j = 0; j < urgentList.size(); j++) {
+					if (tcList.get(i).getFormat_tel().equals(urgentList.get(j).getFormat_tel())) {
+						tcList.get(i).setTags_label(urgentList.get(j).getTags_label());
+					}
+				}
+			}
+			// 添加紧急联系人
+			for (TopContact topCon: urgentList) {
+				boolean f = parseIsExistCon(tcList, topCon.getFormat_tel());
+				if (!f) {
+					tcList.add(topCon);
+				}
+			}
+		}else {
+			tcList = urgentList;
 		}
 		return tcList;
 	}

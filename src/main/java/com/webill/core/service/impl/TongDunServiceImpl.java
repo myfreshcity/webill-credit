@@ -45,26 +45,30 @@ public class TongDunServiceImpl implements ITongDunService {
 	protected SystemProperty constPro;
 
 	@Override
-	public Object saveSubmitQuery(String reportKey, String userId) throws InterruptedException {
+	public Object saveSubmitQuery(String reportKey, String cusId) throws InterruptedException {
 		Map<String, String> map = new HashMap<String, String>();
 		// 必传数据
 		map.put("partner_code", constPro.TD_PARTNER_CODE);
 		map.put("partner_key", constPro.TD_PARTNER_KEY);
 		map.put("app_name", constPro.TD_APP_NAME);
 		// 获取客户信息
-		Customer cus = customerService.selectById(userId);
+		Customer cus = customerService.selectById(cusId);
 		// 获取客户的联系人信息
 		Map<String, Object> columnMap = new HashMap<String, Object>();
-		columnMap.put("cus_id", userId);
+		columnMap.put("cus_id", cusId);
 		List<CusContact> ccList = cusContactService.selectByMap(columnMap);
-		// 客户信息
-		map.put("name", cus.getRealName());
-		map.put("id_number", cus.getIdNo());
-		map.put("mobile", cus.getMobileNo());
-		map.put("home_address", cus.getHomeAddr());
-		map.put("company_address", cus.getWorkAddr());
+		if (cus != null) {
+			map.put("name", cus.getRealName());
+			map.put("id_number", cus.getIdNo());
+			map.put("mobile", cus.getMobileNo());
+			map.put("home_address", cus.getHomeAddr());
+			map.put("company_address", cus.getWorkAddr());
+		}else{
+			logger.info("customer客户信息为空");
+		}
 		// 联系人信息
 		if (ccList != null) {
+			// 客户信息
 			for (int i = 0; i < ccList.size(); i++) {
 				int x = i + 1;
 				String preKey = "contact" + x;

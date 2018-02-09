@@ -859,7 +859,7 @@ public class JxlDhbServcieImpl implements IJxlDhbService {
 	@Override
 	@Transactional
 	public void updateJxlDhbReport(){
-		List<Report> reportList = reportMongoDBService.selectReportByStatus();
+		List<Report> reportList = reportMongoDBService.selectStanReportByStatus();
 		for (Report report : reportList) {
 			//TODO 合并聚信立和电话邦报告
 			JSONObject jxlObj = JSON.parseObject(report.getJxlReport());

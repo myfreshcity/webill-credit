@@ -15,10 +15,10 @@
 			<include refid="C_Base_Column_List"></include>
 		FROM
 			t_customer c
-		WHERE 1=1 AND c.user_id = #{userId} AND c.latest_report_status != -1
+		WHERE 1=1 AND c.user_id = #{userId} and latest_report_status IS NOT NULL
 		<if test="realName != null and realName != ''">
 			AND c.real_name LIKE concat(concat('%',#{realName}),'%')
-		</if>
+		</if>	
 		<if test="mobileNo != null and mobileNo != ''">
 			AND c.mobile_no LIKE concat(concat('%',#{mobileNo}),'%')
 		</if>
@@ -28,8 +28,14 @@
 		<if test="latestReportStatus != null and latestReportStatus != '' or latestReportStatus==0">
 			AND c.latest_report_status = #{latestReportStatus}
 		</if>
-		<if test="latestReportType != null and latestReportType != ''">
+		<if test="latestReportType != null and latestReportType != ''  or latestReportType==0">
 			AND c.latest_report_type = #{latestReportType}
+		</if>
+		<if test="timeFrom!=null and timeFrom!='' ">
+			AND tl.latest_report_time &gt;= str_to_date('${timeFrom} 00:00:00','%Y-%m-%d %H:%i:%s')
+		</if>
+		<if test="timeFrom!=null and timeFrom!='' ">
+			AND tl.latest_report_time &lt;= str_to_date('${timeFrom} 23:59:59','%Y-%m-%d %H:%i:%s')
 		</if>
 		<if test="sortWay == 1">
 			ORDER BY c.latest_report_time DESC

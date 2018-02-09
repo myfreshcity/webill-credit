@@ -25,6 +25,7 @@ public class CusBasicInfo {
 	private String check_name; //姓名检查
 	private String check_idcard; //身份证号检查
 	private String check_address; //与登记地址检查
+	private Integer check_court_black; //法院黑名单检查：0-黑名单 1-非黑名单
 	/**
 	 * 聚信立-对应behavior_check.(check_point="phone_silent")
 	 */
@@ -149,5 +150,10 @@ public class CusBasicInfo {
 	public void setWork_addr_check(String work_addr_check) {
 		this.work_addr_check = work_addr_check;
 	}
-	
+	public Integer getCheck_court_black() {
+		return check_court_black;
+	}
+	public void setCheck_court_black(Integer check_court_black) {
+		this.check_court_black = check_court_black;
+	}
 }

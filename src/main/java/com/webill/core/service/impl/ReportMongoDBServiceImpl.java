@@ -127,11 +127,20 @@ public class ReportMongoDBServiceImpl extends BaseMongoDBImpl<Report> implements
 	}
 	
 	/**
-	 * 查询聚信立和电话邦都采集成功的，最终采集状态为采集中的数据
+	 * 定时合并标准版FinalReport-查询聚信立和电话邦都采集成功报告
 	 */
 	@Override
-	public List<Report> selectReportByStatus() {
+	public List<Report> selectStanReportByStatus() {
 		List<Report> reports = mgt.find(new Query(Criteria.where("jxlStatus").is(1).and("dhbStatus").is(1).and("status").is(0).and("tdTaskStatus").is(1)), getEntityClass());
+		return reports;
+	}
+	
+	/**
+	 * 定时合并基础版FinalReport-查询电话邦采集成功报告
+	 */
+	@Override
+	public List<Report> selectBasicReportByStatus() {
+		List<Report> reports = mgt.find(new Query(Criteria.where("dhbStatus").is(1).and("reportType").is(0).and("status").is(0).and("tdTaskStatus").is(1)), getEntityClass());
 		return reports;
 	}
 	

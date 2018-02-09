@@ -43,14 +43,14 @@ public interface IReportMongoDBService extends IBaseMongoDBService<Report> {
 	void updateReportByReportKey(Report report);
 
 	/**
-	 * @Title: selectReportByStatus
-	 * @Description: 查询聚信立和电话邦都采集成功的，最终采集状态为采集中的数据
+	 * @Title: selectStanReportByStatus
+	 * @Description: 定时合并标准版FinalReport-查询聚信立和电话邦都采集成功报告
 	 * @author ZhangYadong
 	 * @date 2018年2月1日 下午4:02:10
 	 * @return
 	 * @return List<Report>
 	 */
-	List<Report> selectReportByStatus();
+	List<Report> selectStanReportByStatus();
 	
 	/**
 	 * @Title: selectReportByToken
@@ -113,4 +113,14 @@ public interface IReportMongoDBService extends IBaseMongoDBService<Report> {
 	 * @return void
 	 */
 	void updateReportByReportId(Report report);
+
+	/** 
+	 * @Title: selectBasicReportByStatus 
+	 * @Description: 定时合并基础版FinalReport-查询电话邦采集成功报告
+	 * @author ZhangYadong
+	 * @date 2018年2月8日 上午10:39:35
+	 * @return
+	 * @return List<Report>
+	 */
+	List<Report> selectBasicReportByStatus();
 }

@@ -19,7 +19,6 @@ import com.webill.core.model.dianhuabang.DHBGetLoginReq;
 import com.webill.core.model.dianhuabang.DHBLoginReq;
 import com.webill.core.model.juxinli.JXLCollectReq;
 import com.webill.core.model.juxinli.JXLResetPasswordReq;
-import com.webill.core.model.juxinli.JXLSubmitFormReq;
 import com.webill.core.service.ICustomerService;
 import com.webill.core.service.IDianHuaBangService;
 import com.webill.core.service.IJuxinliService;
@@ -95,6 +94,9 @@ public class CustomerAPIController extends BaseController{
 	@ResponseBody
 	public Object getReport(@RequestBody Customer cus) {
 		String rpRes = dianHuaBangService.selectMdbReport(cus.getLatestReportKey());
+		if (rpRes == null) {
+			return renderError("reportKey不存在！", "501");
+		}
 		return renderSuccess(JSONObject.parseObject(rpRes));
 	}
 	
@@ -107,9 +109,7 @@ public class CustomerAPIController extends BaseController{
 		if (f) {
 			// 客户信息转聚信立表单提交数据
 			DHBGetLoginReq dhbReq = customerService.cusToDHBGetLoginReq(cus); 
-			// 提交申请表单
-			// return jxlDhbService.submitFormAndGetSid(jxlReq, dhbReq, cus.getId());
-			return dianHuaBangService.dhbGetSid(dhbReq, cus.getId());
+			return dianHuaBangService.dhbGetSid(dhbReq, cus.getId(), cus.getTemReportType());
 		}else {
 			return renderError("更新客户信息失败", "510");
 		}
@@ -125,7 +125,7 @@ public class CustomerAPIController extends BaseController{
 		return dianHuaBangService.dhbCollect(dhbReq, cus);
 	}
 	
-	@ApiOperation(value = "电话邦-提交数据采集请求")
+	@ApiOperation(value = "电话邦-二次提交数据采集请求")
 	@RequestMapping(value = "/dhbCollectSec", method = { RequestMethod.POST }, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
 	@ResponseBody
 	public Object dhbCollectSec(@RequestBody String jsonStr) {
@@ -142,10 +142,6 @@ public class CustomerAPIController extends BaseController{
 		// 完善客户信息
 		boolean f = customerService.updateCus(cus);
 		if (f) {
-			// 客户信息转聚信立表单提交数据
-			JXLSubmitFormReq jxlReq = customerService.cusToJXLSubmitFormReq(cus); 
-			// 提交申请表单
-			//return jxlDhbService.submitFormAndGetSid(jxlReq, dhbReq, cus.getId());
 			return juxinliService.submitForm(cus.getId(), reportKey);
 		}else {
 			return renderError("更新客户信息失败", "510");

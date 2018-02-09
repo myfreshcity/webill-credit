@@ -12,7 +12,7 @@ import com.webill.core.model.dianhuabang.DHBLoginReq;
  */
 public interface IDianHuaBangService {
 
-	Object dhbGetSid(DHBGetLoginReq dhbReq, Integer cusId);
+	Object dhbGetSid(DHBGetLoginReq dhbReq, Integer cusId, Integer temReportType);
 
 	String getDhbToken();
 

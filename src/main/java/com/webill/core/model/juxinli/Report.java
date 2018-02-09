@@ -40,7 +40,7 @@ public class Report implements Serializable {
 	@Field
 	private String cusId;
 
-	/** 信息报告类型：0-标准 1-高级 */
+	/** 信息报告类型：0-基础 1-标准 */
 	@Field
 	private Integer reportType;
 	
