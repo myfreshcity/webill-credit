@@ -110,9 +110,8 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 			Customer cust = new Customer();
 			cust.setId(cusId);
 			cust.setLatestDhbRepStatus(-1); //准备采集
-			if (temReportType == 0) { //临时信息报告类型：0-基础 1-标准
-				cust.setLatestReportStatus(-1); //准备采集
-			}
+			cust.setLatestReportStatus(-1); //准备采集
+
 			customerService.updateSelectiveById(cust);
 		}
 		JSONObject jo = new JSONObject();

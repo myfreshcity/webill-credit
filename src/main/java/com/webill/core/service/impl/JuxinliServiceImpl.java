@@ -262,8 +262,8 @@ public class JuxinliServiceImpl implements IJuxinliService {
 					public void run() {
 						try {
 							logger.debug("===>等待122秒后去唤醒状态更新线程");
-							//sleep(2 * 61 * 1000);
-							sleep(61 * 1000);
+							sleep(2 * 61 * 1000);
+							//sleep(61 * 1000);
 						} catch (Throwable e) {
 							logger.error("等待被打断", e);
 						}
