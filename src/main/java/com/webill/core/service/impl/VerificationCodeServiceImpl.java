@@ -36,7 +36,7 @@ public class VerificationCodeServiceImpl implements IVerificationCodeService{
 		String url = constPro.MMH_NET_URL + "/sendSms";
 		Map<String,Object> params = new HashMap<String,Object>();
 		params.put("phoneNo", mobile);
-		params.put("content", "您的验证码是"+verifyCode+"【慢慢花】");
+		params.put("content", "您的验证码是"+verifyCode+"【葆鼎网络】");
 		String resultStr ="";
 		Integer returnFlag = -1;
 		try {
