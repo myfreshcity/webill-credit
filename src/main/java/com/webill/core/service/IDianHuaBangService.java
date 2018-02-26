@@ -37,5 +37,7 @@ public interface IDianHuaBangService {
 	void updateJxlDhbReport();
 
 	String selectMdbReport(String reportKey);
+
+	String updateDhbOrgCallsRecord(String sid);
 	
 }

@@ -253,7 +253,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 			// 采集【同盾】
 			try {
 				logger.info("【电话邦】二次登录授权成功，开始采集【同盾】数据，reportKey="+mgReport.getReportKey()+",客户ID为"+tdCus.getId());
-				tongDunService.saveSubmitQuery(mgReport.getReportKey(), tdCus.getUserId().toString());
+				tongDunService.saveSubmitQuery(mgReport.getReportKey(), tdCus.getId().toString());
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -351,6 +351,44 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 				throw new RuntimeException("获取详单请求【电话邦】失败");
 			}
 			
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * 【电话邦】==>拉取原始详单列表
+	 */
+	@Override
+	@Transactional
+	public String updateDhbOrgCallsRecord(String sid) {
+		try {
+			String url = constPro.DHB_REQ_URL+"/calls/record?token=" + this.getDhbToken() + "&sid=" + sid;
+			String resJson = HttpUtils.httpGetRequest(url);
+			if(resJson != null) {
+				logger.info("【电话邦】原始详单==>"+ resJson);
+				JSONObject json = JSONObject.parseObject(resJson);
+				if (json.getIntValue("status") == 0) {
+					if (json.containsKey("data")) {
+						// 获取报告数据
+						String callsRecordData = json.getJSONObject("data").toString();
+						
+						//TODO 【电话邦】原始详单到mongoDB
+						Report report = new Report();
+						report.setSid(sid);
+						// 原始【电话邦】数据
+						report.setDhbOrgCallsRecord(callsRecordData);
+						reportMongoDBService.updateReportBySid(report);
+						return callsRecordData;
+					} else {
+						throw new RuntimeException("获取原始详单没有data节点！");
+					}
+				} else {
+					throw new Exception("获取原始详单失败！");
+				}
+			} else {
+				throw new RuntimeException("获取原始详单失败！");
+			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -554,7 +592,10 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		if (stanReportList != null && stanReportList.size() > 0) {
 			for (Report report : stanReportList) {
 				logger.info("开始合并-【电话邦】-【聚信立】-【同盾】报告，需要合并的报告数为"+stanReportList.size());
+				// 同盾数据
 				JSONObject tdObj = JSON.parseObject(report.getTdReport());
+				// 原始详单数据
+				JSONObject callsRecordObj = JSON.parseObject(report.getDhbOrgCallsRecord());
 				
 				String dhbReportJson = null;
 				String jxlReportJson = null;
@@ -594,6 +635,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 						jo.put("yisicuishou", dhbObj.getJSONObject("yisicuishou"));
 						// 解析【同盾】征信数据
 						jo.put("tongdun", tdObj);
+						jo.put("callsRecord", callsRecordObj);
 						report.setFinalReport(jo.toString());
 						reportMongoDBService.updateReportByReportKey(report);
 						
@@ -633,7 +675,10 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		if (basicReportList != null && basicReportList.size() > 0) {
 			for (Report basicReport : basicReportList) {
 				logger.info("开始合并-【电话邦】-【同盾】报告，需要合并的报告数为"+basicReportList.size());
+				// 同盾数据
 				JSONObject tdObj = JSON.parseObject(basicReport.getTdReport());
+				// 原始详单数据
+				JSONObject callsRecordObj = JSON.parseObject(basicReport.getDhbOrgCallsRecord());
 				
 				String dhbReportJson = null;
 				try {
@@ -644,9 +689,11 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 						basicReport.setDhbReport(dhbReportJson);
 						// 解析【同盾】征信数据
 						dhbObj.put("tongdun", tdObj);
+						dhbObj.put("callsRecord", callsRecordObj);
 						basicReport.setFinalReport(dhbObj.toJSONString());
 						basicReport.setStatus(1); //采集成功
 						reportMongoDBService.updateReportBySid(basicReport);
+						
 						
 						//TODO 2：更新customer客户信息
 						Customer cus = customerService.selectById(Integer.parseInt(basicReport.getCusId()));
@@ -690,4 +737,6 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		}
 		return report.getFinalReport();
 	}
+	
+	
 }

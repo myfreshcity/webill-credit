@@ -80,6 +80,10 @@ public class Report implements Serializable {
 	@Field
 	private String dhbReport;
 	
+	/** 电话邦原始详单*/
+	@Field
+	private String dhbOrgCallsRecord;
+	
 	/** 同盾原始报告数据 */
 	@Field
 	private String tdOrgReport;
@@ -326,5 +330,13 @@ public class Report implements Serializable {
 
 	public void setTdTaskStatus(Integer tdTaskStatus) {
 		this.tdTaskStatus = tdTaskStatus;
+	}
+
+	public String getDhbOrgCallsRecord() {
+		return dhbOrgCallsRecord;
+	}
+
+	public void setDhbOrgCallsRecord(String dhbOrgCallsRecord) {
+		this.dhbOrgCallsRecord = dhbOrgCallsRecord;
 	}
 }

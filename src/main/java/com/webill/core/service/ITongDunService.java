@@ -8,12 +8,12 @@ public interface ITongDunService {
 	 * @author: WangLongFei
 	 * @date: 2018年2月6日 上午11:12:15
 	 * @param reportKey
-	 * @param userId
+	 * @param cusId
 	 * @return
 	 * @return: JSONObject
 	 * @throws InterruptedException
 	 */
-	public Object saveSubmitQuery(String reportKey, String userId) throws InterruptedException;
+	public Object saveSubmitQuery(String reportKey, String cusId) throws InterruptedException;
 
 	/**
 	 * @Title: updateQueryByReportId
