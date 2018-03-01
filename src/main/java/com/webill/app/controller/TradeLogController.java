@@ -63,6 +63,7 @@ public class TradeLogController extends BaseController{
 		int infoGoodsId = jo.getIntValue("infoGoodsId");
 		
 		CertPayWebReq webReq = tradeLogService.certPayRequest(request, userId, infoGoodsId);
+		logger.info("连连-认证支付请求数据："+JSONUtil.toJSONString(webReq));
 		return renderSuccess(webReq);
 	}
 
@@ -167,11 +168,12 @@ public class TradeLogController extends BaseController{
 		}
 	}
 	
+	@SuppressWarnings(value = {"unchecked", "rawtypes"})
 	@ApiOperation(value = "获取用户购买记录")
 	@RequestMapping(value = "/list", method = {RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
     @ResponseBody
     public String tradeLogList(HttpServletRequest request, TradeLog tl) {
-	    Page page = this.getPage(request, Integer.MAX_VALUE);
+		Page page = this.getPage(request, Integer.MAX_VALUE);
         page = tradeLogService.getTradeLogList(page, tl);
         return JSONUtil.toJSONString(page);
     }

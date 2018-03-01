@@ -44,7 +44,7 @@ public class TransNoUtil {
 		Random random = new Random();
 		int end5 = random.nextInt(99999);
 		// 如果不足5位前面补0
-		String str = "RZZF" + millis + String.format("%05d", end5);
+		String str = "RZZF" + millis + String.format("%05d", end5); //认证支付RZZF
 		return str;
 	}
 

@@ -1,9 +1,12 @@
 package com.webill.core.service.impl;
 
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,16 +18,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONPath;
 import com.webill.app.SystemProperty;
 import com.webill.app.util.DateUtil;
 import com.webill.app.util.HttpUtils;
 import com.webill.app.util.MD5Util;
+import com.webill.app.util.PageUtil;
 import com.webill.app.util.StringUtil;
 import com.webill.app.util.TransNoUtil;
 import com.webill.core.model.Customer;
 import com.webill.core.model.RedisKeyDto;
 import com.webill.core.model.User;
+import com.webill.core.model.dianhuabang.DHBCallsRecord;
 import com.webill.core.model.dianhuabang.DHBGetLoginReq;
 import com.webill.core.model.dianhuabang.DHBGetLoginResp;
 import com.webill.core.model.dianhuabang.DHBLoginReq;
@@ -738,5 +745,86 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		return report.getFinalReport();
 	}
 	
+	/**
+	 * 分页获取电话详单数据
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public PageUtil callsRecord(DHBCallsRecord dcr, JSONArray callLogArr) {
+		PageUtil page = new PageUtil();
+		
+		// 将数组转换成字符串
+		String callLogStr = JSONObject.toJSONString(callLogArr);
+		// 将字符串转成list集合
+		List<DHBCallsRecord> crList = JSONObject.parseArray(callLogStr, DHBCallsRecord.class);//把字符串转换成集合  
+		
+		if (StringUtil.isNotEmpty(dcr.getSortWay()) && "2".equals(dcr.getSortWay())) { // 排序方式：1-时间倒序，2-通话时长降序
+			Collections.sort(crList, new Comparator<DHBCallsRecord>() {
+				@Override
+				public int compare(DHBCallsRecord cr1, DHBCallsRecord cr2) {
+					// 通话时长
+					Integer cd1 = Integer.parseInt(cr1.getCallDuration());
+					Integer cd2 = Integer.parseInt(cr2.getCallDuration());
+					return cd2.compareTo(cd1);
+				}
+			});
+		}
+		
+		// 被叫号码
+		if (StringUtil.isNotEmpty(dcr.getCallTel())) {
+			crList = (List<DHBCallsRecord>) JSONPath.eval(crList, "[callTel like '%"+dcr.getCallTel()+"%']");
+		}
+		// 呼叫类型
+		if ("1".equals(dcr.getCallMethod())) {
+			dcr.setCallMethod("主叫");
+		}else if ("2".equals(dcr.getCallMethod())) {
+			dcr.setCallMethod("被叫");
+		}
+		if (StringUtil.isNotEmpty(dcr.getCallMethod())) {
+			crList = (List<DHBCallsRecord>) JSONPath.eval(crList, "[callMethod like '%"+dcr.getCallMethod()+"%']");
+		}
+		logger.info(JSONUtil.toJSONString(crList));
+		// 通话起始时间
+		if (StringUtil.isNotEmpty(dcr.getTimeFrom())) {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			long callTimeStart, callTimeEnd;
+			try {
+				callTimeStart = sdf.parse(dcr.getTimeFrom()).getTime()/1000;
+				if (StringUtil.isNotEmpty(dcr.getTimeTo())) {
+					callTimeEnd = sdf.parse(dcr.getTimeTo()).getTime()/1000;
+				}else {
+					callTimeEnd = System.currentTimeMillis()/1000;
+				}
+				crList = (List<DHBCallsRecord>) JSONPath.eval(crList, "[callTime between "+ callTimeStart +" and "+callTimeEnd+"]");
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		//刚开始的页面为第一页
+		if (StringUtil.isEmpty(dcr.getCurrentPage())){
+			page.setCurrentPage(1);
+		} else {
+			page.setCurrentPage(dcr.getCurrentPage());
+		}
+		//设置每页数据为十条
+		page.setPageSize(dcr.getPageSize());
+		//每页的开始数
+		page.setStar((dcr.getCurrentPage() - 1) * page.getPageSize());
+		//list的大小
+		int count = crList.size();
+		//设置总页数
+		page.setTotalPage(count % dcr.getPageSize() == 0 ? count / dcr.getPageSize() : count / dcr.getPageSize() + 1);
+		//设置总条数
+		page.setTotalSize(count);
+		// 添加索引值
+		for (int i = 0; i < crList.size(); i++) {
+			crList.get(i).setIndex(i+1);
+			crList.get(i).setCallDuration(DateUtil.secondToMinute(Integer.parseInt(crList.get(i).getCallDuration())));
+		}
+		//对list进行截取
+		page.setDataList(crList.subList(page.getStar(), count-page.getStar()>page.getPageSize() ? page.getStar()+page.getPageSize() : count));
+		return page;
+	}
 	
 }

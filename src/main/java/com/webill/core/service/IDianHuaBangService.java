@@ -1,6 +1,9 @@
 package com.webill.core.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.webill.app.util.PageUtil;
 import com.webill.core.model.Customer;
+import com.webill.core.model.dianhuabang.DHBCallsRecord;
 import com.webill.core.model.dianhuabang.DHBGetLoginReq;
 import com.webill.core.model.dianhuabang.DHBLoginReq;
 
@@ -39,5 +42,7 @@ public interface IDianHuaBangService {
 	String selectMdbReport(String reportKey);
 
 	String updateDhbOrgCallsRecord(String sid);
+
+	PageUtil callsRecord(DHBCallsRecord dcr, JSONArray callLogArr);
 	
 }

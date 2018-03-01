@@ -9,13 +9,22 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.webill.app.util.PageUtil;
+import com.webill.app.util.StringUtil;
 import com.webill.core.model.dianhuabang.DHBCallbackResp;
+import com.webill.core.model.dianhuabang.DHBCallsRecord;
 import com.webill.core.model.juxinli.Report;
 import com.webill.core.service.IDianHuaBangService;
 import com.webill.core.service.IReportMongoDBService;
+import com.webill.framework.common.JsonResult;
 import com.webill.framework.controller.BaseController;
+
+import io.swagger.annotations.ApiOperation;
 
 /** 
  * @ClassName: DianHuaBangController 
@@ -31,6 +40,7 @@ public class DianHuaBangController  extends BaseController{
 	@Autowired
 	private IReportMongoDBService reportMongoDBService;
 	
+	@ApiOperation(value = "电话邦报告回调")
 	@Transactional
 	@RequestMapping(value = "/notifyUrl", method = { RequestMethod.POST },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
 	public void notifyUrl(@RequestBody String jsonStr, HttpServletResponse response) {
@@ -63,6 +73,32 @@ public class DianHuaBangController  extends BaseController{
         } catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	@ApiOperation(value = "分页获取电话详单数据")
+	@RequestMapping(value = "/callsRecord", method = { RequestMethod.POST },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public JsonResult callsRecord(DHBCallsRecord dcr) {
+		PageUtil page = null;
+		try {
+		    //查询出的list数据
+			Report dbReport = reportMongoDBService.selectReportByReportKey(dcr.getReportKey());
+			String dhbOrgCallsRecord = dbReport.getDhbOrgCallsRecord();
+			if (StringUtil.isNotEmpty(dhbOrgCallsRecord)) {
+				JSONObject jot = JSON.parseObject(dhbOrgCallsRecord);
+				JSONArray callLogArr = jot.getJSONArray("call_log");
+				if (jot.containsKey("call_log") && callLogArr != null && callLogArr.size() > 0) {
+					page = dianHuaBangService.callsRecord(dcr, callLogArr);
+				}else {
+					return renderSuccess("手机原始详单中没有call_log节点！");
+				}
+			}else {
+				return renderSuccess("没有查询到手机原始详单！");
+			}
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+		return renderSuccess(page);
 	}
 	
 }

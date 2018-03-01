@@ -65,7 +65,7 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		tl.setPayWay(2); //支付方式：0-其他 1-支付宝 2-银联支付
 		tl.setPayStatus(0); //支付状态： 0-未支付 1-支付成功 2-支付失败
 		tl.setPrice(infoGoods.getPrice());
-		tl.setMsgKey(infoGoods.toString());
+		tl.setMsgKey(infoGoods.getId().toString());
 		tl.setCreatedTime(date);
 		this.insertSelective(tl);
 		
@@ -78,8 +78,8 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
         cpwr.setBusi_partner(constPro.LIANLIANPAY_BUSI_PARTNER);
         cpwr.setNo_order(transNo);
         cpwr.setDt_order(new SimpleDateFormat("yyyyMMddHHmmss").format(date));
-        cpwr.setName_goods("微账房-信息报告购买");
-        cpwr.setInfo_order("微账房-信息报告购买");
+        cpwr.setName_goods("微账房-信息报告购买"); // 商品名称
+        cpwr.setInfo_order("微账房-信息报告购买"); // 订单备注信息，在异步通知中会回传给商户系统
         if (constPro.IS_PRODUCT) {
         	cpwr.setMoney_order(new DecimalFormat("0.00").format(infoGoods.getPrice().doubleValue()));
 		} else {
@@ -106,7 +106,7 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		cpwr.setSign_type(constPro.LIANLIANPAY_SIGN_TYPE);
 //		cpwr.setSign(LianLianUtil.genSign(JSON.parseObject(JSON.toJSONString(cpwr)), constPro.LIANLIANPAY_PRIVATE_KEY));
 		cpwr.setSign(LianLianUtil.genSign(JSON.parseObject(JSON.toJSONString(cpwr)), constPro.YT_PRI_KEY));
-
+		
 		return cpwr;
 	}
 	
