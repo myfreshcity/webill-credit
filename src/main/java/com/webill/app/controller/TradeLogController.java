@@ -80,10 +80,11 @@ public class TradeLogController extends BaseController{
 	@ApiOperation(value = "认证支付-同步通知返回到前端")
 	@RequestMapping(value = "/urlReturn", method = { RequestMethod.POST, RequestMethod.GET },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
 	public String urlReturn(CertPayWebSyncResp cpwsr) throws Exception {
+		logger.info("同步通知数据："+JSONUtil.toJSONString(cpwsr));
 		if ("SUCCESS".equals(cpwsr.getResult_pay())) {
-			return "redirect:" + "http://www.baidu.com?result=success";
+			return "redirect:" + constPro.LIANLIANPAY_WEB_URL + "/#/personal/account";
 		}else {
-			return "redirect:" + "http://www.qq.com?result=false";
+			return "redirect:" + constPro.LIANLIANPAY_WEB_URL + "/#/personal/buyData";
 		}
 	}
 	
@@ -102,7 +103,6 @@ public class TradeLogController extends BaseController{
 	public void notifyUrl(HttpServletRequest request, HttpServletResponse response, Model model) {
         try {
         	response.setCharacterEncoding("UTF-8");
-            logger.info("进入支付异步通知数据接收处理");
             String reqStr = LianLianUtil.readReqStr(request);
             if (LianLianUtil.isnull(reqStr)) {
             	ReturnBean rb = new ReturnBean("9999", "交易失败");
@@ -113,8 +113,7 @@ public class TradeLogController extends BaseController{
             logger.info("接收支付异步通知数据：【" + reqStr + "】");
             JSONObject reqObj = JSON.parseObject(reqStr);
             try {
-//            	if (!LianLianUtil.checkSignRSA(reqObj, constPro.LIANLIANPAY_PUBLIC_KEY)) {
-            	if (!LianLianUtil.checkSignRSA(reqObj, constPro.YT_PUB_KEY)) {
+            	if (!LianLianUtil.checkSignRSA(reqObj, constPro.LIANLIANPAY_PUBLIC_KEY)) {
             		logger.info("支付异步通知验签失败");
             		ReturnBean rb = new ReturnBean("9999", "交易失败");
             		response.getWriter().write(JSON.toJSONString(rb));
@@ -135,26 +134,30 @@ public class TradeLogController extends BaseController{
             	String orderDt = reqObj.getString("dt_order");		  	//商户订单时间
             	String orderMoney = reqObj.getString("money_order"); 	//交易金额
             	
-            	// 更新交易流水状态
             	TradeLog tl = new TradeLog();
             	tl.setTransNo(transNo);
-				TradeLog tlog = tradeLogService.selectOne(tl);
-				tlog.setPayStatus(1); //支付状态： 0-未支付 1-支付成功 2-支付失败
-				tlog.setRemark(reqStr);
-				boolean f = tradeLogService.updateSelectiveById(tlog);
-				
-				if (f) {
-					ReturnBean rb = new ReturnBean("0000", "交易成功");
-            		response.getWriter().write(JSON.toJSONString(rb));
-            		response.getWriter().flush();
-            		tradeLogService.emailOrderPayParam(transNo, orderDt, orderMoney);
-                    logger.info("支付异步通知数据接收处理成功");
-				}else {
-					logger.info("修改订单状态失败");
-                	ReturnBean rb = new ReturnBean("9999", "交易失败");
-                    response.getWriter().write(JSON.toJSONString(rb));
-            		response.getWriter().flush();
-                    return;
+        		TradeLog tlog = tradeLogService.selectOne(tl);
+        		
+        		if (tlog.getIsAddTimes() == 0) { // 是否增加次数：0-未增加 1-增加成功
+        			// 更新交易流水状态
+        			boolean f1 = tradeLogService.updateTradeStatus(transNo, reqStr);
+        			// 添加用户次数
+        			boolean f2 = tradeLogService.addUserTimes(transNo);
+        			
+        			if (f1 && f2) {
+        				ReturnBean rb = new ReturnBean("0000", "交易成功");
+        				response.getWriter().write(JSON.toJSONString(rb));
+        				response.getWriter().flush();
+        				// 发送邮件
+        				tradeLogService.emailOrderPayParam(transNo, orderDt, orderMoney);
+        				logger.info("支付异步通知数据接收处理成功");
+        			}else {
+        				logger.info("修改订单状态失败");
+        				ReturnBean rb = new ReturnBean("9999", "交易失败");
+        				response.getWriter().write(JSON.toJSONString(rb));
+        				response.getWriter().flush();
+        				return;
+        			}
 				}
             } else {
             	logger.info("异步通知返回支付结果失败");

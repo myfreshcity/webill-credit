@@ -82,9 +82,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		
 		try {
 			//TODO 【电话邦】请求
-			logger.debug("【电话邦】获取登录方式-请求参数-request："+dhbReq.toJsonString());
+			logger.info("【电话邦】获取登录方式-请求参数-request："+dhbReq.toJsonString());
 			String dhbResJson = HttpUtils.httpPostJsonRequest(constPro.DHB_REQ_URL+"/calls/flow?token="+this.getDhbToken(), dhbReq.toJsonString());
-			logger.debug("【电话邦】获取登录方式-响应数据-response："+dhbResJson);
+			logger.info("【电话邦】获取登录方式-响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbResp = DHBGetLoginResp.fromJsonString(dhbResJson);
 			} else {
@@ -98,7 +98,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 			// 写mongoDB
 			Report report = new Report();
 			String reportKey = TransNoUtil.getReportKey();
-			logger.debug("reportKey:"+reportKey);
+			logger.info("reportKey:"+reportKey);
 			report.setReportKey(reportKey);
 			report.setSid(dhbResp.getSid());
 			report.setCusId(cusId.toString());
@@ -147,10 +147,10 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 			dhbReq.setIdCard(dhbCus.getIdNo());
 			dhbReq.setFullName(dhbCus.getRealName());
 			//TODO 请求【电话邦】采集接口
-			logger.debug("【电话邦】登录授权-请求参数-request："+dhbReq.toJsonString());
-			logger.debug("【电话邦】登录授权地址："+constPro.DHB_REQ_URL+"/calls/login?token="+this.getDhbToken());
+			logger.info("【电话邦】登录授权-请求参数-request："+dhbReq.toJsonString());
+			logger.info("【电话邦】登录授权地址："+constPro.DHB_REQ_URL+"/calls/login?token="+this.getDhbToken());
 			String dhbResJson = HttpUtils.httpPostJsonRequest(constPro.DHB_REQ_URL+"/calls/login?token="+this.getDhbToken(), dhbReq.toJsonString());
-			logger.debug("【电话邦】登录授权-响应数据-response："+dhbResJson);
+			logger.info("【电话邦】登录授权-响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbResp = DHBLoginResp.fromJsonString(dhbResJson);
 			} else {
@@ -185,7 +185,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 			
 			// 采集【同盾】
 			try {
-				logger.debug("【电话邦】登录授权成功，开始采集【同盾】数据，reportKey="+mgReport.getReportKey()+",客户ID为"+tdCus.getId());
+				logger.info("【电话邦】登录授权成功，开始采集【同盾】数据，reportKey="+mgReport.getReportKey()+",客户ID为"+tdCus.getId());
 				tongDunService.saveSubmitQuery(mgReport.getReportKey(), tdCus.getId().toString());
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -223,9 +223,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		}
 		try {
 			//TODO 请求【电话邦】采集接口
-			logger.debug("【电话邦】-二次登录授权验证-请求参数-request："+reqMap);
+			logger.info("【电话邦】-二次登录授权验证-请求参数-request："+reqMap);
 			String dhbResJson = HttpUtils.httpPostRequest(constPro.DHB_REQ_URL+"/calls/verify?token="+this.getDhbToken(), reqMap);
-			logger.debug("【电话邦】-二次登录授权验证-响应数据-response："+dhbResJson);
+			logger.info("【电话邦】-二次登录授权验证-响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbResp = DHBLoginResp.fromJsonString(dhbResJson);
 			} else {
@@ -260,7 +260,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 			
 			// 采集【同盾】
 			try {
-				logger.debug("【电话邦】二次登录授权成功，开始采集【同盾】数据，reportKey="+mgReport.getReportKey()+",客户ID为"+tdCus.getId());
+				logger.info("【电话邦】二次登录授权成功，开始采集【同盾】数据，reportKey="+mgReport.getReportKey()+",客户ID为"+tdCus.getId());
 				tongDunService.saveSubmitQuery(mgReport.getReportKey(), tdCus.getId().toString());
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -289,9 +289,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		JSONObject dhbRespObj = new JSONObject();
 		String url = constPro.DHB_REQ_URL+"/calls/verify/captcha?token=" + this.getDhbToken() + "&sid=" + sid;
 		try {
-			logger.debug("【电话邦】-刷新图形验证码-请求参数-request："+sid);
+			logger.info("【电话邦】-刷新图形验证码-请求参数-request："+sid);
 			String dhbResJson = HttpUtils.httpGetRequest(url);
-			logger.debug("【电话邦】-刷新图形验证码 -响应数据-response："+dhbResJson);
+			logger.info("【电话邦】-刷新图形验证码 -响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbRespObj = JSONObject.parseObject(dhbResJson);
 			} else {
@@ -314,7 +314,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 			String url = constPro.DHB_REQ_URL+"/calls/report?token=" + this.getDhbToken() + "&sid=" + sid;
 			String resJson = HttpUtils.httpGetRequest(url);
 			if(resJson != null) {
-				logger.debug("【电话邦】报告信息==>"+ resJson);
+				logger.info("【电话邦】报告信息==>"+ resJson);
 				JSONObject json = JSONObject.parseObject(resJson);
 				if (json.getIntValue("status") == 0) {
 					if (json.containsKey("data")) {
@@ -336,9 +336,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 								String timeStampToDat = DateUtil.timeStampToDat(Long.parseLong(createdAt));
 								cus.setLatestReportTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStampToDat));
 								customerService.updateSelectiveById(cus);
-								logger.debug("【电话邦】报告更新时间入库成功");
+								logger.info("【电话邦】报告更新时间入库成功");
 							} catch (Exception e) {
-								logger.debug("获取报告时间异常");
+								logger.info("获取报告时间异常");
 							}
 						}
 						
@@ -374,7 +374,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 			String url = constPro.DHB_REQ_URL+"/calls/record?token=" + this.getDhbToken() + "&sid=" + sid;
 			String resJson = HttpUtils.httpGetRequest(url);
 			if(resJson != null) {
-				logger.debug("【电话邦】原始详单==>"+ resJson);
+				logger.info("【电话邦】原始详单==>"+ resJson);
 				JSONObject json = JSONObject.parseObject(resJson);
 				if (json.getIntValue("status") == 0) {
 					if (json.containsKey("data")) {
@@ -414,6 +414,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		RedisKeyDto rv = redisService.redisGet(rk);
 		
 		if (rv != null) {
+			logger.info("【电话邦】-接口请求token："+rv.getValues());
 			return rv.getValues();
 		}
 		
@@ -425,6 +426,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		try {
 			// token有效期为 7200 秒（2小时）
 			String respStr = HttpUtils.httpGetRequest(constPro.DHB_REQ_URL +"/token", reqMap);
+			
 			if(respStr != null) {
 				JSONObject json = JSONObject.parseObject(respStr);
 				int code = json.getIntValue("status");
@@ -433,6 +435,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 				}
 				JSONObject data = (JSONObject) json.get("data");
 				dhbToken = data.getString("token");
+				logger.info("【电话邦】-接口请求token："+dhbToken+",账户："+constPro.DHB_ACCOUNT+",密码："+constPro.DHB_SECRET);
 				// 【电话邦】访问token入redis
 				RedisKeyDto rkd = new RedisKeyDto();
 				rkd.setKeys(constPro.DHB_ACC_TOKNE_KEY);
@@ -462,9 +465,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		reqMap.put("user_id", idCard);
 		
 		try {
-			logger.debug("【电话邦】-忘记服务密码-请求参数-request："+reqMap);
+			logger.info("【电话邦】-忘记服务密码-请求参数-request："+reqMap);
 			String dhbResJson = HttpUtils.httpPostRequest(constPro.DHB_REQ_URL+"/forget/pwd?token="+this.getDhbToken(), reqMap);
-			logger.debug("【电话邦】-忘记服务密码-响应数据-response："+dhbResJson);
+			logger.info("【电话邦】-忘记服务密码-响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbRespObj = JSONObject.parseObject(dhbResJson);
 				//tid：修改密码所需的id号(必返回，类似sid)
@@ -493,9 +496,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		reqMap.put("new_pwd", newPwd);
 		
 		try {
-			logger.debug("【电话邦】-设置新的服务密码-请求参数-request："+reqMap);
+			logger.info("【电话邦】-设置新的服务密码-请求参数-request："+reqMap);
 			String dhbResJson = HttpUtils.httpPostRequest(constPro.DHB_REQ_URL+"/forget/pwd?token="+this.getDhbToken(), reqMap);
-			logger.debug("【电话邦】-设置新的服务密码-响应数据-response："+dhbResJson);
+			logger.info("【电话邦】-设置新的服务密码-响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbRespObj = JSONObject.parseObject(dhbResJson);
 			} else {
@@ -520,9 +523,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		reqMap.put("sms_code", smsCode);
 		
 		try {
-			logger.debug("【电话邦】-忘记服务密码短信校验-请求参数-request："+reqMap);
+			logger.info("【电话邦】-忘记服务密码短信校验-请求参数-request："+reqMap);
 			String dhbResJson = HttpUtils.httpPostRequest(constPro.DHB_REQ_URL+"/forget/pwd?token="+this.getDhbToken(), reqMap);
-			logger.debug("【电话邦】-忘记服务密码短信校验-响应数据-response："+dhbResJson);
+			logger.info("【电话邦】-忘记服务密码短信校验-响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbRespObj = JSONObject.parseObject(dhbResJson);
 			} else {
@@ -547,9 +550,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		reqMap.put("login_code", loginCode);
 		
 		try {
-			logger.debug("【电话邦】-忘记密码登录校验-请求参数-request："+reqMap);
+			logger.info("【电话邦】-忘记密码登录校验-请求参数-request："+reqMap);
 			String dhbResJson = HttpUtils.httpPostRequest(constPro.DHB_REQ_URL+"/forget/pwd?token="+this.getDhbToken(), reqMap);
-			logger.debug("【电话邦】-忘记密码登录校验-响应数据-response："+dhbResJson);
+			logger.info("【电话邦】-忘记密码登录校验-响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbRespObj = JSONObject.parseObject(dhbResJson);
 			} else {
@@ -574,9 +577,9 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		reqMap.put("tel_list ", telList);//联系人手机号（need_contacts 为 1 时调用）
 		
 		try {
-			logger.debug("【电话邦】-忘记密码联系人通话记录校验-请求参数-request："+reqMap);
+			logger.info("【电话邦】-忘记密码联系人通话记录校验-请求参数-request："+reqMap);
 			String dhbResJson = HttpUtils.httpPostRequest(constPro.DHB_REQ_URL+"/forget/pwd?token="+this.getDhbToken(), reqMap);
-			logger.debug("【电话邦】-忘记密码联系人通话记录校验-响应数据-response："+dhbResJson);
+			logger.info("【电话邦】-忘记密码联系人通话记录校验-响应数据-response："+dhbResJson);
 			if(dhbResJson != null) {
 				dhbRespObj = JSONObject.parseObject(dhbResJson);
 			} else {
@@ -599,7 +602,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		List<Report> stanReportList = reportMongoDBService.selectStanReportByStatus();
 		if (stanReportList != null && stanReportList.size() > 0) {
 			for (Report report : stanReportList) {
-				logger.debug("开始合并-【电话邦】-【聚信立】-【同盾】报告，需要合并的报告数为"+stanReportList.size());
+				logger.info("开始合并-【电话邦】-【聚信立】-【同盾】报告，需要合并的报告数为"+stanReportList.size());
 				// 同盾数据
 				JSONObject tdObj = JSON.parseObject(report.getTdReport());
 				// 原始详单数据
@@ -672,7 +675,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 						}
 					}
 				} catch (Exception e) {
-					logger.debug("【电话邦】或【聚信立】-解析报告异常！");
+					logger.info("【电话邦】或【聚信立】-解析报告异常！");
 					throw new RuntimeException(e);
 				}
 				
@@ -682,7 +685,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		List<Report> basicReportList = reportMongoDBService.selectBasicReportByStatus();
 		if (basicReportList != null && basicReportList.size() > 0) {
 			for (Report basicReport : basicReportList) {
-				logger.debug("开始合并-【电话邦】-【同盾】报告，需要合并的报告数为"+basicReportList.size());
+				logger.info("开始合并-【电话邦】-【同盾】报告，需要合并的报告数为"+basicReportList.size());
 				// 同盾数据
 				JSONObject tdObj = JSON.parseObject(basicReport.getTdReport());
 				// 原始详单数据
@@ -727,7 +730,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 						}
 					}
 				} catch (Exception e) {
-					logger.debug("【电话邦】-解析报告异常！");
+					logger.info("【电话邦】-解析报告异常！");
 					throw new RuntimeException(e);
 				}
 			}
@@ -784,7 +787,7 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 		if (StringUtil.isNotEmpty(dcr.getCallMethod())) {
 			crList = (List<DHBCallsRecord>) JSONPath.eval(crList, "[callMethod like '%"+dcr.getCallMethod()+"%']");
 		}
-		logger.debug(JSONUtil.toJSONString(crList));
+		logger.info(JSONUtil.toJSONString(crList));
 		// 通话起始时间
 		if (StringUtil.isNotEmpty(dcr.getTimeFrom())) {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

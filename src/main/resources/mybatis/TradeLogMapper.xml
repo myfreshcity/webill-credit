@@ -4,10 +4,10 @@
 
 	<!-- 通用查询结果列-->
 	<sql id="Base_Column_List">
-		id, user_id AS userId, trans_no AS transNo, pay_type AS payType, pay_direc AS payDirec, pay_way AS payWay, pay_status AS payStatus, price, amount, msg_key AS msgKey, remark, t_status AS tStatus, created_time AS createdTime
+		id, user_id AS userId, trans_no AS transNo, pay_type AS payType, pay_direc AS payDirec, pay_way AS payWay, pay_status AS payStatus, price, amount, msg_key AS msgKey, is_add_times AS isAddTimes, remark, t_status AS tStatus, created_time AS createdTime
 	</sql>
 	<sql id="TL_Base_Column_List">
-		tl.id, tl.user_id AS userId, tl.trans_no AS transNo, tl.pay_type AS payType, tl.pay_direc AS payDirec, tl.pay_way AS payWay, tl.pay_status AS payStatus, tl.price, tl.amount, tl.msg_key AS msgKey, tl.remark, tl.t_status AS tStatus, tl.created_time AS createdTime
+		tl.id, tl.user_id AS userId, tl.trans_no AS transNo, tl.pay_type AS payType, tl.pay_direc AS payDirec, tl.pay_way AS payWay, tl.pay_status AS payStatus, tl.price, tl.amount, tl.msg_key AS msgKey, tl.is_add_times AS isAddTimes, tl.remark, tl.t_status AS tStatus, tl.created_time AS createdTime
 	</sql>
 	
 	<select id="getTradeLogList" resultType="com.webill.core.model.TradeLog">

@@ -50,4 +50,25 @@ public interface ITradeLogService extends ISuperService<TradeLog> {
 	 * @return Page<TradeLog>
 	 */
 	Page<TradeLog> getTradeLogList(Page<TradeLog> page, TradeLog tl);
+	
+	/** 
+	 * @Title: updateTradeStatus 
+	 * @Description: 更新交易流水状态
+	 * @author ZhangYadong
+	 * @date 2018年1月31日 下午5:13:40
+	 * @param transNo
+	 * @param reqStr
+	 * @return
+	 */
+	boolean updateTradeStatus(String transNo, String reqStr);
+
+	/** 
+	 * @Title: addUserTimes 
+	 * @Description: 添加用户次数
+	 * @author ZhangYadong
+	 * @date 2018年1月31日 下午5:13:40
+	 * @param transNo
+	 * @return
+	 */
+	boolean addUserTimes(String transNo);
 }

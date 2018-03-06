@@ -49,6 +49,9 @@ public class TradeLog implements Serializable {
 
 	/** 信息关键索引 */
 	private String msgKey;
+	
+	/** 是否增加次数：0-未增加 1-增加成功 */
+	private Integer isAddTimes;
 
 	/** 备注 */
 	private String remark;
@@ -220,4 +223,13 @@ public class TradeLog implements Serializable {
 	public void setTimes(Integer times) {
 		this.times = times;
 	}
+
+	public Integer getIsAddTimes() {
+		return isAddTimes;
+	}
+
+	public void setIsAddTimes(Integer isAddTimes) {
+		this.isAddTimes = isAddTimes;
+	}
+	
 }

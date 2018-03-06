@@ -72,8 +72,7 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		// 构造认证支付请求对象
         CertPayWebReq cpwr = new CertPayWebReq();
         cpwr.setVersion(constPro.LIANLIANPAY_VERSION);
-//        cpwr.setOid_partner(constPro.LIANLIANPAY_CERT_PAETNER);
-        cpwr.setOid_partner(constPro.YT_PARTNER);
+        cpwr.setOid_partner(constPro.LIANLIANPAY_CERT_PAETNER);
         cpwr.setUser_id(userId.toString());
         cpwr.setBusi_partner(constPro.LIANLIANPAY_BUSI_PARTNER);
         cpwr.setNo_order(transNo);
@@ -81,7 +80,7 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
         cpwr.setName_goods("微账房-信息报告购买"); // 商品名称
         cpwr.setInfo_order("微账房-信息报告购买"); // 订单备注信息，在异步通知中会回传给商户系统
         if (constPro.IS_PRODUCT) {
-        	cpwr.setMoney_order(new DecimalFormat("0.00").format(infoGoods.getPrice().doubleValue()));
+        	cpwr.setMoney_order(new DecimalFormat("0.00").format(infoGoods.getPrice().doubleValue()/100));
 		} else {
 			cpwr.setMoney_order(new DecimalFormat("0.00").format(0.01));
 		}
@@ -104,8 +103,7 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		String rj = JSONUtil.toJSONString(riskJson);
 		cpwr.setRisk_item(rj);
 		cpwr.setSign_type(constPro.LIANLIANPAY_SIGN_TYPE);
-//		cpwr.setSign(LianLianUtil.genSign(JSON.parseObject(JSON.toJSONString(cpwr)), constPro.LIANLIANPAY_PRIVATE_KEY));
-		cpwr.setSign(LianLianUtil.genSign(JSON.parseObject(JSON.toJSONString(cpwr)), constPro.YT_PRI_KEY));
+		cpwr.setSign(LianLianUtil.genSign(JSON.parseObject(JSON.toJSONString(cpwr)), constPro.LIANLIANPAY_PRIVATE_KEY));
 		
 		return cpwr;
 	}
@@ -139,5 +137,57 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		}
 		page.setRecords(tlList);
 		return page;
+	}
+	
+	/**
+	 * 更新交易流水状态
+	 */
+	@Override
+	public boolean updateTradeStatus(String transNo, String reqStr) {
+		boolean f = false;
+		TradeLog tl = new TradeLog();
+    	tl.setTransNo(transNo);
+		TradeLog tlog = this.selectOne(tl);
+		tlog.setPayStatus(1); //支付状态： 0-未支付 1-支付成功 2-支付失败
+		tlog.setRemark(reqStr);
+		f = this.updateSelectiveById(tlog);
+		return f;
+	}
+	
+	/**
+	 * 添加用户次数
+	 */
+	@Override
+	public boolean addUserTimes(String transNo) {
+		boolean f = false;
+		
+		TradeLog tl = new TradeLog();
+    	tl.setTransNo(transNo);
+		TradeLog tlog = this.selectOne(tl);
+		
+		InfoGoods infoGoods = infoGoodsService.selectById(tlog.getMsgKey());
+		User user = new User(); 
+		User userMain = userService.selectById(tlog.getUserId());
+		user.setId(userMain.getId());
+		if (infoGoods.getInfoLevel() == 0) { // 用户信息等级：0-基础版 1-标准版
+			if (userMain.getStandardTimes() > 0) {
+				user.setStandardTimes(userMain.getStandardTimes() + infoGoods.getTimes());
+			}else {
+				user.setStandardTimes(infoGoods.getTimes());
+			}
+		}else {
+			if (userMain.getAdvancedTimes() > 0) {
+				user.setAdvancedTimes(userMain.getAdvancedTimes() + infoGoods.getTimes());
+			}else {
+				user.setAdvancedTimes(infoGoods.getTimes());
+			}
+		}
+		f = userService.updateSelectiveById(user);
+		if (f) {
+			tl.setId(tlog.getId());
+			tl.setIsAddTimes(1); // 是否增加次数：0-未增加 1-增加成功
+			f = this.updateSelectiveById(tl);
+		}
+		return f;
 	}
 }

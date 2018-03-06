@@ -311,6 +311,8 @@ public class SystemProperty {
     public String LIANLIANPAY_VERSION;
     @Value("${LIANLIANPAY_BUSI_PARTNER}")
     public String LIANLIANPAY_BUSI_PARTNER;
+    @Value("${LIANLIANPAY_WEB_URL}")
+	public String LIANLIANPAY_WEB_URL;
     /**
 	 * 实名认证Key
 	 */
