@@ -631,10 +631,10 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 						jo.put("report_contact", dhbObj.getJSONArray("report_contact"));
 						jo.put("black_info", jxlObj.getJSONObject("black_info"));
 						// 合并【聚信立】金融信息和【电话邦】标准版信息
-						List<FinancialCallInfo> jxlFciList = JSONUtil.toObjectList(jxlObj.getString("financial_call_info"), FinancialCallInfo.class);
+						List<FinancialCallInfo> dhbFciList = JSONUtil.toObjectList(dhbObj.getString("financial_call_info"), FinancialCallInfo.class);
 						List<FinancialCallInfo> dhbFciStaList = JSONUtil.toObjectList(dhbObj.getString("financial_call_info_sta"), FinancialCallInfo.class);
 						List<FinancialCallInfo> allFciOList = new ArrayList<>();
-						allFciOList = jxlFciList;
+						allFciOList = dhbFciList;
 						allFciOList.addAll(dhbFciStaList);
 						jo.put("financial_call_info", allFciOList);
 						jo.put("contact_region", dhbObj.getJSONArray("contact_region"));

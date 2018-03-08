@@ -770,6 +770,28 @@ public class ReportParseUtil {
 		
 		// 联系人按照通话次数排序
 		List<JSONObject> contactArrList = JSONObject.parseArray(reportObj.getString("contact_list"), JSONObject.class);
+		// 通话时长排序
+		Collections.sort(contactArrList, new Comparator<JSONObject>() {
+			public int compare(JSONObject jo1, JSONObject jo2) {
+				// 通话时长
+				Integer callLen1 = jo1.getIntValue("call_len");
+				Integer callLen2 = jo2.getIntValue("call_len");
+				// 通话次数
+				Integer callCnt1 = jo1.getIntValue("call_cnt");
+				Integer callCnt2 = jo1.getIntValue("call_cnt");
+
+				if (callLen1 != callLen2) {
+					return callLen2.compareTo(callLen1);
+					//return callLen1 < callLen2 ? 1 : -1;
+					//return callLen2 > callLen1 ? 1 : -1;
+				} else {
+					return callCnt2.compareTo(callCnt1);
+					//return callCnt1 < callCnt2 ? 1 : -1;
+				}
+			}
+
+		});
+		// 通话次数排序
 		Collections.sort(contactArrList, new Comparator<JSONObject>() {
 			public int compare(JSONObject jo1, JSONObject jo2) {
 				// 通话次数
