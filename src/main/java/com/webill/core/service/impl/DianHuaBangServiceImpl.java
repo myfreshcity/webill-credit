@@ -1,6 +1,7 @@
 package com.webill.core.service.impl;
 
 
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,9 +37,11 @@ import com.webill.core.model.dianhuabang.DHBGetLoginReq;
 import com.webill.core.model.dianhuabang.DHBGetLoginResp;
 import com.webill.core.model.dianhuabang.DHBLoginReq;
 import com.webill.core.model.dianhuabang.DHBLoginResp;
+import com.webill.core.model.dianhuabang.DHBTellRecord;
 import com.webill.core.model.dianhuabang.DianHuaBangErrorCode;
 import com.webill.core.model.juxinli.Report;
 import com.webill.core.model.report.FinancialCallInfo;
+import com.webill.core.model.report.TopContact;
 import com.webill.core.service.ICustomerService;
 import com.webill.core.service.IDianHuaBangService;
 import com.webill.core.service.IJuxinliService;
@@ -805,30 +808,95 @@ public class DianHuaBangServiceImpl implements IDianHuaBangService{
 			}
 		}
 		
-		//刚开始的页面为第一页
+		// 刚开始的页面为第一页
 		if (StringUtil.isEmpty(dcr.getCurrentPage())){
 			page.setCurrentPage(1);
 		} else {
 			page.setCurrentPage(dcr.getCurrentPage());
 		}
-		//设置每页数据为十条
+		// 设置每页数据为十条
 		page.setPageSize(dcr.getPageSize());
-		//每页的开始数
+		// 每页的开始数
 		page.setStar((dcr.getCurrentPage() - 1) * page.getPageSize());
-		//list的大小
+		// list的大小
 		int count = crList.size();
-		//设置总页数
+		// 设置总页数
 		page.setTotalPage(count % dcr.getPageSize() == 0 ? count / dcr.getPageSize() : count / dcr.getPageSize() + 1);
-		//设置总条数
+		// 设置总条数
 		page.setTotalSize(count);
 		// 添加索引值
 		for (int i = 0; i < crList.size(); i++) {
 			crList.get(i).setIndex(i+1);
 			crList.get(i).setCallDuration(DateUtil.secondToMinute(Integer.parseInt(crList.get(i).getCallDuration())));
 		}
-		//对list进行截取
+		// 解析通话记录号码标记
+		crList = this.parseCallTagsLabel(dcr.getReportKey(), crList);
+		// 对list进行截取
 		page.setDataList(crList.subList(page.getStar(), count-page.getStar()>page.getPageSize() ? page.getStar()+page.getPageSize() : count));
 		return page;
+	}
+	
+	/**  
+	 * @Title: parseCallTagsLabel  
+	 * @Description: 解析通话记录号码标记
+	 * @author: ZhangYadong
+	 * @date: 2018年3月8日
+	 * @param reportKey
+	 * @param crList
+	 * @return List<DHBCallsRecord>
+	 */ 
+	@Override
+	public List<DHBCallsRecord> parseCallTagsLabel(String reportKey, List<DHBCallsRecord> crList) {
+		Report dbReport = reportMongoDBService.selectReportByReportKey(reportKey);
+		// 电话邦原始报告
+		String dhbOrgReport = dbReport.getDhbOrgReport();
+		JSONObject dhbOrgReportObj = JSONObject.parseObject(dhbOrgReport);
+		
+		if (dhbOrgReportObj.containsKey("call_log_group_by_tel")) {
+			JSONArray tellRecordArr = dhbOrgReportObj.getJSONArray("call_log_group_by_tel");
+			String tellRecordStr = JSONObject.toJSONString(tellRecordArr);
+			List<DHBTellRecord> tellRecordList = JSONObject.parseArray(tellRecordStr, DHBTellRecord.class);//把字符串转换成集合  
+			// 添加普通号码标记
+			for (DHBCallsRecord cr : crList) {
+				for (DHBTellRecord tr : tellRecordList) {
+					if (cr.getCallTel().equals(tr.getFormatTel())) {
+						cr.setTagsLabel(tr.getTagsLabel());
+						break;
+					}
+				}
+			}
+			
+			// 解析紧急联系人信息
+			List<TopContact> urgentList = new ArrayList<>();
+			if (dhbOrgReportObj.containsKey("mergency_contact")) {
+				JSONArray mcArr = dhbOrgReportObj.getJSONArray("mergency_contact");
+				for (int i = 0; i < mcArr.size(); i++) {
+					TopContact tc = new TopContact();
+					JSONObject mvObj = mcArr.getJSONObject(i);
+					tc.setFormat_tel(mvObj.getString("format_tel"));
+					tc.setTags_label(mvObj.getString("contact_relationship"));
+					tc.setCall_times(mvObj.getString("call_times"));
+					
+					float callLen = Float.parseFloat(mvObj.getString("call_length"))/60;
+					DecimalFormat df = new DecimalFormat(".00");
+					tc.setCall_length(df.format(callLen));
+					urgentList.add(tc);
+				}
+				
+				// 添加紧急联系人号码标签
+				if (urgentList != null && urgentList.size() > 0) {
+					for (DHBCallsRecord cr : crList) {
+						for (TopContact tc : urgentList) {
+							if (cr.getCallTel().equals(tc.getFormat_tel())) {
+								cr.setTagsLabel(tc.getTags_label());
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		return crList;
 	}
 	
 }

@@ -1,5 +1,7 @@
 package com.webill.core.service;
 
+import java.util.List;
+
 import com.alibaba.fastjson.JSONArray;
 import com.webill.app.util.PageUtil;
 import com.webill.core.model.Customer;
@@ -44,5 +46,7 @@ public interface IDianHuaBangService {
 	String updateDhbOrgCallsRecord(String sid);
 
 	PageUtil callsRecord(DHBCallsRecord dcr, JSONArray callLogArr);
+
+	List<DHBCallsRecord> parseCallTagsLabel(String reportKey, List<DHBCallsRecord> crList);
 	
 }

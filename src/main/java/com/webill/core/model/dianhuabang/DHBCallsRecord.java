@@ -16,6 +16,7 @@ public class DHBCallsRecord {
 	private String timeFrom; // 通话起始时间-开始时间
 	private String timeTo; // 通话起始时间-结束时间
 	private Integer index; //索引
+	private String tagsLabel; //号码标记
 	
 	public String getCallCost() {
 		return callCost;
@@ -106,6 +107,12 @@ public class DHBCallsRecord {
 	}
 	public void setIndex(Integer index) {
 		this.index = index;
+	}
+	public String getTagsLabel() {
+		return tagsLabel;
+	}
+	public void setTagsLabel(String tagsLabel) {
+		this.tagsLabel = tagsLabel;
 	}
 	
 }
