@@ -107,6 +107,11 @@ public class CustomerAPIController extends BaseController{
 		// 完善客户信息
 		boolean f = customerService.updateCus(cus);
 		if (f) {
+			// 判断客户报告是否处于获取中
+			Customer isCus = customerService.selectById(cus.getId());
+			if (isCus.getLatestReportStatus() != null && isCus.getLatestReportStatus() == 0) { //-1-准备采集 0-采集中 1-采集成功 2-采集失败
+				return renderSuccess("您的报告处于查询中，请耐心等待！", "300");
+			}
 			// 客户信息转聚信立表单提交数据
 			DHBGetLoginReq dhbReq = customerService.cusToDHBGetLoginReq(cus); 
 			return dianHuaBangService.dhbGetSid(dhbReq, cus.getId(), cus.getTemReportType());
