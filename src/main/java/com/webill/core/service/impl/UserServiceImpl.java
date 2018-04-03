@@ -1,6 +1,5 @@
 package com.webill.core.service.impl;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,11 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.baomidou.mybatisplus.plugins.Page;
-import com.webill.app.util.EmojiUtil;
-import com.webill.app.util.StringUtil;
 import com.webill.core.Constant;
-import com.webill.core.ResponseInfo;
 import com.webill.core.model.RedisKeyDto;
 import com.webill.core.model.User;
 import com.webill.core.service.IUserService;
@@ -199,6 +194,16 @@ public class UserServiceImpl extends SuperServiceImpl<UserMapper, User> implemen
 		}else{
 			return null;
 		}
+	}
+	
+	@Override
+	public User updateUserCom(Integer userId, Integer comId){
+		User user = new User();
+		user.setId(userId);
+		user.setComId(comId);
+		user.setIsStaff(0); // 是否为普通员工：0-否，即企业主 1-是
+		this.updateSelectiveById(user);
+		return this.selectById(userId);
 	}
 
 }

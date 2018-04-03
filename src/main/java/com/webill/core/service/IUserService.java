@@ -101,5 +101,15 @@ public interface IUserService extends ISuperService<User> {
      * @return: User
      */
     public User saveRegister(User user);
+	/**  
+	 * @Title: updateUserCom  
+	 * @Description: 更新用户的企业信息
+	 * @author: ZhangYadong
+	 * @date: 2018年3月21日
+	 * @param userId
+	 * @param comId
+	 * @return User
+	 */ 
+	User updateUserCom(Integer userId, Integer comId);
     
 }

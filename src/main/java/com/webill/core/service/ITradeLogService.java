@@ -51,6 +51,17 @@ public interface ITradeLogService extends ISuperService<TradeLog> {
 	 */
 	Page<TradeLog> getTradeLogList(Page<TradeLog> page, TradeLog tl);
 	
+	/**  
+	 * @Title: getRechargeList  
+	 * @Description: 获取用户充值查询次数记录
+	 * @author: ZhangYadong
+	 * @date: 2018年3月22日
+	 * @param page
+	 * @param tl
+	 * @return Page<TradeLog>
+	 */ 
+	Page<TradeLog> getRechargeList(Page<TradeLog> page, TradeLog tl);
+	
 	/** 
 	 * @Title: updateTradeStatus 
 	 * @Description: 更新交易流水状态
@@ -71,4 +82,17 @@ public interface ITradeLogService extends ISuperService<TradeLog> {
 	 * @return
 	 */
 	boolean addUserTimes(String transNo);
+
+	/**  
+	 * @Title: updateSelTimes  
+	 * @Description: 充值-修改用户表查询次数
+	 * @author: ZhangYadong
+	 * @date: 2018年3月22日
+	 * @param userMobileNo
+	 * @param staTimes
+	 * @param advTimes
+	 * @return boolean
+	 */ 
+	boolean updateSelTimes(String userMobileNo, Integer infoLevel, Integer times);
+
 }

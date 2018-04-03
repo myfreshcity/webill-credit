@@ -21,6 +21,7 @@ import com.webill.core.service.RedisService;
 import com.webill.framework.common.JsonResult;
 import com.webill.framework.controller.BaseController;
 
+import io.jsonwebtoken.Claims;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -144,6 +145,8 @@ public class UserApiController extends BaseController {
 						Integer result = userService.userLogin(user);
 						
 						if(Constant.LOGIN_SUCCESS.intValue()==result.intValue()){
+			            	String token = jwtUtil.generToken(user.getMobileNo(),"mmh","mobileNo");
+			            	mobUser.setJwtToken(token);
 							return renderSuccess("登录成功！", "200", mobUser);
 						}else if(Constant.LOGIN_VERIFY_CODE_ERROR.intValue()==result.intValue()){
 							return renderError("验证码错误，请重试！", "300");
@@ -158,6 +161,8 @@ public class UserApiController extends BaseController {
 						
 						if(Constant.LOGIN_SUCCESS.intValue()==result.intValue()){
 							User dbUser = userService.checkMobileIsExist(user.getMobileNo());
+							String token = jwtUtil.generToken(user.getMobileNo(),"mmh","mobileNo");
+							dbUser.setJwtToken(token);
 							return renderSuccess("登录成功！", "200", dbUser);
 						}else if(Constant.LOGIN_PWD_ERROR.intValue()==result.intValue()){
 							return renderError("密码错误，请重试！", "300");
@@ -225,84 +230,52 @@ public class UserApiController extends BaseController {
 	 */
 	@ApiOperation(value = "修改密码,成功：返回用户信息")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "重置登录密码成功！"),
-			@ApiResponse(code = 500, message = "修改密码失败，请重试！"), @ApiResponse(code = 400, message = "密码不能为空！"),
-			@ApiResponse(code = 405, message = "验证码错误，请重试！"), @ApiResponse(code = 406, message = "验证码已失效，请重新发送验证码！"),
-			@ApiResponse(code = 305, message = "该手机号还未注册，请先注册！"), @ApiResponse(code = 300, message = "手机号不能为空！") })
-	    @RequestMapping(value = "/updatePassword", method = RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
-	    @ResponseBody
-	    public JsonResult updatePassword(@RequestBody String jsonStr) {
-	    User user = JSONObject.parseObject(jsonStr, User.class);
-	    boolean f = false;
-	    if (StringUtil.isNotEmpty(user.getMobileNo())) {
+		@ApiResponse(code = 500, message = "修改密码失败，请重试！"), @ApiResponse(code = 400, message = "密码不能为空！"),
+		@ApiResponse(code = 405, message = "验证码错误，请重试！"), @ApiResponse(code = 406, message = "验证码已失效，请重新发送验证码！"),
+		@ApiResponse(code = 305, message = "该手机号还未注册，请先注册！"), @ApiResponse(code = 300, message = "手机号不能为空！") })
+    @RequestMapping(value = "/updatePassword", method = RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
+    @ResponseBody
+	public JsonResult updatePassword(@RequestBody String jsonStr) {
+		User user = JSONObject.parseObject(jsonStr, User.class);
+		boolean f = false;
+		if (StringUtil.isNotEmpty(user.getMobileNo())) {
 			// 获取库中用户信息
-	      User dbUser = userService.checkMobileIsExist(user.getMobileNo());
+			User dbUser = userService.checkMobileIsExist(user.getMobileNo());
 			// 判断用户是否存在
-	      if(dbUser!=null){
+			if (dbUser != null) {
 				// 获取系统发送的验证码
-	        RedisKeyDto redisWhere = new RedisKeyDto();
-	        redisWhere.setKeys(user.getMobileNo());
-	        RedisKeyDto redisKeyDto = redisService.redisGet(redisWhere);
-	        if (redisKeyDto != null) {
-	          String verifyCode = redisKeyDto.getValues();
-	          if (user.getInCode().equals(verifyCode)) {
+				RedisKeyDto redisWhere = new RedisKeyDto();
+				redisWhere.setKeys(user.getMobileNo());
+				RedisKeyDto redisKeyDto = redisService.redisGet(redisWhere);
+				if (redisKeyDto != null) {
+					String verifyCode = redisKeyDto.getValues();
+					if (user.getInCode().equals(verifyCode)) {
 						// 验证码正确
-	            user.setId(dbUser.getId());
-	            if (StringUtil.isNotEmpty(user.getPassword())) {
+						user.setId(dbUser.getId());
+						if (StringUtil.isNotEmpty(user.getPassword())) {
 							// 修改密码
-	              f = userService.updateSelectiveById(user);
-	              if (f) {
+							f = userService.updateSelectiveById(user);
+							if (f) {
 								return renderSuccess("重置登录密码成功！", "200", dbUser);
-	              } else {
+							} else {
 								return renderError("修改密码失败，请重试！", "500");
-	              }
-	            }else{
+							}
+						} else {
 							return renderError("密码不能为空！", "400");
-	            }
-	          }else{
+						}
+					} else {
 						return renderError("验证码错误，请重试！", "405");
-	          }
-	        } else {
+					}
+				} else {
 					return renderError("验证码已失效，请重新发送验证码！", "406");
-	        }
-	      }else{
+				}
+			} else {
 				return renderError("该手机号还未注册，请先注册！", "305");
-	      }
-	    }else{
+			}
+		} else {
 			return renderError("手机号不能为空！", "300");
-	    }
-	  }
-	
-	/**
-	 * @Title: updateIdCard
-	 * @Description: 身份验证
-	 * @author: WangLongFei
-	 * @date: 2017年11月29日 下午1:42:05
-	 * @return
-	 * @throws Exception
-	 * @return: Object
-	 */
-	/*
-	 * @ApiOperation(value = "身份验证")
-	 * 
-	 * @ApiResponses(value = {@ApiResponse(code = 200, message =
-	 * "修改身份证成功！"),@ApiResponse(code = 500, message = "修改身份证失败！")})
-	 * 
-	 * @RequestMapping(value = "/updateIdCard", method = { RequestMethod.POST
-	 * },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
-	 * 
-	 * @ResponseBody public Object updateIdCard(@ApiParam(value =
-	 * "身份验证")@RequestBody User user) throws Exception { //原始数据 User dbUser =
-	 * userService.selectById(user.getId());
-	 * if(StringUtil.isEmpty(dbUser.getCardCode())&&StringUtil.isEmpty(dbUser.
-	 * getcName())){ user.setCName(user.getcName()); boolean f =
-	 * userService.updateSelectiveById(user); User newUser =
-	 * userService.selectById(user.getId()); if(f){ return
-	 * renderSuccess("修改身份信息成功！", "200",newUser); }else{ return
-	 * renderError("修改身份信息失败！", "500"); } }else{ return renderError("已身份认证！",
-	 * "500"); }
-	 * 
-	 * }
-	 */
+		}
+	}
 	
 	/**
 	 * @Title: checkPwd
@@ -325,118 +298,43 @@ public class UserApiController extends BaseController {
 			return renderError("密码错误！", "500");
 		}
 	}
-	/**
-	 * @Title: updateMobile
-	 * @Description: 修改手机号
-	 * @author: WangLongFei
-	 * @date: 2017年11月24日 上午10:58:43
-	 * @param jsonStr
-	 * @return
-	 * @return: JsonResult
-	 */
-	/*
-	 * @ApiOperation(value = "修改手机号")
-	 * 
-	 * @ApiResponses(value = {@ApiResponse(code = 200, message = "验证成功！"),
-	 * 
-	 * @ApiResponse(code = 305, message = "验证码已失效，请重新发送验证码！"),
-	 * 
-	 * @ApiResponse(code = 500, message = "验证码错误，请重试！") })
-	 * 
-	 * @RequestMapping(value = "/updateMobile", method =
-	 * RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
-	 * 
-	 * @ResponseBody public JsonResult updateMobile(@RequestBody String jsonStr)
-	 * { User user = JSONObject.parseObject(jsonStr, User.class); //获取系统发送的验证码
-	 * RedisKeyDto redisWhere = new RedisKeyDto();
-	 * redisWhere.setKeys(user.getMobile()); RedisKeyDto redisKeyDto =
-	 * redisService.redisGet(redisWhere); if(redisKeyDto!=null){ String
-	 * verifyCode = redisKeyDto.getValues();
-	 * if(user.getInCode().equals(verifyCode)){ //验证码正确 boolean f =
-	 * userService.updateSelectiveById(user); if(f){ return
-	 * renderSuccess("修改手机号成功！","200"); }else{ return
-	 * renderSuccess("修改手机号失败！","500"); } }else{ return
-	 * renderError("验证码错误，请重试！","400"); } }else{ return
-	 * renderError("验证码已失效，请重新发送验证码！", "305"); } }
-	 */
-	/**
-	 * @Title: checkInCode
-	 * @Description: 核对验证码
-	 * @author: WangLongFei
-	 * @date: 2017年11月24日 上午10:58:43
-	 * @param jsonStr
-	 * @return
-	 * @return: JsonResult
-	 */
-	/*
-	 * @ApiOperation(value = "核对验证码")
-	 * 
-	 * @ApiResponses(value = {@ApiResponse(code = 200, message = "验证成功！"),
-	 * 
-	 * @ApiResponse(code = 305, message = "验证码已失效，请重新发送验证码！"),
-	 * 
-	 * @ApiResponse(code = 500, message = "验证码错误，请重试！") })
-	 * 
-	 * @RequestMapping(value = "/checkInCode", method =
-	 * RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
-	 * 
-	 * @ResponseBody public JsonResult checkInCode(@RequestBody String jsonStr)
-	 * { User user = JSONObject.parseObject(jsonStr, User.class); //获取系统发送的验证码
-	 * RedisKeyDto redisWhere = new RedisKeyDto();
-	 * redisWhere.setKeys(user.getMobile()); RedisKeyDto redisKeyDto =
-	 * redisService.redisGet(redisWhere); if(redisKeyDto!=null){ String
-	 * verifyCode = redisKeyDto.getValues();
-	 * if(user.getInCode().equals(verifyCode)){ //验证码正确 return
-	 * renderSuccess("验证成功！","200"); }else{ return
-	 * renderError("验证码错误，请重试！","500"); } }else{ return
-	 * renderError("验证码已失效，请重新发送验证码！", "305"); } }
-	 */
 	
-	/**
-	 * @Title: updatePassword
-	 * @Description: 修改密码,成功：返回用户信息
-	 * @author: WangLongFei
-	 * @date: 2018年2月1日 上午10:50:39
+	/**  
+	 * @Title: checkToken  
+	 * @Description: 检验token
+	 * @author: ZhangYadong
+	 * @date: 2018年3月22日
 	 * @param jsonStr
-	 * @return
-	 * @return: JsonResult
-	 */
-	/*
-	 * @ApiOperation(value = "修改密码,成功：返回用户信息")
-	 * 
-	 * @ApiResponses(value = { @ApiResponse(code = 200, message = "重置登录密码成功！"),
-	 * 
-	 * @ApiResponse(code = 500, message = "修改密码失败，请重试！"), @ApiResponse(code =
-	 * 400, message = "密码不能为空！"),
-	 * 
-	 * @ApiResponse(code = 405, message = "验证码错误，请重试！"), @ApiResponse(code =
-	 * 406, message = "验证码已失效，请重新发送验证码！"),
-	 * 
-	 * @ApiResponse(code = 305, message = "该手机号还未注册，请先注册！"), @ApiResponse(code =
-	 * 300, message = "手机号不能为空！") })
-	 * 
-	 * @RequestMapping(value = "/updatePassword", method =
-	 * RequestMethod.POST,produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
-	 * 
-	 * @ResponseBody public JsonResult updatePassword(@RequestBody String
-	 * jsonStr) { User user = JSONObject.parseObject(jsonStr, User.class);
-	 * boolean f = false; if (StringUtil.isNotEmpty(user.getMobileNo())) { //
-	 * 获取库中用户信息 User dbUser =
-	 * userService.checkMobileIsExist(user.getMobileNo()); // 判断用户是否存在
-	 * if(dbUser!=null){ // 获取系统发送的验证码 RedisKeyDto redisWhere = new
-	 * RedisKeyDto(); redisWhere.setKeys(user.getMobileNo()); RedisKeyDto
-	 * redisKeyDto = redisService.redisGet(redisWhere); if (redisKeyDto != null)
-	 * { String verifyCode = redisKeyDto.getValues(); if
-	 * (user.getInCode().equals(verifyCode)) { // 验证码正确
-	 * user.setId(dbUser.getId()); if
-	 * (StringUtil.isNotEmpty(user.getPassword())) { // 修改密码 f =
-	 * userService.updateSelectiveById(user); if (f) { return
-	 * renderSuccess("重置登录密码成功！", "200", dbUser); } else { return
-	 * renderError("修改密码失败，请重试！", "500"); } }else{ return renderError("密码不能为空！",
-	 * "400"); } }else{ return renderError("验证码错误，请重试！", "405"); } } else {
-	 * return renderError("验证码已失效，请重新发送验证码！", "406"); } }else{ return
-	 * renderError("该手机号还未注册，请先注册！", "305"); } }else{ return
-	 * renderError("手机号不能为空！", "300"); } }
-	 */
+	 * @return Object
+	 */ 
+	@RequestMapping(value = "/checkToken", method = { RequestMethod.POST },produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public Object checkToken(@RequestBody String jsonStr) {
+		JSONObject jo = JSONObject.parseObject(jsonStr);
+		String token = jo.getString("token");
+		JSONObject resObj = new JSONObject();
+
+		if (StringUtil.isEmpty(token)) {
+			resObj.put("token", token);
+			resObj.put("result", 0);
+			resObj.put("message", "缺少token，无法验证");
+			return resObj;
+		}
+		
+		Claims cm = jwtUtil.verifyToken(token);
+		if (cm != null) {
+			token = jwtUtil.updateTokenBase64Code(cm);
+			resObj.put("token", token);
+			resObj.put("result", 2);
+			resObj.put("message", "生成新的token");
+			return resObj;
+		} else {
+			resObj.put("token", token);
+			resObj.put("result", 1);
+			resObj.put("message", "token失效");
+			return resObj;
+		}
+	}
+
 	
 }

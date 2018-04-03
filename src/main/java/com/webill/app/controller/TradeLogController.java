@@ -1,5 +1,9 @@
 package com.webill.app.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -18,10 +22,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.plugins.Page;
 import com.webill.app.util.LianLianUtil;
 import com.webill.core.model.TradeLog;
+import com.webill.core.model.User;
 import com.webill.core.model.lianlianEntity.CertPayWebReq;
 import com.webill.core.model.lianlianEntity.CertPayWebSyncResp;
 import com.webill.core.model.lianlianEntity.ReturnBean;
 import com.webill.core.service.ITradeLogService;
+import com.webill.core.service.IUserService;
 import com.webill.framework.common.JSONUtil;
 import com.webill.framework.common.JsonResult;
 import com.webill.framework.controller.BaseController;
@@ -42,6 +48,8 @@ import io.swagger.annotations.ApiResponses;
 public class TradeLogController extends BaseController{
 	@Autowired
 	private ITradeLogService tradeLogService;
+	@Autowired
+	private IUserService userService;
 	
 	/** 
 	* @Title: certPay 
@@ -180,4 +188,38 @@ public class TradeLogController extends BaseController{
         page = tradeLogService.getTradeLogList(page, tl);
         return JSONUtil.toJSONString(page);
     }
+	
+	@SuppressWarnings(value = {"unchecked", "rawtypes"})
+	@ApiOperation(value = "获取数据充值记录")
+	@RequestMapping(value = "/rechargeList", method = {RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public String rechargeList(HttpServletRequest request, TradeLog tl) {
+		Page page = this.getPage(request, Integer.MAX_VALUE);
+		page = tradeLogService.getRechargeList(page, tl);
+		return JSONUtil.toJSONString(page);
+	}
+	
+	@ApiOperation(value = "充值查询次数")
+	@RequestMapping(value = "/rechargeTimes", method = {RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public Object rechargeTimes(@RequestBody TradeLog tl) {
+		Map<String, Object> userMap = new HashMap<>();
+		userMap.put("mobile_no", tl.getUserMobileNo());
+		List<User> userList = userService.selectByMap(userMap);
+		if (userList != null && userList.size() > 0) {
+			// 充值查询次数
+			tl.setPayType(0); // 交易类型：0-用户报告 1-会员
+			tl.setUserId(userList.get(0).getId());
+			boolean f = tradeLogService.insertSelective(tl);
+			if (f) {
+				// 充值-修改用户表查询次数
+				tradeLogService.updateSelTimes(tl.getUserMobileNo(), tl.getInfoLevel(), tl.getTimes());
+				return renderSuccess("充值查询次数成功！", "200");
+			}
+			return renderError("充值查询次数失败！", "300");
+		}else {
+			return renderError("用户手机号不存在！", "310");
+		}
+	}
+	
 }

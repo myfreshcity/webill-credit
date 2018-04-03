@@ -246,6 +246,11 @@ public class SystemProperty {
     @Value("${CATEGORY_FILE_ACCESS_PATH}")
     public String CATEGORY_FILE_ACCESS_PATH;
     
+    @Value("${BUSI_LICE_FILE_PATH}")
+    public String BUSI_LICE_FILE_PATH;
+    @Value("${BUSI_LICE_ACCESS_PATH}")
+    public String BUSI_LICE_ACCESS_PATH;
+    
     /**
 	 * @fieldName: AREA_JSON
 	 * @fieldType: String

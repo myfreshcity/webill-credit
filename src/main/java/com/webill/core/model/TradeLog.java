@@ -80,6 +80,9 @@ public class TradeLog implements Serializable {
 	@TableField(exist = false)
 	private Integer times;
 	
+	@TableField(exist = false)
+	private String userMobileNo;
+	
 	public Integer getId() {
 		return this.id;
 	}
@@ -231,5 +234,13 @@ public class TradeLog implements Serializable {
 	public void setIsAddTimes(Integer isAddTimes) {
 		this.isAddTimes = isAddTimes;
 	}
-	
+
+	public String getUserMobileNo() {
+		return userMobileNo;
+	}
+
+	public void setUserMobileNo(String userMobileNo) {
+		this.userMobileNo = userMobileNo;
+	}
+
 }

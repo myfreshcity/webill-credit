@@ -24,4 +24,16 @@ public interface TradeLogMapper extends AutoMapper<TradeLog> {
 	 * @return List<TradeLog>
 	 */
 	List<TradeLog> getTradeLogList(Pagination page, TradeLog tl);
+	
+	/**  
+	 * @Title: getRechargeList  
+	 * @Description: 获取用户充值查询次数记录
+	 * @author: ZhangYadong
+	 * @date: 2018年3月22日
+	 * @param page
+	 * @param tl
+	 * @return List<TradeLog>
+	 */ 
+	List<TradeLog> getRechargeList(Pagination page, TradeLog tl);
+	
 }

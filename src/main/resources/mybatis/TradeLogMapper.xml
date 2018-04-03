@@ -7,7 +7,7 @@
 		id, user_id AS userId, trans_no AS transNo, pay_type AS payType, pay_direc AS payDirec, pay_way AS payWay, pay_status AS payStatus, price, amount, msg_key AS msgKey, is_add_times AS isAddTimes, remark, t_status AS tStatus, created_time AS createdTime
 	</sql>
 	<sql id="TL_Base_Column_List">
-		tl.id, tl.user_id AS userId, tl.trans_no AS transNo, tl.pay_type AS payType, tl.pay_direc AS payDirec, tl.pay_way AS payWay, tl.pay_status AS payStatus, tl.price, tl.amount, tl.msg_key AS msgKey, tl.is_add_times AS isAddTimes, tl.remark, tl.t_status AS tStatus, tl.created_time AS createdTime
+		tl.id, tl.user_id AS userId, tl.trans_no AS transNo, tl.pay_type AS payType, tl.pay_direc AS payDirec, tl.pay_way AS payWay, tl.pay_status AS payStatus, tl.price, tl.amount, tl.msg_key AS msgKey, tl.is_add_times AS isAddTimes, tl.remark, tl.t_status AS tStatus, tl.info_level AS infoLevel, tl.times, tl.created_time AS createdTime
 	</sql>
 	
 	<select id="getTradeLogList" resultType="com.webill.core.model.TradeLog">
@@ -16,7 +16,7 @@
 		FROM 
 			t_trade_log tl
 		LEFT JOIN t_info_goods ig ON ig.id = tl.msg_key
-		WHERE tl.pay_status = 1 AND tl.user_id = #{userId}
+		WHERE tl.pay_status = 1 and tl.pay_direc = 0 AND tl.user_id = #{userId}
 		<if test="payType != null and payType != ''">
 			AND tl.pay_type = #{payType}
 		</if>
@@ -28,6 +28,27 @@
 		</if>
 		<if test="infoLevel != null and infoLevel != ''">
 			AND ig.info_level = #{infoLevel}
+		</if>
+	</select>
+	
+	<select id="getRechargeList" resultType="com.webill.core.model.TradeLog">
+		SELECT 
+			<include refid="TL_Base_Column_List"></include>, u.mobile_no AS userMobileNo, u.real_name AS realName
+		FROM
+		t_trade_log tl
+		LEFT JOIN t_user u ON u.id = tl.user_id
+		WHERE 1=1 and tl.pay_direc = 1
+		<if test="realName != null and realName != ''">
+			AND u.real_name LIKE concat(concat('%',#{realName}),'%')
+		</if>
+		<if test="userMobileNo != null and userMobileNo != ''">
+			AND u.mobile_no LIKE concat(concat('%',#{userMobileNo}),'%')
+		</if>
+		<if test="timeFrom!=null and timeFrom!='' ">
+			AND tl.created_time &gt;= str_to_date('${timeFrom} 00:00:00','%Y-%m-%d %H:%i:%s')
+		</if>
+		<if test="timeTo!=null and timeTo!='' ">
+			AND tl.created_time &lt;= str_to_date('${timeTo} 23:59:59','%Y-%m-%d %H:%i:%s')
 		</if>
 	</select>
 	

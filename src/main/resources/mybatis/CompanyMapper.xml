@@ -4,7 +4,28 @@
 
 	<!-- 通用查询结果列-->
 	<sql id="Base_Column_List">
-		id, name, created_time AS createdTime
+		id, com_name AS comName, com_addr AS comAddr, com_addr_code AS comAddrCode, com_addr_detail AS comAddrDetail, legal_name AS legalName, contact_name AS contactName, contact_mobile AS contactMobile, credit_code AS creditCode, busi_license_url AS busiLicenseUrl, status, operator_id AS operatorId, review_time AS reviewTime, remark, updated_time AS updatedTime, created_time AS createdTime
 	</sql>
+	<sql id="C_Base_Column_List">
+		c.id, c.com_name AS comName, c.com_addr AS comAddr, c.com_addr_code AS comAddrCode, c.com_addr_detail AS comAddrDetail, c.legal_name AS legalName, c.contact_name AS contactName, c.contact_mobile AS contactMobile, c.credit_code AS creditCode, c.busi_license_url AS busiLicenseUrl, c.status, c.operator_id AS operatorId, c.review_time AS reviewTime, c.remark, c.updated_time AS updatedTime, c.created_time AS createdTime
+	</sql>
+	
+	<select id="getComList" resultType="com.webill.core.model.Company">
+		SELECT
+			<include refid="C_Base_Column_List"></include>, u.mobile_no AS userMobileNo
+		FROM
+			t_company c
+		LEFT JOIN t_user u ON u.com_id = c.id
+		WHERE 1=1
+		<if test="userMobileNo != null and userMobileNo != ''">
+			AND u.mobile_no LIKE concat(concat('%',#{userMobileNo}),'%')
+		</if>	
+		<if test="comName != null and comName != ''">
+			AND c.com_name LIKE concat(concat('%',#{comName}),'%')
+		</if>	
+		<if test="status != null and status != ''">
+			AND c.status = #{status}
+		</if>	
+	</select>
 
 </mapper>

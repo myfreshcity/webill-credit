@@ -4,7 +4,9 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -61,7 +63,7 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		tl.setUserId(userId);
 		tl.setTransNo(transNo);
 		tl.setPayType(0); //交易类型：0-用户报告 1-会员
-		tl.setPayDirec(0); //交易方向：0-购买 1-消费
+		tl.setPayDirec(0); //交易方向：0-线上支付 1-线下支付
 		tl.setPayWay(2); //支付方式：0-其他 1-支付宝 2-银联支付
 		tl.setPayStatus(0); //支付状态： 0-未支付 1-支付成功 2-支付失败
 		tl.setPrice(infoGoods.getPrice());
@@ -139,6 +141,19 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		return page;
 	}
 	
+	@Override
+	public Page<TradeLog> getRechargeList(Page<TradeLog> page, TradeLog tl){
+		List<TradeLog> tlList = baseMapper.getRechargeList(page, tl);
+		for (TradeLog tlog : tlList) {
+			if (tlog.getCreatedTime() != null) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				tlog.setOrderTimeStr(sdf.format(tlog.getCreatedTime()));
+			}
+		}
+		page.setRecords(tlList);
+		return page;
+	}
+	
 	/**
 	 * 更新交易流水状态
 	 */
@@ -190,4 +205,35 @@ public class TradeLogServiceImpl extends SuperServiceImpl<TradeLogMapper, TradeL
 		}
 		return f;
 	}
+	
+	/**
+	 * 充值-修改用户表查询次数
+	 */
+	@Override
+	public boolean updateSelTimes(String userMobileNo, Integer infoLevel, Integer times){
+		Map<String, Object> userMap = new HashMap<>();
+		userMap.put("mobile_no", userMobileNo);
+		List<User> userList = userService.selectByMap(userMap);
+		User userMain = userList.get(0);
+		
+		User user = new User();
+		user.setId(userMain.getId());
+		
+		if (infoLevel == 0) { // 用户信息等级：0-基础版 1-标准版
+			if (userMain.getStandardTimes() < 0) {
+				user.setStandardTimes(times);
+			}else {
+				user.setStandardTimes(userMain.getStandardTimes() + times);
+			}
+		}else if (infoLevel == 1)  {
+			if (userMain.getAdvancedTimes() < 0) {
+				user.setAdvancedTimes(times);
+			}else {
+				user.setAdvancedTimes(userMain.getAdvancedTimes() + times);
+			} 
+		}
+		
+		boolean f = userService.updateSelectiveById(user);
+		return f;
+	} 
 }
