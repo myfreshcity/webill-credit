@@ -75,7 +75,7 @@ public class ReportMongoDBServiceImpl extends BaseMongoDBImpl<Report> implements
 				}
 			}
 		}
-		mgt.updateFirst(new Query(Criteria.where("sid").is(report.getSid())), update, getEntityClass());  
+		mgt.updateMulti(new Query(Criteria.where("sid").is(report.getSid())), update, getEntityClass());
 	}
 	
 	@Override
