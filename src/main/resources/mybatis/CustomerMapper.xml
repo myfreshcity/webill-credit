@@ -43,5 +43,6 @@
 		<if test="sortWay == 2">
 			ORDER BY c.refresh_times DESC
 		</if>
+			ORDER BY c.created_time DESC
 	</select>
 </mapper>
