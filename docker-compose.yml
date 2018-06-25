@@ -1,0 +1,33 @@
+version: '2'
+services:
+  tomcat:
+    image: tomcat:8.5
+    networks:
+            - jaz
+    ports:
+        - "7080:8080"
+    volumes:
+        - /Users/newcity/JavaProjects/webill-app/target/webill-app:/usr/local/tomcat/webapps/webill-app
+        - ./logs:/usr/local/tomcat/logs
+    depends_on:
+          - mongodb
+          - mx_redis
+
+  mongodb:
+      image: bitnami/mongodb:latest
+      networks:
+              - jaz
+      volumes:
+        - /Users/newcity/JavaProjects/webill-app/mongo-data:/bitnami/mongodb
+
+  mx_redis:
+      restart: always
+      networks:
+        - jaz
+      image: redis:alpine
+      expose:
+        - 6379
+      command: redis-server --appendonly yes
+
+networks:
+    jaz:
